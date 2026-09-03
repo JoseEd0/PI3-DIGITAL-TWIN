@@ -12,35 +12,56 @@ open -a Gaphor modelo/campus-twin-l419.gaphor
 
 Requiere Gaphor 3.x (probado con 3.3.2).
 
+**Gaphor no abre ningún diagrama solo**: al cargar el modelo muestra el mensaje *"Open a
+Diagram"*. Los diagramas están en el árbol de la izquierda, dentro de cada paquete, y se abren
+con **doble clic**. Empiezan con un número para que aparezcan al inicio de cada paquete, antes
+de los requisitos y los bloques.
+
+Para ver todo de golpe, empieza por el paquete **00 Vista general**.
+
 ## Contenido
 
-Paquetes: `01 Requisitos`, `02 Estructura`, `03 Verificación`.
+Paquetes: `00 Vista general`, `01 Requisitos`, `02 Estructura`, `03 Verificación`.
+12 diagramas: 7 de requisitos (req) y 5 de definición de bloques (bdd).
 
-### Diagramas de requisitos (req)
-
-| Diagrama | Qué muestra |
-|---|---|
-| Necesidades de los stakeholders | Las 5 necesidades (NS-1 … NS-5) de las que cuelga todo |
-| Requisitos funcionales | RF-01 … RF-11 con `deriveReqt` hacia su necesidad de origen |
-| Requisitos no funcionales y restricciones | RNF-01 … RNF-07 con `deriveReqt` |
-| Trazabilidad a la arquitectura | `satisfy` de cada bloque hacia el requisito que cumple |
-| Casos de prueba de requisitos funcionales / no funcionales | `verify` de cada caso de prueba (CP-01 … CP-14) hacia el requisito |
-
-### Diagramas de definición de bloques (bdd)
+### 00 Vista general
 
 | Diagrama | Qué muestra |
 |---|---|
-| Arquitectura del sistema | `Campus Twin L-419` con sus seis subsistemas (composición) y los actores externos |
-| Nodos e instrumentación | Taxonomía de nodos ESP32 y los sensores que compone cada uno, con sus propiedades de valor |
-| Servidor y software | Servicios de la Raspberry Pi y partes del copiloto de voz |
-| Tipos de valor y magnitudes | Catálogo de tipos de valor (`Temperatura [°C]`, `Potencia [W]`, …) |
+| 1 bdd — Campus Twin de un vistazo | **Todo el sistema en un solo diagrama**: el bloque del sistema, sus seis subsistemas, los cuatro tipos de nodo con su instrumentación, los servicios del servidor y las partes del copiloto de voz |
+| 2 req — Mapa de requisitos | **Todos los requisitos en un solo diagrama**: las 5 necesidades con los 11 RF y 7 RNF que derivan de ellas |
+
+### 01 Requisitos (req)
+
+| Diagrama | Qué muestra |
+|---|---|
+| 1 req — Necesidades de los stakeholders | Las 5 necesidades (NS-1 … NS-5) de las que cuelga todo |
+| 2 req — Requisitos funcionales | RF-01 … RF-11 con `deriveReqt` hacia su necesidad de origen |
+| 3 req — Requisitos no funcionales y restricciones | RNF-01 … RNF-07 con `deriveReqt` |
+| 4 req — Trazabilidad a la arquitectura | `satisfy` de cada bloque hacia el requisito que cumple |
+
+### 02 Estructura (bdd)
+
+| Diagrama | Qué muestra |
+|---|---|
+| 1 bdd — Arquitectura del sistema | `Campus Twin L-419` con sus seis subsistemas (composición) y los actores externos |
+| 2 bdd — Nodos e instrumentación | Taxonomía de nodos ESP32 y los sensores que compone cada uno, con sus propiedades de valor |
+| 3 bdd — Servidor y software | Servicios de la Raspberry Pi y partes del copiloto de voz |
+| 4 bdd — Tipos de valor y magnitudes | Catálogo de tipos de valor (`Temperatura [°C]`, `Potencia [W]`, …) |
+
+### 03 Verificación (req)
+
+| Diagrama | Qué muestra |
+|---|---|
+| 1 req — Casos de prueba de requisitos funcionales | `verify` de CP-01 … CP-11 hacia los RF |
+| 2 req — Casos de prueba de requisitos no funcionales | `verify` de CP-03, CP-05, CP-12 … CP-14 hacia los RNF |
 
 Regla que el modelo mantiene: **todo RF tiene al menos un bloque que lo satisface (`satisfy`) y
 al menos un caso de prueba que lo verifica (`verify`)**.
 
 ## Diagramas exportados
 
-`export/` tiene los diagramas en SVG, regenerables con:
+`export/` tiene los 12 diagramas en SVG, regenerables con:
 
 ```bash
 /Applications/Gaphor.app/Contents/MacOS/gaphor export -f svg -u -o modelo/export modelo/campus-twin-l419.gaphor

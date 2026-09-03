@@ -251,7 +251,7 @@ Reparto por subsistema:
 ## 13. Entregables
 
 1. **Documentación** en `docs/`: idea principal (este documento), pre-formulación e instrumentación costeada.
-2. **Modelo SysML** en `modelo/campus-twin-l419.gaphor`: 6 diagramas de requisitos y 4 de definición de bloques, con los diagramas exportados en `modelo/export/`.
+2. **Modelo SysML** en `modelo/campus-twin-l419.gaphor`: 12 diagramas — 7 de requisitos y 5 de definición de bloques, incluido el paquete `00 Vista general` con el sistema completo y el mapa de requisitos, cada uno en un solo diagrama. Exportados en `modelo/export/`.
 3. **Plan en Asana**: fases S4–S14 con tareas, responsables, fechas e hitos.
 4. **Firmware** de los nodos ESP32, **servidor** (broker, base de datos, API, reglas) y **dashboard web**, cada uno con su README.
 5. **Copiloto de voz** con briefing y consultas en español.

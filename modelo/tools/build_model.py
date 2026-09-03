@@ -11,6 +11,10 @@ documento, en el modelo y en las tareas de Asana.
 
 Una vez que el modelo se edita a mano en Gaphor, el .gaphor pasa a ser la fuente de
 verdad y este script queda como registro reproducible del modelo base.
+
+Los nombres de diagrama empiezan con un numero porque el arbol del modelo de Gaphor
+ordena los hijos de cada paquete alfabeticamente: sin el numero, los diagramas quedan
+mezclados entre los requisitos y los bloques.
 """
 
 from pathlib import Path
@@ -428,6 +432,7 @@ class ModeloCampusTwin:
 def construir():
     modelo = ModeloCampusTwin()
     raiz = modelo.paquete("Campus Twin L-419")
+    pkg_vista = modelo.paquete("00 Vista general", raiz)
     pkg_requisitos = modelo.paquete("01 Requisitos", raiz)
     pkg_estructura = modelo.paquete("02 Estructura", raiz)
     pkg_verificacion = modelo.paquete("03 Verificación", raiz)
@@ -456,13 +461,39 @@ def construir():
             modelo.propiedad_de_valor(modelo.bloques[nombre_bloque], nombre_propiedad,
                                       modelo.tipos[nombre_tipo])
 
+    # ---- vista general: todo el sistema en un solo diagrama
+    def dibujar_vista_general(diagrama):
+        for nombre in SUBSISTEMAS:
+            modelo.composicion(diagrama, sistema, modelo.bloques[nombre])
+        for nombre in ACTORES_EXTERNOS:
+            modelo.asociacion(diagrama, sistema, modelo.bloques[nombre])
+        modelo.composicion(diagrama, modelo.bloques["Subsistema de Sensado"], nodo_base)
+        for nodo, sensores in NODOS.items():
+            modelo.generalizacion(diagrama, modelo.bloques[nodo], nodo_base)
+            for sensor in sensores:
+                modelo.composicion(diagrama, modelo.bloques[nodo], modelo.bloques[sensor])
+        for nombre in SERVICIOS_SERVIDOR:
+            modelo.composicion(diagrama, modelo.bloques["Servidor Campus Twin"], modelo.bloques[nombre])
+        for nombre in PARTES_COPILOTO:
+            modelo.composicion(diagrama, modelo.bloques["Copiloto de Voz"], modelo.bloques[nombre])
+        for nombre in PARTES_NODO_AUDIO:
+            modelo.composicion(diagrama, modelo.bloques["Nodo de Audio"], modelo.bloques[nombre])
+
+    modelo.diagrama_jerarquico(
+        sysml.BlockDefinitionDiagram, "1 bdd [Vista general] Campus Twin de un vistazo",
+        pkg_vista, dibujar_vista_general,
+        nota="Todo el sistema en un diagrama: el bloque Campus Twin L-419, sus seis "
+             "subsistemas, los cuatro tipos de nodo con su instrumentación, los servicios "
+             "del servidor y las partes del copiloto de voz. Los diagramas de 02 Estructura "
+             "muestran lo mismo por partes.")
+
     # ---- req: necesidades de los stakeholders
     def dibujar_necesidades(diagrama):
         for identificador, _, _ in NECESIDADES:
             modelo.item(modelo.requisitos[identificador], diagrama)
 
     modelo.diagrama_jerarquico(
-        sysml.RequirementDiagram, "req [Requisitos] Necesidades de los stakeholders",
+        sysml.RequirementDiagram, "1 req [Requisitos] Necesidades de los stakeholders",
         pkg_requisitos, dibujar_necesidades,
         nota="Necesidades levantadas en la pre-formulación y detalladas en "
              "docs/00-idea-principal.md. Cada necesidad se descompone en requisitos "
@@ -474,15 +505,23 @@ def construir():
                 for identificador, _, _, origenes in requisitos for origen in origenes]
 
     modelo.diagrama_bipartito(
-        sysml.RequirementDiagram, "req [Requisitos] Requisitos funcionales",
+        sysml.RequirementDiagram, "2 req [Vista general] Mapa de requisitos",
+        pkg_vista, DeriveReqtItem,
+        pares_de_derivacion(REQUISITOS_FUNCIONALES + REQUISITOS_NO_FUNCIONALES),
+        nota="Todas las necesidades (NS) con los requisitos funcionales (RF) y no "
+             "funcionales (RNF) que derivan de ellas. La cobertura por bloque y por caso "
+             "de prueba está en los diagramas de 01 Requisitos y 03 Verificación.")
+
+    modelo.diagrama_bipartito(
+        sysml.RequirementDiagram, "2 req [Requisitos] Requisitos funcionales",
         pkg_requisitos, DeriveReqtItem, pares_de_derivacion(REQUISITOS_FUNCIONALES))
     modelo.diagrama_bipartito(
-        sysml.RequirementDiagram, "req [Requisitos] Requisitos no funcionales y restricciones",
+        sysml.RequirementDiagram, "3 req [Requisitos] Requisitos no funcionales y restricciones",
         pkg_requisitos, DeriveReqtItem, pares_de_derivacion(REQUISITOS_NO_FUNCIONALES))
 
     # ---- req: trazabilidad requisito - bloque
     modelo.diagrama_bipartito(
-        sysml.RequirementDiagram, "req [Requisitos] Trazabilidad a la arquitectura",
+        sysml.RequirementDiagram, "4 req [Requisitos] Trazabilidad a la arquitectura",
         pkg_requisitos, SatisfyItem,
         [(modelo.requisitos[identificador], modelo.bloques[nombre_bloque])
          for nombre_bloque, requisitos in TRAZABILIDAD.items() for identificador in requisitos],
@@ -496,10 +535,10 @@ def construir():
                 for requisito in requisitos if requisito.startswith(prefijo)]
 
     modelo.diagrama_bipartito(
-        sysml.RequirementDiagram, "req [Verificación] Casos de prueba de requisitos funcionales",
+        sysml.RequirementDiagram, "1 req [Verificación] Casos de prueba de requisitos funcionales",
         pkg_verificacion, VerifyItem, pares_de_verificacion("RF-"))
     modelo.diagrama_bipartito(
-        sysml.RequirementDiagram, "req [Verificación] Casos de prueba de requisitos no funcionales",
+        sysml.RequirementDiagram, "2 req [Verificación] Casos de prueba de requisitos no funcionales",
         pkg_verificacion, VerifyItem, pares_de_verificacion("RNF-"))
 
     # ---- bdd: arquitectura del sistema
@@ -510,7 +549,7 @@ def construir():
             modelo.asociacion(diagrama, sistema, modelo.bloques[nombre])
 
     modelo.diagrama_jerarquico(
-        sysml.BlockDefinitionDiagram, "bdd [Estructura] Arquitectura del sistema",
+        sysml.BlockDefinitionDiagram, "1 bdd [Estructura] Arquitectura del sistema",
         pkg_estructura, dibujar_arquitectura,
         nota="Cadena de datos: sensores -> ESP32 -> Wi-Fi/BLE -> Raspberry Pi 5 -> LAN -> "
              "dashboard y copiloto de voz. Instrumentación y costos por módulo: "
@@ -525,7 +564,7 @@ def construir():
                 modelo.composicion(diagrama, modelo.bloques[nodo], modelo.bloques[sensor])
 
     modelo.diagrama_jerarquico(
-        sysml.BlockDefinitionDiagram, "bdd [Estructura] Nodos e instrumentación",
+        sysml.BlockDefinitionDiagram, "2 bdd [Estructura] Nodos e instrumentación",
         pkg_estructura, dibujar_nodos)
 
     # ---- bdd: servidor y software
@@ -542,7 +581,7 @@ def construir():
         modelo.asociacion(diagrama, copiloto, modelo.bloques["Servicio de Voz STT/TTS"])
 
     modelo.diagrama_jerarquico(
-        sysml.BlockDefinitionDiagram, "bdd [Estructura] Servidor y software",
+        sysml.BlockDefinitionDiagram, "3 bdd [Estructura] Servidor y software",
         pkg_estructura, dibujar_servidor)
 
     # ---- bdd: tipos de valor (catalogo de definiciones)
@@ -551,7 +590,7 @@ def construir():
             modelo.item(modelo.tipos[nombre], diagrama)
 
     modelo.diagrama_jerarquico(
-        sysml.BlockDefinitionDiagram, "bdd [Estructura] Tipos de valor y magnitudes",
+        sysml.BlockDefinitionDiagram, "4 bdd [Estructura] Tipos de valor y magnitudes",
         pkg_estructura, dibujar_tipos,
         nota="Catálogo de tipos de valor del modelo. Cada nodo declara sus propiedades "
              "de valor con estos tipos (ver el bdd de nodos e instrumentación).")
