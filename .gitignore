@@ -1,0 +1,57 @@
+# Secrets / local config
+.env
+.env.*
+!.env.example
+secrets.json
+config.local.*
+credentials.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+.cache/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# PlatformIO / Arduino / ESP32
+.pio/
+.pioenvs/
+.piolibdeps/
+*.bin
+*.elf
+*.hex
+
+# Data captured from sensors (keep derived docs, not raw dumps)
+data/raw/
+*.db
+*.sqlite3
+*.log
+
+# Office temp files
+~$*
+.~lock.*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
