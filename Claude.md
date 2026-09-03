@@ -13,6 +13,7 @@ código y entregables.
 | [docs/01-preformulacion.md](docs/01-preformulacion.md) | Idea, ODS, propuesta Campus Twin, requerimientos y MVP |
 | [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | BOM completo por módulo, costos (S/ 2713) y versión mínima (S/ 653) |
 | [docs/data/instrumentacion-l419.csv](docs/data/instrumentacion-l419.csv) | Datos crudos del Excel de instrumentación |
+| [docs/03-plan.md](docs/03-plan.md) | Plan y seguimiento: las 60 tareas del proyecto de Asana con responsable, fechas y casillas de avance |
 | [modelo/README.md](modelo/README.md) | Modelo SysML en Gaphor: diagramas de requisitos y de bloques, exportación y regeneración |
 
 Los documentos en `docs/` son la fuente de verdad. Si algo cambia (sensores, precios,
@@ -22,6 +23,12 @@ Los identificadores de requisito (NS-x, RF-xx, RNF-xx, CP-xx) son los mismos en
 `docs/00-idea-principal.md`, en el modelo SysML de `modelo/` y en las tareas del proyecto
 [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
 en Asana. Si cambias un requisito, actualiza los tres.
+
+### Seguimiento del avance
+
+`docs/03-plan.md` es el espejo local del tablero de Asana. Cuando una tarea se termina, se
+marca la casilla en ese archivo **y** se cierra la tarea en Asana; nunca solo una de las dos.
+Asana manda en fechas y responsables: si algo cambia allá, se vuelve a bajar el archivo.
 
 ## Cómo trabajar en este repo
 

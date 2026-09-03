@@ -306,3 +306,4 @@ Para la entrevista de la semana 5:
 | Modelo SysML (req y bdd) | [../modelo/campus-twin-l419.gaphor](../modelo/campus-twin-l419.gaphor) y [../modelo/README.md](../modelo/README.md) |
 | Diagramas exportados | [../modelo/export/](../modelo/export/) |
 | Tareas, responsables y fechas | Proyecto [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043) en Asana |
+| Avance de las tareas (espejo local) | [03-plan.md](03-plan.md) |
