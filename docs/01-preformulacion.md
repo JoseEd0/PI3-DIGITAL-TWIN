@@ -1,6 +1,11 @@
 # Pre-formulación — Campus Twin
 
 > Fuente: `Organización de ideas.pdf` (transcripción íntegra a Markdown).
+>
+> **Documento histórico** de la idea original (agosto 2026). Se conserva tal cual para ver de
+> dónde salió el proyecto. Lo vigente (alcance, requisitos, presupuesto, riesgos y plan) está en
+> [00-idea-principal.md](00-idea-principal.md); cada sección marcada aquí como *pendiente* se
+> completó allá y se indica dónde.
 
 > Nota: También colocar los **stakeholders** de las ideas.
 
@@ -71,7 +76,8 @@ clase A sostenibles).
 
 ## Preguntas para el stakeholder
 
-*(Pendiente de completar.)*
+*Completadas en [00-idea-principal.md §15](00-idea-principal.md#15-preguntas-pendientes-para-el-stakeholder):
+14 preguntas con destinatario y decisión que cierra cada una.*
 
 ## Lista de sensores/instrumentos
 
@@ -96,7 +102,8 @@ Es un medidor digital de parámetros eléctricos *(voltaje, corriente, potencia 
 y energía acumulada en kWh)* con aislamiento galvánico de alta seguridad frente a la red de
 alta tensión. La pinza *(SCT-013)* permite lectura no invasiva por inducción magnética.
 
-**X** — *Propiedades…* *(pendiente)*
+*Los demás sensores (SHT31, BH1750, SCD41, LD2410C, PIR, VL53L1X, magnético, SW-420) están
+descritos con especificaciones y precio en [02-instrumentacion-l419.md](02-instrumentacion-l419.md).*
 
 ### 2. Dónde comprar y costos generales
 
@@ -106,5 +113,6 @@ cantidad y precio por ítem.
 ### 3. Justificación de la extracción de datos
 
 Justificar cómo es que se extrae la información detectada por los sensores y cómo se conecta
-a la red. *(Pendiente — la cadena de datos propuesta está en
-[02-instrumentacion-l419.md](02-instrumentacion-l419.md#1-cómo-funciona).)*
+a la red. *Resuelto en [00-idea-principal.md §6](00-idea-principal.md#6-arquitectura-de-la-solución)
+(arquitectura y decisiones técnicas: MQTT, broker, base de datos, hora, idempotencia) y en
+[02-instrumentacion-l419.md](02-instrumentacion-l419.md#1-cómo-funciona).*
