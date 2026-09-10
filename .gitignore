@@ -55,3 +55,9 @@ desktop.ini
 !.vscode/extensions.json
 .idea/
 *.swp
+
+# Copia de demostración del modelo SysML (se regenera con demo/gaphor-vivo/lanzar.sh)
+demo/gaphor-vivo/campus-twin-l419-demo.gaphor
+
+# Capturas de Playwright
+.playwright-mcp/
