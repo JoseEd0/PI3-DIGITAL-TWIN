@@ -44,6 +44,7 @@ SEPARACION_VERTICAL = 30.0
 SEPARACION_ENTRE_GRUPOS = 60.0
 
 # --- Requisitos -------------------------------------------------------------
+# Version corta de docs/00-idea-principal.md seccion 8 (revision v2 del 10/09/2026).
 # (id, nombre, texto)
 NECESIDADES = [
     ("NS-1", "Ronda informada",
@@ -56,85 +57,99 @@ NECESIDADES = [
      "Seguridad del campus necesita detectar aperturas o manipulaciones del laboratorio fuera de horario."),
     ("NS-5", "Demostración reproducible",
      "El equipo de PI3 necesita una demo en vivo que funcione sin depender de la red del campus."),
+    ("NS-6", "Red segura",
+     "TI de UTEC necesita que los dispositivos del proyecto no abran huecos ni interfieran en la red del campus."),
+    ("NS-7", "Privacidad",
+     "Los estudiantes y el personal del laboratorio necesitan que el sistema no los identifique ni grabe."),
 ]
 
 # (id, nombre, texto, necesidades de las que deriva)
 REQUISITOS_FUNCIONALES = [
-    ("RF-01", "Medición de energía",
-     "El sistema debe medir tensión, corriente, potencia y energía acumulada del laboratorio cada 10 s o menos.",
+    ("RF-01", "Medición de energía total",
+     "El sistema debe medir tensión, corriente, potencia, factor de potencia y energía del alimentador con PZEM-004T cada 10 s o menos y error de ±2 %; si no se autoriza el tablero, se degrada a la suma de cargas de RF-12 con ±5 %.",
      ["NS-2"]),
     ("RF-02", "Medición ambiental",
-     "El sistema debe medir temperatura, humedad, CO2 e iluminancia cada 60 s o menos.",
+     "El sistema debe medir temperatura (±0.5 °C), humedad (±3 %), CO2 (±50 ppm + 5 %) e iluminancia (±20 %) cada 60 s o menos.",
      ["NS-3"]),
     ("RF-03", "Estimación de ocupación",
-     "El sistema debe estimar presencia y conteo de personas sin cámaras, con latencia menor a 30 s.",
+     "El sistema debe detectar presencia sin cámaras con acierto de 95 % y latencia menor a 30 s, y estimar el conteo en la puerta con error de ±2, reiniciándolo a 0 cuando el laboratorio está vacío.",
      ["NS-1", "NS-3"]),
     ("RF-04", "Eventos de puerta",
-     "El sistema debe detectar apertura y vibración de la puerta y registrar el evento en menos de 10 s.",
+     "El sistema debe registrar apertura, cierre y vibración de la puerta en menos de 10 s y un latido cada 30 min con nivel de batería.",
      ["NS-4"]),
     ("RF-05", "Transporte de datos",
-     "Los nodos deben enviar datos al servidor por Wi-Fi o BLE, con reintento y buffer local de 15 min.",
+     "Los nodos deben enviar datos por Wi-Fi con MQTT QoS 1, reconexión con espera exponencial, buffer local de 15 min y secuencia para descartar duplicados en el servidor.",
      ["NS-5"]),
     ("RF-06", "Histórico y consulta",
-     "El servidor debe almacenar series temporales por 60 días y exponer una API de consulta.",
+     "El servidor debe retener series temporales por 60 días, acumular 4 semanas de datos reales al cierre y exponer una API por rango, magnitud y agregación.",
      ["NS-2"]),
     ("RF-07", "Dashboard web",
-     "El dashboard debe mostrar el estado en vivo con refresco de 5 s, históricos y reporte de ahorro.",
+     "El dashboard debe mostrar estado en vivo con refresco de 5 s, históricos, plano 2D, reporte de ahorro y panel de salud, en la LAN sin internet.",
      ["NS-2"]),
     ("RF-08", "Alertas por reglas",
-     "El sistema debe generar alertas configurables por consumo, CO2 alto y puerta fuera de horario.",
+     "El sistema debe generar alertas configurables por consumo con laboratorio vacío, CO2 alto, puerta fuera de horario, nodo sin reportar y batería baja, con silencio de 15 min.",
      ["NS-1", "NS-4"]),
     ("RF-09", "Copiloto de voz",
-     "El copiloto debe dar el briefing de turno y responder consultas orales en español en menos de 5 s.",
+     "La app de voz en el teléfono del vigilante debe dar el briefing de turno y responder al menos 8 intenciones cerradas en español en menos de 5 s, y pedir repetir cuando no entiende.",
      ["NS-1"]),
     ("RF-10", "Detección de consumo fantasma",
-     "El sistema debe reportar la energía consumida con el laboratorio desocupado cruzando energía, luz y ocupación.",
+     "El sistema debe reportar la energía consumida con el laboratorio vacío por 15 min o más, por franja y por carga, con ahorro en soles y kg de CO2 configurables.",
      ["NS-2"]),
-    ("RF-11", "Modo demostración",
-     "El sistema debe reproducir un día de datos grabados para sostener la demo si falla el hardware.",
+    ("RF-11", "Modo demostración y simulador",
+     "El sistema debe generar datos sintéticos para desarrollar sin hardware y reproducir un día grabado, por nodo o completo, con etiqueta DEMO visible.",
+     ["NS-5"]),
+    ("RF-12", "Medición de energía por carga",
+     "Enchufes inteligentes con firmware local deben publicar potencia y energía por MQTT al broker local cada 60 s o menos con error de ±5 %, sin internet.",
+     ["NS-2"]),
+    ("RF-13", "Supervisión de salud del sistema",
+     "El servidor debe reportar por nodo la última muestra, señal, batería y muestras perdidas, marcar caído un nodo sin datos por 5 min y mantener las muestras perdidas bajo 1 %.",
      ["NS-5"]),
 ]
 
 REQUISITOS_NO_FUNCIONALES = [
-    ("RNF-01", "Instalación no invasiva",
-     "La instalación no debe perforar paredes ni intervenir el tablero eléctrico del laboratorio.",
+    ("RNF-01", "Instalación no invasiva y segura",
+     "La instalación no debe perforar paredes ni cortar conductores; abrir la tapa del tablero para la pinza lo supervisa Servicios Generales y la toma de 220 V va en caja cerrada con fusible.",
      ["NS-5"]),
     ("RNF-02", "Privacidad por diseño",
-     "El sistema no debe usar cámaras ni almacenar audio; los datos de ocupación deben ser agregados.",
-     ["NS-4"]),
+     "El sistema no debe usar cámaras; el audio se procesa en memoria y se descarta, la ocupación es agregada y no se registra quién consulta.",
+     ["NS-4", "NS-7"]),
     ("RNF-03", "Presupuesto acotado",
-     "El costo del prototipo no debe exceder S/ 2713, con una versión mínima operativa de S/ 653.",
+     "El costo del prototipo no debe exceder S/ 2808, con una versión mínima operativa de S/ 580.",
      ["NS-5"]),
-    ("RNF-04", "Autonomía de nodos",
-     "Los nodos alimentados con batería deben operar 30 días sin recarga.",
+    ("RNF-04", "Autonomía del nodo de puerta",
+     "El nodo de puerta con ESP32-C3 en sueño profundo debe operar 30 días con una LiPo de 2000 mAh y alertar batería baja al 20 %.",
      ["NS-4"]),
-    ("RNF-05", "Red autónoma",
-     "El sistema debe operar sobre una red local propia si la red del campus bloquea los dispositivos.",
-     ["NS-5"]),
+    ("RNF-05", "Operación autónoma sin internet",
+     "Todo el sistema (nodos, enchufes, servidor, dashboard, voz y hora) debe operar sobre router propio sin internet ni nube.",
+     ["NS-5", "NS-6"]),
     ("RNF-06", "Disponibilidad para la demo",
-     "El sistema debe operar 72 h continuas sin intervención antes de la presentación final.",
+     "El sistema debe operar 72 h continuas sin intervención, con arranque automático, watchdog y respaldo diario a USB.",
      ["NS-5"]),
     ("RNF-07", "Configurabilidad",
-     "Pines, umbrales, intervalos y endpoints deben ser configurables y sin credenciales en el repositorio.",
+     "Pines, umbrales, intervalos, horario, tarifa, factor de emisión y endpoints deben ser configurables y sin credenciales en el repositorio.",
      ["NS-5"]),
+    ("RNF-08", "Seguridad básica de acceso",
+     "La red propia debe usar WPA2, el broker usuario y contraseña, el dashboard y la API inicio de sesión y HTTPS, sin puertos hacia la red del campus.",
+     ["NS-6"]),
 ]
 
 # (id, nombre, requisitos que verifica)
 CASOS_DE_PRUEBA = [
-    ("CP-01", "Ensayo de exactitud de energía", ["RF-01"]),
-    ("CP-02", "Ensayo de ocupación con personas quietas", ["RF-03"]),
-    ("CP-03", "Ensayo de resiliencia de red", ["RF-05", "RNF-05"]),
-    ("CP-04", "Ensayo del copiloto de voz", ["RF-09"]),
-    ("CP-05", "Maratón de 72 horas", ["RNF-06"]),
+    ("CP-01", "Ensayo de exactitud de energía (PZEM y enchufes)", ["RF-01", "RF-12"]),
+    ("CP-02", "Ensayo de presencia con personas quietas y conteo en la puerta", ["RF-03"]),
+    ("CP-03", "Ensayo de resiliencia de red y operación sin internet", ["RF-05", "RNF-05"]),
+    ("CP-04", "Ensayo del copiloto de voz en el teléfono", ["RF-09"]),
+    ("CP-05", "Maratón de 72 horas con corte de energía", ["RNF-06"]),
     ("CP-06", "Auditoría de consumo fantasma", ["RF-10"]),
-    ("CP-07", "Calibración ambiental contra instrumento patrón", ["RF-02"]),
+    ("CP-07", "Verificación de consistencia ambiental", ["RF-02"]),
     ("CP-08", "Ensayo de eventos de puerta", ["RF-04"]),
     ("CP-09", "Ensayo de histórico, API y dashboard", ["RF-06", "RF-07"]),
     ("CP-10", "Ensayo de reglas de alerta", ["RF-08"]),
-    ("CP-11", "Ensayo del modo demostración", ["RF-11"]),
-    ("CP-12", "Revisión de instalación no invasiva y privacidad", ["RNF-01", "RNF-02"]),
+    ("CP-11", "Ensayo del modo demostración por nodo", ["RF-11"]),
+    ("CP-12", "Revisión de instalación, seguridad eléctrica y privacidad", ["RNF-01", "RNF-02"]),
     ("CP-13", "Ensayo de autonomía del nodo de puerta", ["RNF-04"]),
-    ("CP-14", "Auditoría de costos y configuración", ["RNF-03", "RNF-07"]),
+    ("CP-14", "Auditoría de costos, configuración y credenciales", ["RNF-03", "RNF-07", "RNF-08"]),
+    ("CP-15", "Ensayo de supervisión de nodos", ["RF-13"]),
 ]
 
 # --- Estructura -------------------------------------------------------------
@@ -147,11 +162,17 @@ SUBSISTEMAS = [
     "Red Local",
     "Subsistema de Alimentación",
 ]
-ACTORES_EXTERNOS = ["Vigilante Nocturno", "Administrador de Infraestructura", "Laboratorio L-419"]
+ACTORES_EXTERNOS = [
+    "Vigilante Nocturno",
+    "Administrador de Infraestructura",
+    "Coordinador del Laboratorio",
+    "Seguridad del Campus",
+    "Laboratorio L-419",
+]
 
 NODO_BASE = "Nodo Sensor ESP32"
 NODOS = {
-    "Nodo de Energía": ["PZEM-004T v3.0", "Pinza SCT-013", "Enchufe Inteligente"],
+    "Nodo de Energía": ["PZEM-004T v3.0", "Pinza SCT-013", "Enchufe Inteligente (Tasmota)"],
     "Nodo Ambiental": ["Sensor SHT31", "Sensor BH1750", "Sensor SCD41"],
     "Nodo de Ocupación": ["Radar HLK-LD2410C", "PIR HC-SR501", "ToF VL53L1X"],
     "Nodo de Puerta": ["Sensor Magnético de Puerta", "Sensor de Vibración SW-420", "Batería LiPo 2000 mAh"],
@@ -163,8 +184,12 @@ SERVICIOS_SERVIDOR = [
     "API REST",
     "Motor de Reglas y Alertas",
     "Servicio de Voz STT/TTS",
+    "Supervisor de Salud",
+    "Simulador y Modo Demo",
+    "Servidor NTP Local",
 ]
-PARTES_COPILOTO = ["Nodo de Audio", "Audífono Bluetooth"]
+NODO_AUDIO = "Nodo de Audio (opcional)"
+PARTES_COPILOTO = ["App de Voz (PWA)", NODO_AUDIO]
 PARTES_NODO_AUDIO = ["Micrófono INMP441", "Amplificador MAX98357A", "Parlante 4 ohm 3 W"]
 
 TIPOS_DE_VALOR = [
@@ -172,15 +197,25 @@ TIPOS_DE_VALOR = [
     "Humedad [%HR]",
     "CO2 [ppm]",
     "Iluminancia [lx]",
+    "Tensión [V]",
+    "Corriente [A]",
     "Potencia [W]",
+    "Factor de potencia [-]",
     "Energía acumulada [kWh]",
+    "Presencia [sí/no]",
+    "Estado de puerta [abierta/cerrada]",
     "Ocupación [personas]",
     "Latencia [s]",
     "Nivel de batería [%]",
+    "Señal Wi-Fi [dBm]",
+    "Muestras perdidas [%]",
 ]
 
 # bloque -> [(nombre de la propiedad, tipo de valor)]
 PROPIEDADES_DE_VALOR = {
+    "Nodo Sensor ESP32": [
+        ("senal", "Señal Wi-Fi [dBm]"),
+    ],
     "Nodo Ambiental": [
         ("temperatura", "Temperatura [°C]"),
         ("humedad", "Humedad [%HR]"),
@@ -188,26 +223,38 @@ PROPIEDADES_DE_VALOR = {
         ("iluminancia", "Iluminancia [lx]"),
     ],
     "Nodo de Energía": [
+        ("tension", "Tensión [V]"),
+        ("corriente", "Corriente [A]"),
         ("potencia", "Potencia [W]"),
+        ("factorDePotencia", "Factor de potencia [-]"),
         ("energia", "Energía acumulada [kWh]"),
     ],
-    "Nodo de Ocupación": [("ocupacion", "Ocupación [personas]")],
-    "Nodo de Puerta": [("bateria", "Nivel de batería [%]")],
+    "Nodo de Ocupación": [
+        ("presencia", "Presencia [sí/no]"),
+        ("conteo", "Ocupación [personas]"),
+    ],
+    "Nodo de Puerta": [
+        ("estadoPuerta", "Estado de puerta [abierta/cerrada]"),
+        ("bateria", "Nivel de batería [%]"),
+    ],
     "Servidor Campus Twin": [("latenciaDeConsulta", "Latencia [s]")],
+    "Supervisor de Salud": [("muestrasPerdidas", "Muestras perdidas [%]")],
 }
 
 # bloque -> requisitos que satisface
 TRAZABILIDAD = {
-    "Nodo de Energía": ["RF-01"],
+    "Nodo de Energía": ["RF-01", "RF-12"],
     "Nodo Ambiental": ["RF-02"],
     "Nodo de Ocupación": ["RF-03"],
     "Nodo de Puerta": ["RF-04", "RNF-04"],
-    "Red Local": ["RF-05", "RNF-05"],
+    "Red Local": ["RF-05", "RNF-05", "RNF-08"],
     "Base de Datos de Series Temporales": ["RF-06"],
     "Dashboard Web": ["RF-07"],
     "Motor de Reglas y Alertas": ["RF-08", "RF-10"],
     "Copiloto de Voz": ["RF-09"],
-    "Servidor Campus Twin": ["RF-11"],
+    "Simulador y Modo Demo": ["RF-11"],
+    "Supervisor de Salud": ["RF-13"],
+    "Servidor Campus Twin": ["RNF-06"],
 }
 
 
@@ -477,13 +524,14 @@ def construir():
         for nombre in PARTES_COPILOTO:
             modelo.composicion(diagrama, modelo.bloques["Copiloto de Voz"], modelo.bloques[nombre])
         for nombre in PARTES_NODO_AUDIO:
-            modelo.composicion(diagrama, modelo.bloques["Nodo de Audio"], modelo.bloques[nombre])
+            modelo.composicion(diagrama, modelo.bloques[NODO_AUDIO], modelo.bloques[nombre])
 
     modelo.diagrama_jerarquico(
         sysml.BlockDefinitionDiagram, "1 bdd [Vista general] Campus Twin de un vistazo",
         pkg_vista, dibujar_vista_general,
         nota="Todo el sistema en un diagrama: el bloque Campus Twin L-419, sus seis "
-             "subsistemas, los cuatro tipos de nodo con su instrumentación, los servicios "
+             "subsistemas, los cinco actores externos, los cuatro tipos de nodo con su "
+             "instrumentación (seis nodos físicos: dos de ocupación), los ocho servicios "
              "del servidor y las partes del copiloto de voz. Los diagramas de 02 Estructura "
              "muestran lo mismo por partes.")
 
@@ -496,8 +544,8 @@ def construir():
         sysml.RequirementDiagram, "1 req [Requisitos] Necesidades de los stakeholders",
         pkg_requisitos, dibujar_necesidades,
         nota="Necesidades levantadas en la pre-formulación y detalladas en "
-             "docs/00-idea-principal.md. Cada necesidad se descompone en requisitos "
-             "funcionales (RF) y no funcionales (RNF).")
+             "docs/00-idea-principal.md (revisión v2 del 10/09/2026). Cada necesidad se "
+             "descompone en requisitos funcionales (RF) y no funcionales (RNF).")
 
     # ---- req: derivacion de requisitos
     def pares_de_derivacion(requisitos):
@@ -551,9 +599,9 @@ def construir():
     modelo.diagrama_jerarquico(
         sysml.BlockDefinitionDiagram, "1 bdd [Estructura] Arquitectura del sistema",
         pkg_estructura, dibujar_arquitectura,
-        nota="Cadena de datos: sensores -> ESP32 -> Wi-Fi/BLE -> Raspberry Pi 5 -> LAN -> "
-             "dashboard y copiloto de voz. Instrumentación y costos por módulo: "
-             "docs/02-instrumentacion-l419.md.")
+        nota="Cadena de datos: sensores -> ESP32 -> Wi-Fi -> Raspberry Pi 5 -> LAN -> "
+             "dashboard y app de voz en el teléfono. Todo opera sin internet. "
+             "Instrumentación y costos por módulo: docs/02-instrumentacion-l419.md.")
 
     # ---- bdd: nodos e instrumentacion
     def dibujar_nodos(diagrama):
@@ -576,7 +624,7 @@ def construir():
         for nombre in PARTES_COPILOTO:
             modelo.composicion(diagrama, copiloto, modelo.bloques[nombre])
         for nombre in PARTES_NODO_AUDIO:
-            modelo.composicion(diagrama, modelo.bloques["Nodo de Audio"], modelo.bloques[nombre])
+            modelo.composicion(diagrama, modelo.bloques[NODO_AUDIO], modelo.bloques[nombre])
         modelo.asociacion(diagrama, modelo.bloques["Dashboard Web"], modelo.bloques["API REST"])
         modelo.asociacion(diagrama, copiloto, modelo.bloques["Servicio de Voz STT/TTS"])
 

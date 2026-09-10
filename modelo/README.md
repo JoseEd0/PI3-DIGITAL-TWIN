@@ -28,16 +28,16 @@ Paquetes: `00 Vista general`, `01 Requisitos`, `02 Estructura`, `03 Verificació
 
 | Diagrama | Qué muestra |
 |---|---|
-| 1 bdd — Campus Twin de un vistazo | **Todo el sistema en un solo diagrama**: el bloque del sistema, sus seis subsistemas, los cuatro tipos de nodo con su instrumentación, los servicios del servidor y las partes del copiloto de voz |
-| 2 req — Mapa de requisitos | **Todos los requisitos en un solo diagrama**: las 5 necesidades con los 11 RF y 7 RNF que derivan de ellas |
+| 1 bdd — Campus Twin de un vistazo | **Todo el sistema en un solo diagrama**: el bloque del sistema, sus seis subsistemas, los cinco actores externos, los cuatro tipos de nodo con su instrumentación, los ocho servicios del servidor y las partes del copiloto de voz |
+| 2 req — Mapa de requisitos | **Todos los requisitos en un solo diagrama**: las 7 necesidades con los 13 RF y 8 RNF que derivan de ellas |
 
 ### 01 Requisitos (req)
 
 | Diagrama | Qué muestra |
 |---|---|
-| 1 req — Necesidades de los stakeholders | Las 5 necesidades (NS-1 … NS-5) de las que cuelga todo |
-| 2 req — Requisitos funcionales | RF-01 … RF-11 con `deriveReqt` hacia su necesidad de origen |
-| 3 req — Requisitos no funcionales y restricciones | RNF-01 … RNF-07 con `deriveReqt` |
+| 1 req — Necesidades de los stakeholders | Las 7 necesidades (NS-1 … NS-7) de las que cuelga todo |
+| 2 req — Requisitos funcionales | RF-01 … RF-13 con `deriveReqt` hacia su necesidad de origen |
+| 3 req — Requisitos no funcionales y restricciones | RNF-01 … RNF-08 con `deriveReqt` |
 | 4 req — Trazabilidad a la arquitectura | `satisfy` de cada bloque hacia el requisito que cumple |
 
 ### 02 Estructura (bdd)
@@ -46,18 +46,21 @@ Paquetes: `00 Vista general`, `01 Requisitos`, `02 Estructura`, `03 Verificació
 |---|---|
 | 1 bdd — Arquitectura del sistema | `Campus Twin L-419` con sus seis subsistemas (composición) y los actores externos |
 | 2 bdd — Nodos e instrumentación | Taxonomía de nodos ESP32 y los sensores que compone cada uno, con sus propiedades de valor |
-| 3 bdd — Servidor y software | Servicios de la Raspberry Pi y partes del copiloto de voz |
+| 3 bdd — Servidor y software | Los ocho servicios de la Raspberry Pi (broker, base de series, API, reglas, voz, salud, simulador, NTP) y las partes del copiloto de voz (app PWA y nodo de audio opcional) |
 | 4 bdd — Tipos de valor y magnitudes | Catálogo de tipos de valor (`Temperatura [°C]`, `Potencia [W]`, …) |
 
 ### 03 Verificación (req)
 
 | Diagrama | Qué muestra |
 |---|---|
-| 1 req — Casos de prueba de requisitos funcionales | `verify` de CP-01 … CP-11 hacia los RF |
+| 1 req — Casos de prueba de requisitos funcionales | `verify` de CP-01 … CP-11 y CP-15 hacia los RF |
 | 2 req — Casos de prueba de requisitos no funcionales | `verify` de CP-03, CP-05, CP-12 … CP-14 hacia los RNF |
 
 Regla que el modelo mantiene: **todo RF tiene al menos un bloque que lo satisface (`satisfy`) y
-al menos un caso de prueba que lo verifica (`verify`)**.
+al menos un caso de prueba que lo verifica (`verify`)**; todo RNF tiene caso de prueba.
+
+Los textos de requisito del modelo son la versión corta de los criterios de aceptación de
+`docs/00-idea-principal.md` §8; el criterio completo vive en el documento.
 
 ## Diagramas exportados
 
