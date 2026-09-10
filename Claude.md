@@ -1,7 +1,8 @@
 # PI3 — Campus Twin (Digital Twin, aula L-419)
 
-Gemelo digital de un aula del campus UTEC: sensores → ESP32 → Wi-Fi/BLE → Raspberry Pi
-(servidor) → dashboard web + copiloto de voz para el vigilante nocturno.
+Gemelo digital de un aula del campus UTEC: sensores → ESP32 → Wi-Fi → Raspberry Pi
+(servidor, sin internet) → dashboard web + copiloto de voz (app en el teléfono) para el
+vigilante nocturno.
 Este repo guarda **toda** la información del proyecto: idea, requerimientos, instrumentación,
 código y entregables.
 
@@ -9,20 +10,25 @@ código y entregables.
 
 | Documento | Contenido |
 |---|---|
-| [docs/00-idea-principal.md](docs/00-idea-principal.md) | **Documento maestro**: problema, stakeholders, alcance, arquitectura, requisitos (NS/RF/RNF/CP), riesgos y plan S4-S14 |
-| [docs/01-preformulacion.md](docs/01-preformulacion.md) | Idea, ODS, propuesta Campus Twin, requerimientos y MVP |
-| [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | BOM completo por módulo, costos (S/ 2713) y versión mínima (S/ 653) |
-| [docs/data/instrumentacion-l419.csv](docs/data/instrumentacion-l419.csv) | Datos crudos del Excel de instrumentación |
-| [docs/03-plan.md](docs/03-plan.md) | Plan y seguimiento: las 60 tareas del proyecto de Asana con responsable, fechas y casillas de avance |
+| [docs/00-idea-principal.md](docs/00-idea-principal.md) | **Documento maestro**: problema, stakeholders, alcance, arquitectura y decisiones técnicas, requisitos (NS/RF/RNF/CP), casos borde, riesgos y plan S4-S14 |
+| [docs/01-preformulacion.md](docs/01-preformulacion.md) | Documento histórico: idea, ODS, propuesta Campus Twin, requerimientos y MVP originales |
+| [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | BOM completo por módulo, costos (S/ 2808) y versión mínima (S/ 580) |
+| [docs/data/instrumentacion-l419.csv](docs/data/instrumentacion-l419.csv) | BOM en CSV (misma lista que el .md; el Excel original quedó como v1) |
+| [docs/03-plan.md](docs/03-plan.md) | Plan y seguimiento: las 70 tareas del proyecto con responsable, fechas y casillas de avance, y lo pendiente de subir a Asana |
+| [docs/04-demo.md](docs/04-demo.md) | Qué se enseña en la exposición: simulador, tablero y modelo en vivo (RF-11) |
 | [modelo/README.md](modelo/README.md) | Modelo SysML en Gaphor: diagramas de requisitos y de bloques, exportación y regeneración |
+| [README.md](README.md) | Puerta de entrada del repo y todos los comandos para correr la demo y el modelo |
+| [demo/README.md](demo/README.md) | Cómo levantar el simulador, el tablero y el modelo en vivo |
 
 Los documentos en `docs/` son la fuente de verdad. Si algo cambia (sensores, precios,
 alcance), actualiza el `.md` en el mismo commit que el código.
 
-Los identificadores de requisito (NS-x, RF-xx, RNF-xx, CP-xx) son los mismos en
+Los identificadores de requisito (NS-1..7, RF-01..13, RNF-01..08, CP-01..15) son los mismos en
 `docs/00-idea-principal.md`, en el modelo SysML de `modelo/` y en las tareas del proyecto
 [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
-en Asana. Si cambias un requisito, actualiza los tres.
+en Asana. Si cambias un requisito, actualiza los tres. El modelo se regenera con
+`modelo/tools/build_model.py` (ver `modelo/README.md`); los casos borde nuevos van en la tabla
+8.5 del documento maestro antes de programarlos.
 
 ### Seguimiento del avance
 
@@ -34,6 +40,8 @@ Asana manda en fechas y responsables: si algo cambia allá, se vuelve a bajar el
 
 ### Código
 
+- El código y los comentarios van en español, igual que la documentación. Los
+  identificadores de dominio también (`consumo_fantasma`, no `ghost_consumption`).
 - Buenas prácticas siempre: nombres descriptivos, funciones cortas y con una sola
   responsabilidad, sin duplicación.
 - Sin números mágicos: pines, umbrales, intervalos y endpoints van en constantes o archivos
@@ -44,6 +52,24 @@ Asana manda en fechas y responsables: si algo cambia allá, se vuelve a bajar el
 - Comentar el *por qué*, no el *qué*. Código autoexplicativo antes que comentarios.
 - Seguir el estilo ya presente en cada carpeta antes de introducir uno nuevo.
 - Firmware, backend y frontend en carpetas separadas, cada uno con su README breve.
+- Lo que se toca en `demo/` se prueba: `cd demo/servidor && .venv/bin/python -m pytest`
+  antes de dar por terminado un cambio del simulador, las reglas o la API.
+
+### La demo
+
+`demo/` es el sistema funcionando con datos simulados (RF-11). Tres piezas:
+`servidor/` (simulador y API), `frontend/` (tablero React) y `gaphor-vivo/` (el
+modelo SysML actualizándose en vivo). Reglas de la carpeta:
+
+- El contrato de datos manda: tópico `l419/<nodo>/<magnitud>`, con valor, unidad,
+  marca de tiempo, número de secuencia y origen. Si cambia, cambia en
+  `demo/servidor/campus_twin_demo/contrato.py` y en el documento maestro.
+- Umbrales, periodos, tarifa y horario viven en `configuracion.py`. Nada de
+  números sueltos en el resto del código.
+- El enlace con Gaphor solo puede usar la biblioteca estándar: corre dentro del
+  intérprete que trae Gaphor, donde no hay pip.
+- `modelo/campus-twin-l419.gaphor` no se modifica desde la demo. El lanzador
+  trabaja sobre una copia ignorada por git.
 
 ### Commits
 
