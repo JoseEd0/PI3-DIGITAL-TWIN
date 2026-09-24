@@ -28,7 +28,7 @@ Paquetes: `00 Vista general`, `01 Requisitos`, `02 Estructura`, `03 Verificació
 
 | Diagrama | Qué muestra |
 |---|---|
-| 1 bdd — Campus Twin de un vistazo | **Todo el sistema en un solo diagrama**: el bloque del sistema, sus seis subsistemas, los cinco actores externos, los cuatro tipos de nodo con su instrumentación, los ocho servicios del servidor y las partes del copiloto de voz |
+| 1 bdd — Campus Twin de un vistazo | **Todo el sistema en un solo diagrama**: el bloque del sistema, sus seis subsistemas, los cinco actores externos, los cuatro tipos de nodo con su instrumentación, los ocho servicios del servidor y las partes del copiloto de voz. Debajo de cada nodo van sus sensores, y **dentro de cada sensor la magnitud que entrega** con su unidad |
 | 2 req — Mapa de requisitos | **Todos los requisitos en un solo diagrama**: las 7 necesidades con los 13 RF y 8 RNF que derivan de ellas |
 
 ### 01 Requisitos (req)
@@ -45,9 +45,18 @@ Paquetes: `00 Vista general`, `01 Requisitos`, `02 Estructura`, `03 Verificació
 | Diagrama | Qué muestra |
 |---|---|
 | 1 bdd — Arquitectura del sistema | `Campus Twin L-419` con sus seis subsistemas (composición) y los actores externos |
-| 2 bdd — Nodos e instrumentación | Taxonomía de nodos ESP32 y los sensores que compone cada uno, con sus propiedades de valor |
+| 2 bdd — Nodos e instrumentación | Taxonomía de nodos ESP32 y, debajo de cada nodo, sus sensores con **la magnitud que entrega cada uno** y su unidad. Es el diagrama que responde "¿de dónde sale este dato?" |
 | 3 bdd — Servidor y software | Los ocho servicios de la Raspberry Pi (broker, base de series, API, reglas, voz, salud, simulador, NTP) y las partes del copiloto de voz (app PWA y nodo de audio opcional) |
 | 4 bdd — Tipos de valor y magnitudes | Catálogo de tipos de valor (`Temperatura [°C]`, `Potencia [W]`, …) |
+
+Los dos diagramas muestran la magnitud de cada sensor, con distinta forma. La
+**vista general** los pone en una fila, que es ancha pero deja ver el sistema
+entero de arriba abajo. El de **instrumentación** los acomoda en una columna por
+nodo, que es la versión compacta de lo mismo: graphviz los alinearía en una sola
+fila y las cajas se solaparían.
+
+Los bloques que muestran magnitudes llevan ancho fijo, para que no crezcan cuando
+la demo escribe el valor y se salgan encima de la caja vecina.
 
 ### 03 Verificación (req)
 

@@ -34,6 +34,10 @@ MODEL_PATH = Path(__file__).resolve().parents[1] / "campus-twin-l419.gaphor"
 GRID_STEP = 220  # separacion inicial entre items; el layout la recalcula
 COMMENT_WIDTH = 360  # ancho de las notas, para que el texto no quede en una columna
 REQUIREMENT_WIDTH = 250  # sin ancho fijo, el texto del requisito queda en una columna
+# Los bloques que muestran magnitudes llevan ancho fijo. Sin el, la caja crece
+# cuando la demo escribe el valor ("= CERRADA" son 60 px mas) y se sale encima
+# de su vecina, porque el layout ya se calculo con la caja vacia.
+ANCHO_DE_BLOQUE_CON_VALORES = 410
 
 # Los diagramas de derivacion, trazabilidad y verificacion son bipartitos: graphviz
 # los estira en una sola fila de varios miles de pixeles, asi que se acomodan a mano
@@ -42,6 +46,15 @@ COLUMNA_IZQUIERDA_X = 0.0
 COLUMNA_DERECHA_X = 470.0
 SEPARACION_VERTICAL = 30.0
 SEPARACION_ENTRE_GRUPOS = 60.0
+
+# El diagrama de instrumentacion tambien se acomoda a mano: una columna por nodo,
+# con sus sensores debajo. Ver diagrama_de_instrumentacion().
+SEPARACION_ENTRE_COLUMNAS = 56.0
+SEPARACION_ENTRE_FILAS = 54.0
+SEPARACION_ENTRE_SENSORES = 22.0
+# Los sensores van indentados respecto de su nodo: la linea baja por el pasillo
+# que queda a la izquierda en vez de cruzar por encima de las cajas de arriba.
+INDENTACION_DE_SENSORES = 44.0
 
 # --- Requisitos -------------------------------------------------------------
 # Version corta de docs/00-idea-principal.md seccion 8 (revision v2 del 10/09/2026).
@@ -203,6 +216,8 @@ TIPOS_DE_VALOR = [
     "Factor de potencia [-]",
     "Energía acumulada [kWh]",
     "Presencia [sí/no]",
+    "Movimiento [sí/no]",
+    "Vibración [sí/no]",
     "Estado de puerta [abierta/cerrada]",
     "Ocupación [personas]",
     "Latencia [s]",
@@ -239,6 +254,32 @@ PROPIEDADES_DE_VALOR = {
     ],
     "Servidor Campus Twin": [("latenciaDeConsulta", "Latencia [s]")],
     "Supervisor de Salud": [("muestrasPerdidas", "Muestras perdidas [%]")],
+    # Cada sensor declara la magnitud que entrega a su nodo. Es lo que permite
+    # leer el diagrama de instrumentacion y saber de donde sale cada dato.
+    "PZEM-004T v3.0": [
+        ("tension", "Tensión [V]"),
+        ("corriente", "Corriente [A]"),
+        ("potencia", "Potencia [W]"),
+        ("factorDePotencia", "Factor de potencia [-]"),
+        ("energia", "Energía acumulada [kWh]"),
+    ],
+    "Pinza SCT-013": [("corriente", "Corriente [A]")],
+    "Enchufe Inteligente (Tasmota)": [
+        ("potencia", "Potencia [W]"),
+        ("energia", "Energía acumulada [kWh]"),
+    ],
+    "Sensor SHT31": [
+        ("temperatura", "Temperatura [°C]"),
+        ("humedad", "Humedad [%HR]"),
+    ],
+    "Sensor BH1750": [("iluminancia", "Iluminancia [lx]")],
+    "Sensor SCD41": [("co2", "CO2 [ppm]")],
+    "Radar HLK-LD2410C": [("presencia", "Presencia [sí/no]")],
+    "PIR HC-SR501": [("movimiento", "Movimiento [sí/no]")],
+    "ToF VL53L1X": [("conteo", "Ocupación [personas]")],
+    "Sensor Magnético de Puerta": [("estadoPuerta", "Estado de puerta [abierta/cerrada]")],
+    "Sensor de Vibración SW-420": [("vibracion", "Vibración [sí/no]")],
+    "Batería LiPo 2000 mAh": [("nivel", "Nivel de batería [%]")],
 }
 
 # bloque -> requisitos que satisface
@@ -334,8 +375,13 @@ class ModeloCampusTwin:
         return comentario
 
     # -- presentaciones ------------------------------------------------------
-    def item(self, elemento, diagrama):
-        """Coloca un elemento en un diagrama (una sola vez por diagrama)."""
+    def item(self, elemento, diagrama, mostrar_atributos=None):
+        """Coloca un elemento en un diagrama (una sola vez por diagrama).
+
+        `mostrar_atributos` fuerza que el compartimento de valores se vea o no.
+        Sirve para la vista general, donde los doce sensores con sus magnitudes
+        harian el diagrama ilegible.
+        """
         clave = (diagrama.id, elemento.id)
         if clave not in self._items:
             indice = self._siguiente_posicion.get(diagrama.id, 0)
@@ -345,7 +391,13 @@ class ModeloCampusTwin:
                 raise RuntimeError(f"Gaphor no tiene item de diagrama para {elemento}")
             if hasattr(item, "show_attributes"):
                 # el compartimento solo aporta si el bloque declara propiedades de valor
-                item.show_attributes = bool(getattr(elemento, "ownedAttribute", ()))
+                item.show_attributes = (
+                    bool(getattr(elemento, "ownedAttribute", ()))
+                    if mostrar_atributos is None
+                    else mostrar_atributos
+                )
+                if item.show_attributes:
+                    item.width = ANCHO_DE_BLOQUE_CON_VALORES
             if isinstance(elemento, sysml.Requirement):
                 item.width = REQUIREMENT_WIDTH
             elif isinstance(elemento, Comment):
@@ -361,15 +413,39 @@ class ModeloCampusTwin:
     def _centro_izquierdo(item):
         return item.matrix[4], item.matrix[5] + item.height / 2
 
-    def _linea(self, clase, diagrama, item_cabeza, item_cola, anclar=False):
+    @staticmethod
+    def _centro_superior(item):
+        return item.matrix[4] + item.width / 2, item.matrix[5]
+
+    @staticmethod
+    def _inferior_izquierdo(item):
+        return item.matrix[4] + INDENTACION_DE_SENSORES / 2, item.matrix[5] + item.height
+
+    @staticmethod
+    def _centro_inferior(item):
+        return item.matrix[4] + item.width / 2, item.matrix[5] + item.height
+
+    def _linea(self, clase, diagrama, item_cabeza, item_cola, anclar=None):
         linea = diagrama.create(clase)
         cabeza, cola = linea.handles()[0], linea.handles()[-1]
-        if anclar:
-            # El conector engancha la linea al puerto mas cercano al handle, y un handle
-            # recien creado esta en el origen: sin esto, todas las lineas se pegan al
-            # borde izquierdo y cruzan por encima de las cajas.
+        # El conector engancha la linea al puerto mas cercano al handle, y un handle
+        # recien creado esta en el origen: sin esto, todas las lineas se pegan al
+        # borde izquierdo y cruzan por encima de las cajas.
+        if anclar == "horizontal":
             cabeza.pos = self._centro_derecho(item_cabeza)
             cola.pos = self._centro_izquierdo(item_cola)
+        elif anclar == "columna":
+            # De la base del nodo al costado del sensor, bajando por el pasillo.
+            cabeza.pos = self._inferior_izquierdo(item_cabeza)
+            cola.pos = self._centro_izquierdo(item_cola)
+        elif anclar == "vertical":
+            # El lado por el que sale la linea depende de quien quede arriba.
+            if item_cabeza.matrix[5] < item_cola.matrix[5]:
+                cabeza.pos = self._centro_inferior(item_cabeza)
+                cola.pos = self._centro_superior(item_cola)
+            else:
+                cabeza.pos = self._centro_superior(item_cabeza)
+                cola.pos = self._centro_inferior(item_cola)
         connect(linea, cabeza, item_cabeza)
         connect(linea, cola, item_cola)
         if linea.subject is None:
@@ -380,14 +456,16 @@ class ModeloCampusTwin:
     # La direccion de cada relacion se comprueba en verificar(): la cabeza es el
     # extremo del que cuelga la semantica (origen de la derivacion, requisito
     # satisfecho o verificado, elemento especifico de la generalizacion).
-    def generalizacion(self, diagrama, especifico, general):
+    def generalizacion(self, diagrama, especifico, general, anclar=None):
         return self._linea(GeneralizationItem, diagrama,
-                           self.item(especifico, diagrama), self.item(general, diagrama))
+                           self.item(especifico, diagrama), self.item(general, diagrama),
+                           anclar=anclar)
 
-    def composicion(self, diagrama, todo, parte):
+    def composicion(self, diagrama, todo, parte, anclar=None):
         """Asociacion compuesta: el rombo queda del lado del todo."""
         linea = self._linea(AssociationItem, diagrama,
-                            self.item(todo, diagrama), self.item(parte, diagrama))
+                            self.item(todo, diagrama), self.item(parte, diagrama),
+                            anclar=anclar)
         linea.tail_subject.aggregation = "composite"
         return linea
 
@@ -466,7 +544,83 @@ class ModeloCampusTwin:
         for izquierda, derecha in pares:
             self._linea(clase_linea, diagrama,
                         self.item(izquierda, diagrama), self.item(derecha, diagrama),
-                        anclar=True)
+                        anclar="horizontal")
+        diagrama.update_now(list(diagrama.get_all_items()))
+        return diagrama
+
+    def diagrama_de_instrumentacion(self, nombre, paquete, nodo_base, nota=None):
+        """Cada nodo con su instrumentacion en una columna debajo.
+
+        Graphviz pone los doce sensores en una sola fila; como cada caja muestra
+        su magnitud y su valor, las cajas crecen, se solapan y el texto se corta.
+        Aqui se acomodan a mano: una columna por nodo, y dentro de la columna los
+        sensores apilados.
+        """
+        diagrama = self.diagrama(sysml.BlockDefinitionDiagram, nombre, paquete)
+        item_subsistema = self.item(self.bloques["Subsistema de Sensado"], diagrama)
+        item_base = self.item(nodo_base, diagrama)
+        columnas = [
+            (
+                self.item(self.bloques[nodo], diagrama),
+                [self.item(self.bloques[sensor], diagrama) for sensor in sensores],
+            )
+            for nodo, sensores in NODOS.items()
+        ]
+        item_nota = self.item(self.nota(nota), diagrama) if nota is not None else None
+
+        items = [item_subsistema, item_base]
+        for item_nodo, items_sensores in columnas:
+            items.append(item_nodo)
+            items.extend(items_sensores)
+        if item_nota is not None:
+            items.append(item_nota)
+
+        # Primero medir: solo el pase de autolayout ajusta el alto y el ancho de
+        # cada caja a su texto. Despues se recolocan a mano.
+        for item in items:
+            if hasattr(item, "update_shapes"):
+                item.update_shapes()
+        self.autolayout.layout(diagrama)
+        diagrama.update_now(items)
+
+        anchos = [
+            max([item_nodo.width] + [INDENTACION_DE_SENSORES + i.width for i in items_sensores])
+            for item_nodo, items_sensores in columnas
+        ]
+        ancho_total = sum(anchos) + SEPARACION_ENTRE_COLUMNAS * (len(anchos) - 1)
+
+        y = 0.0
+        x_subsistema = (ancho_total - item_subsistema.width) / 2
+        if item_nota is not None:
+            self._mover(item_nota, 0, 0)
+            # La nota comparte fila con el bloque del subsistema si cabe; si no,
+            # se queda encima y todo lo demas baja.
+            if item_nota.width + SEPARACION_ENTRE_COLUMNAS > x_subsistema:
+                y = item_nota.height + SEPARACION_ENTRE_FILAS
+        self._mover(item_subsistema, x_subsistema, y)
+        y += item_subsistema.height + SEPARACION_ENTRE_FILAS
+        self._mover(item_base, (ancho_total - item_base.width) / 2, y)
+        y += item_base.height + SEPARACION_ENTRE_FILAS
+
+        alto_de_los_nodos = max(item_nodo.height for item_nodo, _ in columnas)
+        x = 0.0
+        for ancho, (item_nodo, items_sensores) in zip(anchos, columnas):
+            self._mover(item_nodo, x + (ancho - item_nodo.width) / 2, y)
+            y_sensor = y + alto_de_los_nodos + SEPARACION_ENTRE_FILAS
+            for item_sensor in items_sensores:
+                self._mover(item_sensor, x + INDENTACION_DE_SENSORES, y_sensor)
+                y_sensor += item_sensor.height + SEPARACION_ENTRE_SENSORES
+            x += ancho + SEPARACION_ENTRE_COLUMNAS
+
+        # Las lineas se trazan al final, con cada caja ya en su sitio, para que
+        # salgan por el borde que toca.
+        self.composicion(diagrama, self.bloques["Subsistema de Sensado"], nodo_base,
+                         anclar="vertical")
+        for nodo, sensores in NODOS.items():
+            self.generalizacion(diagrama, self.bloques[nodo], nodo_base, anclar="vertical")
+            for sensor in sensores:
+                self.composicion(diagrama, self.bloques[nodo], self.bloques[sensor],
+                                 anclar="columna")
         diagrama.update_now(list(diagrama.get_all_items()))
         return diagrama
 
@@ -532,8 +686,11 @@ def construir():
         nota="Todo el sistema en un diagrama: el bloque Campus Twin L-419, sus seis "
              "subsistemas, los cinco actores externos, los cuatro tipos de nodo con su "
              "instrumentación (seis nodos físicos: dos de ocupación), los ocho servicios "
-             "del servidor y las partes del copiloto de voz. Los diagramas de 02 Estructura "
-             "muestran lo mismo por partes.")
+             "del servidor y las partes del copiloto de voz.\n\n"
+             "Debajo de cada nodo van sus sensores, y dentro de cada sensor la magnitud "
+             "que entrega con su unidad: de ahí sale cada dato del sistema. La demo de "
+             "demo/ escribe esos valores en vivo.\n\n"
+             "Los diagramas de 02 Estructura muestran lo mismo por partes.")
 
     # ---- req: necesidades de los stakeholders
     def dibujar_necesidades(diagrama):
@@ -604,16 +761,14 @@ def construir():
              "Instrumentación y costos por módulo: docs/02-instrumentacion-l419.md.")
 
     # ---- bdd: nodos e instrumentacion
-    def dibujar_nodos(diagrama):
-        modelo.composicion(diagrama, modelo.bloques["Subsistema de Sensado"], nodo_base)
-        for nodo, sensores in NODOS.items():
-            modelo.generalizacion(diagrama, modelo.bloques[nodo], nodo_base)
-            for sensor in sensores:
-                modelo.composicion(diagrama, modelo.bloques[nodo], modelo.bloques[sensor])
-
-    modelo.diagrama_jerarquico(
-        sysml.BlockDefinitionDiagram, "2 bdd [Estructura] Nodos e instrumentación",
-        pkg_estructura, dibujar_nodos)
+    modelo.diagrama_de_instrumentacion(
+        "2 bdd [Estructura] Nodos e instrumentación", pkg_estructura, nodo_base,
+        nota="Cada sensor declara la magnitud que entrega a su nodo, con su unidad.\n\n"
+             "El SCD41 también mide temperatura y humedad, pero el sistema usa las del "
+             "SHT31, que es más exacto: por eso aquí solo aparece el CO2.\n\n"
+             "El PIR entrega movimiento y no presencia: con gente quieta se apaga, y de "
+             "ahí que el nodo lleve además el radar (RF-03).\n\n"
+             "La demo de demo/ escribe estos valores en vivo.")
 
     # ---- bdd: servidor y software
     def dibujar_servidor(diagrama):

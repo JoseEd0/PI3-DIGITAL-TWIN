@@ -45,6 +45,14 @@ También agregó al modelo la propiedad `estadoPuerta` del `Nodo de Puerta`, que
 faltaba: el nodo medía batería pero no el estado de la puerta, que es su razón de
 ser (RF-04).
 
+Y obligó a declarar **qué magnitud entrega cada sensor**, no solo cada nodo. El
+diagrama de instrumentación ahora muestra, debajo de cada nodo, la lectura de cada
+sensor con su unidad: la corriente de la pinza SCT-013, el CO₂ del SCD41, el
+conteo del ToF, la vibración del SW-420. Eso hizo aparecer dos magnitudes que el
+simulador no publicaba y que los requisitos sí exigían: el movimiento del PIR
+(RF-03, que es distinto de la presencia del radar) y la vibración del SW-420
+(RF-04).
+
 ## 4. Qué es simulado y qué no
 
 Lo que se queda cuando lleguen los sensores: el contrato de datos, el descarte de
