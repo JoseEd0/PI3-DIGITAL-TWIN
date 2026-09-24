@@ -57,6 +57,15 @@ secuencia, no por reloj: así la métrica vale igual con el día acelerado.
 mínimo de cinco minutos. El nodo de puerta late cada 30 minutos porque duerme
 (RNF-04), así que su umbral es de 90 minutos.
 
+**Movimiento y presencia son cosas distintas.** El radar publica `presencia` y el
+PIR publica `movimiento`: con un grupo sentado y quieto el PIR se apaga y el radar
+no. Es la razón por la que el nodo lleva los dos (RF-03), y en el modelo SysML se
+ve como dos magnitudes separadas.
+
+**El nodo de puerta reporta al instante.** Su latido normal es de 30 minutos
+porque duerme (RNF-04), pero ante una apertura o un golpe despierta y publica
+`estadoPuerta` y `vibracion` en el mismo tick, que es lo que pide RF-04.
+
 **Consumo fantasma.** Solo cuenta la energía que corre tras 15 minutos seguidos
 sin presencia, y la separa por franja horaria y por carga. La tarifa y el factor
 de emisión están en `configuracion.py` y hay que confirmarlos con Servicios

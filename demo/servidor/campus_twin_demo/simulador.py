@@ -75,6 +75,9 @@ class EstadoDelLaboratorio:
     pcs_encendidos: int = 0
     aire_encendido: bool = False
     puerta_abierta: bool = False
+    vibracion: bool = False
+    minutos_desde_la_vibracion: float = 999.0
+    movimiento: bool = False
     co2: float = cfg.CO2_EXTERIOR_PPM
     temperatura: float = cfg.TEMPERATURA_BASE_C
     humedad: float = cfg.HUMEDAD_BASE_HR
@@ -242,6 +245,11 @@ class Simulador:
 
     def _actualizar_ocupacion(self, minutos: float) -> None:
         estado = self.estado
+        # El PIR se apaga con gente quieta; el radar no. Es justamente la razon
+        # por la que el nodo lleva los dos (RF-03).
+        estado.movimiento = estado.presencia and (
+            estado.puerta_abierta or self.azar.random() < cfg.DETECCION_DEL_PIR_CON_GENTE_QUIETA
+        )
         if estado.presencia:
             estado.minutos_vacio = 0.0
             # el conteo del ToF es una estimacion: se desvia y no se corrige sola
@@ -252,6 +260,10 @@ class Simulador:
             if estado.minutos_vacio >= cfg.MINUTOS_VACIO_PARA_REINICIAR_CONTEO:
                 estado.conteo = 0
 
+    def _actualizar_vibracion(self, minutos: float) -> None:
+        self.estado.minutos_desde_la_vibracion += minutos
+        self.estado.vibracion = self.estado.minutos_desde_la_vibracion < cfg.MINUTOS_DE_VIBRACION
+
     def _actualizar_bateria(self, minutos: float) -> None:
         por_minuto = cfg.BATERIA_INICIAL / (cfg.DIAS_DE_AUTONOMIA * 24 * 60)
         self.estado.bateria = max(0.0, self.estado.bateria - por_minuto * minutos)
@@ -259,6 +271,8 @@ class Simulador:
     # -- puerta --------------------------------------------------------------
     def _evento_de_puerta(self, tipo: str, detalle: str) -> Evento:
         self.estado.puerta_abierta = tipo == "apertura"
+        self.estado.minutos_desde_la_vibracion = 0.0
+        self.estado.vibracion = True
         self.estado.bateria = max(0.0, self.estado.bateria - 0.02)
         return Evento(
             nodo=cfg.NODO_PUERTA,
@@ -285,6 +299,11 @@ class Simulador:
         clave = (nodo, magnitud)
         self._secuencias[clave] = self._secuencias.get(clave, 0) + 1
         return self._secuencias[clave]
+
+    def _reportar_ya(self, nodo: str, *magnitudes: str) -> None:
+        """Fuerza el envio de unas magnitudes en el tick actual."""
+        for magnitud in magnitudes:
+            self._proximo_envio.pop((nodo, magnitud), None)
 
     def _toca_enviar(self, nodo: str, magnitud: str) -> bool:
         clave = (nodo, magnitud)
@@ -332,13 +351,16 @@ class Simulador:
             },
             cfg.NODO_OCUPACION_PUERTA: {
                 "presencia": 1.0 if estado.presencia else 0.0,
+                "movimiento": 1.0 if estado.movimiento else 0.0,
                 "conteo": estado.conteo,
             },
             cfg.NODO_OCUPACION_FONDO: {
                 "presencia": 1.0 if estado.presencia else 0.0,
+                "movimiento": 1.0 if estado.movimiento else 0.0,
             },
             cfg.NODO_PUERTA: {
                 "estadoPuerta": 1.0 if estado.puerta_abierta else 0.0,
+                "vibracion": 1.0 if estado.vibracion else 0.0,
                 "bateria": estado.bateria,
             },
             cfg.NODO_AUDIO: {},
@@ -355,8 +377,13 @@ class Simulador:
         self._actualizar_ambiente(minutos)
         self._actualizar_energia(minutos)
         self._actualizar_ocupacion(minutos)
+        self._actualizar_vibracion(minutos)
         self._actualizar_bateria(minutos)
         eventos += self._eventos_de_puerta_por_clase(personas_antes)
+        if eventos:
+            # El nodo de puerta duerme y late cada 30 min, pero ante un evento
+            # despierta y reporta enseguida: RF-04 pide registrarlo en 10 s.
+            self._reportar_ya(cfg.NODO_PUERTA, "estadoPuerta", "vibracion")
 
         muestras: list[Muestra] = []
         for nodo, lecturas in self._lecturas_por_nodo().items():
@@ -392,6 +419,7 @@ class Simulador:
             self._olvido_las_luces = True
         elif nombre == "apertura-fuera-de-horario":
             eventos.append(self._evento_de_puerta("apertura", "apertura forzada en la demo"))
+            self._reportar_ya(cfg.NODO_PUERTA, "estadoPuerta", "vibracion")
         elif nombre == "caida-de-nodo":
             self.estado.nodos_caidos.add(cfg.NODO_AMBIENTAL)
         elif nombre == "senal-debil":

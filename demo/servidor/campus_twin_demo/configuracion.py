@@ -59,6 +59,7 @@ UNIDADES = {
     "conteo": "personas",
     "estadoPuerta": "",
     "vibracion": "",
+    "movimiento": "",
     "bateria": "%",
     "senal": "dBm",
 }
@@ -104,11 +105,16 @@ AFORO_DEL_LABORATORIO = 24
 MINUTOS_VACIO_PARA_FANTASMA = 15  # RF-10: "desocupado" son 15 min seguidos sin presencia
 MINUTOS_VACIO_PARA_REINICIAR_CONTEO = 5  # RF-03: el conteo vuelve a 0 con el aula vacia
 ERROR_DE_CONTEO = 2  # RF-03: el conteo es una estimacion de +-2 personas
+# El PIR solo ve movimiento: con gente quieta se apaga, y por eso hace falta el
+# radar (docs/02-instrumentacion-l419.md). Esta es la fraccion de lecturas en las
+# que el PIR detecta a un grupo que ya esta sentado.
+DETECCION_DEL_PIR_CON_GENTE_QUIETA = 0.55
 
 # --- Nodo de puerta (RNF-04) ------------------------------------------------
 BATERIA_INICIAL = 96.0
 DIAS_DE_AUTONOMIA = 30
 UMBRAL_DE_BATERIA_BAJA = 20.0
+MINUTOS_DE_VIBRACION = 2  # cuanto sigue marcando el SW-420 despues de un golpe
 
 # --- Salud del sistema (RF-13) ----------------------------------------------
 MINUTOS_SIN_DATOS_PARA_CAIDO = 5

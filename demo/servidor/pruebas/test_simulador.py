@@ -161,3 +161,61 @@ def test_el_co2_se_estabiliza_en_valores_de_aula_real():
     correr(simulador, 120)
     assert 900 < simulador.estado.co2 < 2600, simulador.estado.co2
     assert simulador.estado.co2 <= cfg.CO2_MAXIMO_PPM
+
+
+def test_el_pir_se_apaga_con_gente_quieta_y_el_radar_no():
+    """RF-03: es la razón por la que el nodo lleva radar y PIR juntos."""
+    simulador = simulador_en(8.0)
+    correr(simulador, 20)
+    lecturas_del_pir = []
+    for _ in range(60):
+        correr(simulador, 1)
+        assert simulador.estado.presencia is True
+        lecturas_del_pir.append(simulador.estado.movimiento)
+    assert any(lecturas_del_pir), "el PIR nunca detectó a un grupo presente"
+    assert not all(lecturas_del_pir), "el PIR debería fallar con gente quieta"
+
+
+def test_sin_gente_el_pir_no_detecta_movimiento():
+    simulador = simulador_en(2.0)
+    correr(simulador, 30)
+    assert simulador.estado.presencia is False
+    assert simulador.estado.movimiento is False
+
+
+def test_la_vibracion_se_marca_al_abrir_y_se_apaga_sola():
+    simulador = simulador_en(3.5)
+    assert simulador.estado.vibracion is False
+    simulador.aplicar_escenario("apertura-fuera-de-horario")
+    assert simulador.estado.vibracion is True
+    correr(simulador, cfg.MINUTOS_DE_VIBRACION + 2)
+    assert simulador.estado.vibracion is False
+
+
+def test_la_puerta_reporta_al_instante_pese_a_su_latido_de_media_hora():
+    """RF-04 pide registrar el evento en 10 s; el latido normal es de 30 min."""
+    simulador = simulador_en(3.5)
+    correr(simulador, 45)  # deja pasar el envío periódico del arranque
+    sin_evento, _ = correr(simulador, 2)
+    assert not [m for m in sin_evento if m.nodo == cfg.NODO_PUERTA], "no tocaba latido"
+
+    simulador.aplicar_escenario("apertura-fuera-de-horario")
+    con_evento, _ = correr(simulador, 1)
+    magnitudes = {m.magnitud for m in con_evento if m.nodo == cfg.NODO_PUERTA}
+    assert {"estadoPuerta", "vibracion"} <= magnitudes, magnitudes
+
+
+def test_cada_sensor_del_nodo_de_puerta_y_de_ocupacion_publica_su_magnitud():
+    simulador = simulador_en(8.0)
+    muestras, _ = correr(simulador, 90)
+    publicadas = {(m.nodo, m.magnitud) for m in muestras}
+    esperadas = {
+        (cfg.NODO_OCUPACION_PUERTA, "presencia"),
+        (cfg.NODO_OCUPACION_PUERTA, "movimiento"),
+        (cfg.NODO_OCUPACION_PUERTA, "conteo"),
+        (cfg.NODO_OCUPACION_FONDO, "movimiento"),
+        (cfg.NODO_PUERTA, "estadoPuerta"),
+        (cfg.NODO_PUERTA, "vibracion"),
+        (cfg.NODO_PUERTA, "bateria"),
+    }
+    assert esperadas <= publicadas, esperadas - publicadas

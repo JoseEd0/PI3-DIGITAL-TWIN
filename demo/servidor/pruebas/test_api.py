@@ -152,10 +152,19 @@ def test_un_dia_completo_deja_consumo_fantasma_medible():
     assert reporte["soles"] > 0 and reporte["kgCO2"] > 0
 
 
-def test_un_dia_completo_dispara_las_reglas_esperadas():
+def test_un_dia_completo_dispara_la_alerta_de_co2():
     propio = correr_un_dia()
     disparadas = {alerta["codigo"] for alerta in propio.reglas.historial_como_lista(limite=40)}
     assert "co2-alto" in disparadas
+
+
+def test_dejar_el_aula_vacia_con_luces_dispara_la_alerta_de_consumo():
+    """No depende del azar del guion: fuerza el escenario y mide."""
+    propio = correr_un_dia()
+    propio.aplicar_escenario("vacio-con-luces")
+    for _ in range(40):
+        propio.paso(60.0 / 3600.0)
+    disparadas = {alerta["codigo"] for alerta in propio.reglas.historial_como_lista(limite=40)}
     assert "consumo-con-aula-vacia" in disparadas
 
 
