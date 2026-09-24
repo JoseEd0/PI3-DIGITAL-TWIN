@@ -35,6 +35,21 @@ if ! curl -s -o /dev/null -m 3 "$API/api/estado"; then
   echo "Gaphor se abrirá igual y se conectará solo cuando el servidor esté listo." >&2
 fi
 
+# Gaphor guarda un diario de recuperación por sesión. Si una sesión se cerró de
+# golpe, al abrir intenta recuperarla contra el modelo regenerado y falla con
+# "Invalid ID for reference". Se borran solo los diarios de esta copia.
+SESIONES="${XDG_CACHE_HOME:-$HOME/.cache}/gaphor/sessions"
+# Sin tubería y comprobando cada archivo: con `set -e` y `pipefail`, un grep sin
+# coincidencias abortaría el script antes de hacer nada.
+if [ -d "$SESIONES" ]; then
+  for diario in "$SESIONES"/*.recovery "$SESIONES"/*.recovery.bak; do
+    [ -f "$diario" ] || continue
+    if grep -qF "$COPIA" "$diario" 2>/dev/null; then
+      rm -f "$diario"
+    fi
+  done
+fi
+
 echo "Preparando la copia de demostración..."
 MODELO="$MODELO" COPIA="$COPIA" "$GAPHOR" exec "$AQUI/preparar_modelo.py"
 

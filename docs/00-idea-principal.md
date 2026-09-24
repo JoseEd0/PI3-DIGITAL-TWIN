@@ -337,7 +337,7 @@ Reparto por subsistema:
 
 | Integrante | Responsabilidad |
 |---|---|
-| **José Eduardo Huamán** | Líder técnico: servidor (Docker), broker, base de datos, API REST, reglas, supervisor de salud, simulador, dashboard web, integración |
+| **José Eduardo Huamani** | Líder técnico: servidor (Docker), broker, base de datos, API REST, reglas, supervisor de salud, simulador, dashboard web, integración |
 | **Carlos Dávila** | Firmware ESP32, nodo de energía y enchufes, red local, hora y alimentación, instalación |
 | **Esteban Sotomayor** | Nodos de ocupación, nodo de puerta, app de voz y servicio STT/TTS |
 | **Luhana Landeo** | Modelo SysML y documentación, stakeholders y permisos, compras, nodo ambiental, plan y ejecución de pruebas |

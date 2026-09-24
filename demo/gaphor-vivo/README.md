@@ -5,6 +5,10 @@ cada magnitud dentro de la propiedad del bloque que le corresponde. El bloque
 `Nodo Ambiental` que se entregó en la semana 4 pasa a mostrar el CO₂ de este
 momento, y se pinta de ámbar cuando pasa el umbral.
 
+Escribe en dos niveles: el **nodo**, con las magnitudes que publica, y cada
+**sensor**, con la lectura que le entrega a su nodo. Así se ve de dónde sale cada
+dato: la corriente de la pinza SCT-013, el CO₂ del SCD41, el conteo del ToF.
+
 ## Correrlo
 
 Con el servidor de la demo ya levantado:
@@ -33,7 +37,7 @@ si guardar, da igual lo que respondas.
 
 | Archivo | Responsabilidad |
 |---|---|
-| `enlace.py` | La tabla que dice qué magnitud va a qué propiedad de qué bloque, los colores por estado y el texto del panel |
+| `enlace.py` | La tabla que dice qué magnitud va a qué propiedad de qué bloque (nodos y sensores), los colores por estado y el texto del panel |
 | `preparar_modelo.py` | Carga el modelo, arma el diagrama de demostración y guarda la copia |
 | `campus_twin_vivo.py` | Abre Gaphor, consulta el API en un hilo aparte y escribe los valores en el modelo |
 | `lanzar.sh` | Encadena los dos pasos y avisa si falta algo |
@@ -87,3 +91,4 @@ de que el modelo cambió.
 | "No encuentro Gaphor" | Instálalo desde gaphor.org o exporta `GAPHOR=/ruta/al/ejecutable` |
 | Los bloques no muestran valores | El servidor no responde; el registro lo dice y reintenta cada 3 s |
 | "la copia no tiene el diagrama de demo" | Corre `preparar_modelo.py` otra vez, o borra la copia y usa `lanzar.sh` |
+| `Invalid ID for reference` al abrir | Quedó un diario de recuperación de una sesión cerrada de golpe. `lanzar.sh` ya los borra; a mano están en `~/.cache/gaphor/sessions` |

@@ -21,6 +21,20 @@ BLOQUE_DEL_SERVIDOR = "Servidor Campus Twin"
 BLOQUE_DE_SALUD = "Supervisor de Salud"
 BLOQUE_DE_REGLAS = "Motor de Reglas y Alertas"
 
+# Sensores: el bloque de cada uno muestra la magnitud que entrega a su nodo.
+SENSOR_PZEM = "PZEM-004T v3.0"
+SENSOR_PINZA = "Pinza SCT-013"
+SENSOR_ENCHUFE = "Enchufe Inteligente (Tasmota)"
+SENSOR_SHT31 = "Sensor SHT31"
+SENSOR_BH1750 = "Sensor BH1750"
+SENSOR_SCD41 = "Sensor SCD41"
+SENSOR_RADAR = "Radar HLK-LD2410C"
+SENSOR_PIR = "PIR HC-SR501"
+SENSOR_TOF = "ToF VL53L1X"
+SENSOR_MAGNETICO = "Sensor Magnético de Puerta"
+SENSOR_VIBRACION = "Sensor de Vibración SW-420"
+BATERIA = "Batería LiPo 2000 mAh"
+
 # Bloques que se dibujan en el diagrama de la demo, en orden de lectura.
 BLOQUES_DEL_TABLERO = [
     BLOQUE_DE_ENERGIA,
@@ -38,6 +52,10 @@ def _texto_de_presencia(valor) -> str:
 
 def _texto_de_puerta(valor) -> str:
     return "ABIERTA" if valor else "CERRADA"
+
+
+def _texto_de_si_no(valor) -> str:
+    return "SÍ" if valor else "NO"
 
 
 def _decimales(cantidad: int):
@@ -73,6 +91,31 @@ MAPA_DE_PROPIEDADES = {
         ("estadoPuerta", "puertaAbierta", _texto_de_puerta),
         ("bateria", "bateria", _decimales(0)),
     ],
+    # --- sensores: la lectura cruda que cada uno entrega -------------------
+    SENSOR_PZEM: [
+        ("tension", "tension", _decimales(1)),
+        ("corriente", "corriente", _decimales(2)),
+        ("potencia", "potencia", _decimales(0)),
+        ("factorDePotencia", "factorDePotencia", _decimales(2)),
+        ("energia", "energia", _decimales(3)),
+    ],
+    SENSOR_PINZA: [("corriente", "corriente", _decimales(2))],
+    SENSOR_ENCHUFE: [
+        ("potencia", "potenciaDelProyector", _decimales(0)),
+        ("energia", "energiaDelProyector", _decimales(3)),
+    ],
+    SENSOR_SHT31: [
+        ("temperatura", "temperatura", _decimales(1)),
+        ("humedad", "humedad", _decimales(0)),
+    ],
+    SENSOR_BH1750: [("iluminancia", "iluminancia", _decimales(0))],
+    SENSOR_SCD41: [("co2", "co2", _decimales(0))],
+    SENSOR_RADAR: [("presencia", "presencia", _texto_de_presencia)],
+    SENSOR_PIR: [("movimiento", "movimiento", _texto_de_si_no)],
+    SENSOR_TOF: [("conteo", "conteo", _decimales(0))],
+    SENSOR_MAGNETICO: [("estadoPuerta", "puertaAbierta", _texto_de_puerta)],
+    SENSOR_VIBRACION: [("vibracion", "vibracion", _texto_de_si_no)],
+    BATERIA: [("nivel", "bateria", _decimales(0))],
 }
 
 # Estas dos salen de otras secciones del estado, no del resumen.

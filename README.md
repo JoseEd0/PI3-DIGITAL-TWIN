@@ -136,7 +136,7 @@ seguir esa cadena en pantalla.
 
 | Integrante | Responsabilidad |
 |---|---|
-| José Eduardo Huamán | Servidor, base de datos, API, reglas, tablero web e integración |
+| José Eduardo Huamani | Servidor, base de datos, API, reglas, tablero web e integración |
 | Carlos Dávila | Firmware ESP32, nodo de energía, red local y alimentación |
 | Esteban Sotomayor | Nodos de ocupación y puerta, copiloto de voz |
 | Luhana Landeo | Modelo SysML y documentación, stakeholders, compras, nodo ambiental y pruebas |
