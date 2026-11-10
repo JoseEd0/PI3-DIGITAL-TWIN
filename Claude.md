@@ -1,80 +1,126 @@
-# PI3 — Campus Twin (Digital Twin, aula L-419)
+# PI3 — Campus Twin (gemelo digital del aula L-419)
 
-Gemelo digital de un aula del campus UTEC: sensores → ESP32 → Wi-Fi → Raspberry Pi
-(servidor, sin internet) → dashboard web + copiloto de voz (app en el teléfono) para el
-vigilante nocturno.
-Este repo guarda **toda** la información del proyecto: idea, requerimientos, instrumentación,
-código y entregables.
+Proyecto del curso PI3 (UTEC 2026-2), **Sección 8, Grupo 1**. Docente: J. F. Figueroa.
+Gemelo digital del aula L-419 sobre la **arquitectura oficial del curso**:
 
-## Documentación
+```
+7 nodos ESP32 + sensor ──ESP-NOW──► Gateway ESP32 ──Wi-Fi/MQTT──► laptop con Docker
+(Mosquitto → Telegraf → InfluxDB → Grafana) + servicios del grupo (motor causal, dashboard,
+log de eventos, consumo fantasma, simulador, Gaphor en vivo, copiloto de voz)
+```
+
+**Al grupo no le tocó caja.** Su aporte es la integración: el estado del salón frente a los
+requisitos, el diagnóstico causal, la interfaz y el gemelo en Gaphor. Además programa un .ino
+propio: el nodo MQ-2.
+**Fechas:** la EC3 y la entrega final con demo son el **viernes 13/11/2026 a las 23:59** (semana
+14). Las pruebas con hardware real van después.
+
+## Por dónde empezar
 
 | Documento | Contenido |
 |---|---|
-| [docs/00-idea-principal.md](docs/00-idea-principal.md) | **Documento maestro**: problema, stakeholders, alcance, arquitectura y decisiones técnicas, requisitos (NS/RF/RNF/CP), casos borde, riesgos y plan S4-S14 |
-| [docs/01-preformulacion.md](docs/01-preformulacion.md) | Documento histórico: idea, ODS, propuesta Campus Twin, requerimientos y MVP originales |
-| [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | BOM completo por módulo, costos (S/ 2808) y versión mínima (S/ 580) |
-| [docs/data/instrumentacion-l419.csv](docs/data/instrumentacion-l419.csv) | BOM en CSV (misma lista que el .md; el Excel original quedó como v1) |
-| [docs/03-plan.md](docs/03-plan.md) | Plan y seguimiento: las 70 tareas del proyecto con responsable, fechas y casillas de avance, y lo pendiente de subir a Asana |
-| [docs/04-demo.md](docs/04-demo.md) | Qué se enseña en la exposición: simulador, tablero y modelo en vivo (RF-11) |
-| [modelo/README.md](modelo/README.md) | Modelo SysML en Gaphor: diagramas de requisitos y de bloques, exportación y regeneración |
-| [README.md](README.md) | Puerta de entrada del repo y todos los comandos para correr la demo y el modelo |
+| [docs/05-plan-cierre.md](docs/05-plan-cierre.md) | **Qué se hace hasta el 13/11 y después**: decisiones, orden de trabajo y mapa de la EC3 |
+| [docs/AUDITORIA.md](docs/AUDITORIA.md) | Qué existe y qué no: código del docente, trabajo propio y Asana. Incluye las correcciones al brief |
+| [docs/CONTRATO_DATOS.md](docs/CONTRATO_DATOS.md) | Paquetes ESP-NOW, tópicos y JSON del Gateway, measurements de InfluxDB y bits de anomalía |
+| [docs/curso/README.md](docs/curso/README.md) | Material del docente y reportes entregados: qué sirve para qué. El texto de cada uno está en `docs/curso/texto/` |
+| [docs/curso/brief-ec3.md](docs/curso/brief-ec3.md) | Brief de la EC3 (v3): requisitos RA, grafos, dashboard, Gaphor y estructura del reporte |
+| [docs/00-idea-principal.md](docs/00-idea-principal.md) | Documento maestro: problema, stakeholders, requisitos NS/RF/RNF/CP y riesgos. **Todavía describe el hardware antiguo**; está pendiente migrarlo |
+| [docs/01-preformulacion.md](docs/01-preformulacion.md) | Histórico: la idea original |
+| [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | BOM propio del grupo (S/ 2808). Lo reemplaza el hardware que compró el curso ([lista](docs/curso/texto/lista-de-compra.md)) |
+| [docs/03-plan.md](docs/03-plan.md) | Espejo local de Asana: 75 tareas con responsable, fecha y casilla |
+| [docs/04-demo.md](docs/04-demo.md) | La demo simulada de septiembre (arquitectura anterior) |
+| [modelo/README.md](modelo/README.md) | Modelo SysML en Gaphor: diagramas, exportación y regeneración |
 | [demo/README.md](demo/README.md) | Cómo levantar el simulador, el tablero y el modelo en vivo |
+| [vendor/README.md](vendor/README.md) | Código oficial del docente y sus reglas |
 
-Los documentos en `docs/` son la fuente de verdad. Si algo cambia (sensores, precios,
-alcance), actualiza el `.md` en el mismo commit que el código.
+## Reglas del proyecto
 
-Los identificadores de requisito (NS-1..7, RF-01..13, RNF-01..08, CP-01..15) son los mismos en
-`docs/00-idea-principal.md`, en el modelo SysML de `modelo/` y en las tareas del proyecto
-[PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
-en Asana. Si cambias un requisito, actualiza los tres. El modelo se regenera con
-`modelo/tools/build_model.py` (ver `modelo/README.md`); los casos borde nuevos van en la tabla
-8.5 del documento maestro antes de programarlos.
+### Honestidad
+
+- Todo resultado se rotula como **real** (medido con hardware), **simulado** (datos del
+  simulador) o **pendiente**. Nunca se inventan mediciones ni resultados de pruebas físicas.
+  Hoy **no hay ninguna medición real**.
+- El firmware de los nodos, el Gateway y el stack del servidor son **del docente**. Se reutilizan y
+  se integran, y así se citan. Como aporte del grupo solo se presenta lo que el grupo hizo.
+- Asana refleja lo que realmente pasó. Una tarea se cierra cuando el entregable existe, y en la nota
+  se dice si fue sobre datos simulados.
+
+### Arquitectura y datos
+
+- **El formato lo define el Gateway del docente** ([docs/CONTRATO_DATOS.md](docs/CONTRATO_DATOS.md)).
+  El simulador y todos los servicios del grupo lo respetan al pie de la letra.
+- Los datos simulados van en el grupo `sim` (`utec/gemelo/sim/nodo<id>/<tipo>`). Los datos propios
+  del grupo (diagnósticos, eventos) van en tópicos o measurements nuevos. **Nunca se cambian los
+  tópicos ni los campos del Gateway.**
+- Los servicios del grupo se agregan con un `docker-compose.override.yml`, sin tocar el del docente.
+- El contrato viejo de la demo (`l419/<nodo>/<magnitud>`) queda reemplazado por este.
+
+### Requisitos y trazabilidad
+
+Los identificadores son los mismos en `docs/00-idea-principal.md`, en el modelo de `modelo/` y en
+las tareas de [Asana](https://app.asana.com/1/1218151758126339/project/1218156351516043):
+
+- **NS-1..7**: necesidades de los stakeholders;
+- **RF-01..13**: requisitos funcionales;
+- **RNF-01..08**: requisitos no funcionales;
+- **CP-01..15**: casos de prueba;
+- **RA-01..10**: requisitos de alto nivel de condición del salón, nuevos para la EC3. Cada uno tiene
+  su propio grafo causal.
+
+Si cambias un requisito, actualiza los tres lugares. Los umbrales de los RA se alinean con los del
+código del docente cuando existen. El modelo se regenera con `modelo/tools/build_model.py`.
 
 ### Seguimiento del avance
 
-`docs/03-plan.md` es el espejo local del tablero de Asana. Cuando una tarea se termina, se
-marca la casilla en ese archivo **y** se cierra la tarea en Asana; nunca solo una de las dos.
-Asana manda en fechas y responsables: si algo cambia allá, se vuelve a bajar el archivo.
+`docs/03-plan.md` es el espejo local del tablero de Asana. Cuando una tarea se termina, se marca la
+casilla en ese archivo **y** se cierra la tarea en Asana; nunca solo una de las dos. Asana manda en
+fechas y responsables: si algo cambia allá, se vuelve a bajar el archivo. El plan de Asana es el
+gratuito: no admite fecha de inicio ni proyectos públicos.
+
+Responsables: **J** José Eduardo Huamani (administra Asana: servidor, API, reglas, dashboard e
+integración), **C** Carlos Dávila (red, firmware, energía y ensayo de la demo), **E** Esteban
+Sotomayor (ocupación y puerta, RA y grafos, copiloto y presentación), **L** Luhana Landeo (SysML,
+documentación, pruebas y reporte).
 
 ## Cómo trabajar en este repo
 
 ### Código
 
-- El código y los comentarios van en español, igual que la documentación. Los
-  identificadores de dominio también (`consumo_fantasma`, no `ghost_consumption`).
+- El código y los comentarios van en español, igual que la documentación. Los identificadores
+  de dominio también (`consumo_fantasma`, no `ghost_consumption`).
 - Buenas prácticas siempre: nombres descriptivos, funciones cortas y con una sola
   responsabilidad, sin duplicación.
-- Sin números mágicos: pines, umbrales, intervalos y endpoints van en constantes o archivos
-  de configuración.
-- Nunca hardcodear credenciales (Wi-Fi, tokens, API keys). Usar variables de entorno o un
-  archivo local ignorado por git; dejar un `.example` versionado.
-- Manejar errores de verdad: reintentos y timeouts en red/serial, no `except: pass`.
+- Sin números mágicos: pines, umbrales, intervalos y endpoints van en constantes o en archivos de
+  configuración. Los umbrales de los RA van en `config/`.
+- Nunca hardcodear credenciales (Wi-Fi, tokens, API keys). Usar variables de entorno o un archivo
+  local ignorado por git, y dejar un `.example` versionado.
+- Manejar errores de verdad: reintentos y timeouts en red y serial, nunca `except: pass`.
 - Comentar el *por qué*, no el *qué*. Código autoexplicativo antes que comentarios.
-- Seguir el estilo ya presente en cada carpeta antes de introducir uno nuevo.
-- Firmware, backend y frontend en carpetas separadas, cada uno con su README breve.
-- Lo que se toca en `demo/` se prueba: `cd demo/servidor && .venv/bin/python -m pytest`
-  antes de dar por terminado un cambio del simulador, las reglas o la API.
+- Seguir el estilo de cada carpeta antes de introducir uno nuevo.
+- Firmware, backend y frontend en carpetas separadas, cada una con su README breve.
+- Lo que se toca en `demo/` se prueba antes de darlo por terminado:
+  `cd demo/servidor && .venv/bin/python -m pytest`.
 
-### La demo
+### Carpetas con reglas propias
 
-`demo/` es el sistema funcionando con datos simulados (RF-11). Tres piezas:
-`servidor/` (simulador y API), `frontend/` (tablero React) y `gaphor-vivo/` (el
-modelo SysML actualizándose en vivo). Reglas de la carpeta:
-
-- El contrato de datos manda: tópico `l419/<nodo>/<magnitud>`, con valor, unidad,
-  marca de tiempo, número de secuencia y origen. Si cambia, cambia en
-  `demo/servidor/campus_twin_demo/contrato.py` y en el documento maestro.
-- Umbrales, periodos, tarifa y horario viven en `configuracion.py`. Nada de
-  números sueltos en el resto del código.
-- El enlace con Gaphor solo puede usar la biblioteca estándar: corre dentro del
-  intérprete que trae Gaphor, donde no hay pip.
-- `modelo/campus-twin-l419.gaphor` no se modifica desde la demo. El lanzador
-  trabaja sobre una copia ignorada por git.
+- **`vendor/gemelo_iot_profesor/`** es el código del docente y **no se modifica**. Lo que se adapte
+  va en una carpeta propia y se cita como derivado. `servidor_iot/.env` y `gateway/gateway.ino`
+  traen credenciales: están en `.gitignore` y se versionan sus `.example`. Nunca se copian
+  credenciales al reporte, a Asana ni a un commit.
+- **`docs/curso/`**: los originales del curso (`originales/`) no se versionan. Se versiona el texto
+  extraído (`texto/`) y las fotos reducidas (`imagenes/`).
+- **`demo/`** es el sistema simulado de septiembre: `servidor/` (simulador y API FastAPI),
+  `frontend/` (React) y `gaphor-vivo/`. Evoluciona hacia el contrato oficial y no se descarta.
+  - Umbrales, periodos, tarifa y horario viven en `configuracion.py`.
+  - El enlace con Gaphor solo puede usar la biblioteca estándar, porque corre en el intérprete de
+    Gaphor, que no tiene pip.
+  - `modelo/campus-twin-l419.gaphor` no se modifica desde la demo: el lanzador trabaja sobre una
+    copia ignorada por git.
 
 ### Commits
 
-Conventional Commits, **en inglés**, cortos (≤ 72 caracteres en el asunto), imperativo y en
-minúscula. Un commit = un cambio lógico.
+Conventional Commits, **en inglés**, cortos (≤ 72 caracteres en el asunto), en imperativo y en
+minúscula. Un commit es un cambio lógico.
 
 ```
 feat(dashboard): add energy consumption chart
@@ -95,5 +141,7 @@ descripciones de PR o comentarios de código.
 ### Git
 
 - No commitear ni pushear sin que se pida explícitamente.
-- Nada de binarios pesados ni datasets grandes en el repo; si hace falta, guardar el CSV/MD
+- Nada de binarios pesados ni datasets grandes en el repo. Si hace falta, guardar el CSV o MD
   derivado y documentar de dónde salió.
+- La rama de trabajo es `jose`. `main` y `jose` están separadas: hay que integrarlas (tarea en
+  Asana).

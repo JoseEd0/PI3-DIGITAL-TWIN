@@ -1,7 +1,14 @@
 # Campus Twin L-419
 
-Gemelo digital del aula laboratorio **L-419** de UTEC. Sensores → ESP32 → Wi-Fi →
-Raspberry Pi → tablero web y copiloto de voz para el vigilante nocturno.
+Gemelo digital del aula laboratorio **L-419** de UTEC (PI3, Sección 8, Grupo 1). Usa la
+arquitectura oficial del curso: 7 nodos ESP32 envían por ESP-NOW a un Gateway, que publica por
+MQTT en una laptop con Mosquitto, Telegraf, InfluxDB y Grafana. Encima, el grupo agrega el motor
+causal, el tablero propio, el log de eventos, el gemelo en Gaphor y el copiloto de voz.
+
+> **Estado al 10/11/2026:** el plan está en [docs/05-plan-cierre.md](docs/05-plan-cierre.md) y lo
+> que existe y lo que no, en [docs/AUDITORIA.md](docs/AUDITORIA.md). La demo de `demo/` es de
+> septiembre y usa la arquitectura anterior, con una Raspberry Pi y sensores propios. Se está
+> migrando al formato del Gateway ([docs/CONTRATO_DATOS.md](docs/CONTRATO_DATOS.md)).
 
 Proyecto del curso PI3. Este repositorio guarda todo: idea, requisitos,
 instrumentación costeada, modelo SysML, plan y código.
@@ -17,6 +24,9 @@ instrumentación costeada, modelo SysML, plan y código.
 
 | Si quieres… | Ve a |
 |---|---|
+| Saber qué falta para la EC3 (13/11) | [docs/05-plan-cierre.md](docs/05-plan-cierre.md) |
+| Ver el material y los anuncios del docente | [docs/curso/README.md](docs/curso/README.md) |
+| Ver el código oficial de los nodos y el Gateway | [vendor/README.md](vendor/README.md) |
 | Entender el proyecto completo | [docs/00-idea-principal.md](docs/00-idea-principal.md) |
 | Ver qué se compra y cuánto cuesta | [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) |
 | Saber quién hace qué y para cuándo | [docs/03-plan.md](docs/03-plan.md) |
@@ -26,7 +36,9 @@ instrumentación costeada, modelo SysML, plan y código.
 ## Qué hay en cada carpeta
 
 ```
-docs/     documentación del proyecto: idea, requisitos, instrumentación, plan
+docs/     documentación del proyecto: idea, requisitos, plan, auditoría, contrato de datos
+          └── curso/   material del docente (texto extraído, fotos con QR, brief EC3)
+vendor/   código oficial del docente: nodos, Gateway y servidor (no se modifica)
 modelo/   modelo SysML en Gaphor, diagramas exportados y el script que lo genera
 demo/     el sistema funcionando con datos simulados (RF-11)
           ├── servidor/     simulador de los nodos + API REST + flujo de eventos
