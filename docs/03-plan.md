@@ -3,7 +3,7 @@
 > Espejo local del proyecto [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
 > en Asana. **Asana es la fuente de verdad** de fechas y responsables. Este archivo sirve para ver y
 > avanzar el plan sin salir del repo.
-> Última sincronización desde Asana: **10/11/2026**. Van **25 de 75 tareas** completadas.
+> Última sincronización desde Asana: **10/11/2026**. Van **26 de 75 tareas** completadas.
 > La estrategia de cierre (qué se hace hasta el 13/11 y qué después) está en
 > [05-plan-cierre.md](05-plan-cierre.md).
 
@@ -50,7 +50,7 @@ está en `vendor/`. El curso compró el hardware. Por eso el tablero se reorgani
 | S10–S11 · API, reglas y dashboard | 7 | 4 | API sobre InfluxDB y dashboard EC3 (12/11) |
 | S12 · Copiloto de voz | 6 | 0 | Es opcional (13/11) |
 | S13 · Pruebas de sistema | 7 | 0 | Pruebas simuladas (11–12/11). Las físicas, el 20/11 |
-| S14 · Entrega final | 19 | 1 | El núcleo de la EC3 (10–13/11) |
+| S14 · Entrega final | 19 | 2 | El núcleo de la EC3 (10–13/11) |
 | Gestión y transversales | 3 | 0 | Siguen abiertas todo el ciclo |
 
 ## S4 · Formulación y modelado (31/08–06/09)
@@ -130,7 +130,7 @@ está en `vendor/`. El curso compró el hardware. Por eso el tablero se reorgani
 ## S14 · Entrega final (09/11–13/11)
 
 - [x] Centralizar material del curso y auditar el repo (`docs/curso`, `vendor`, `AUDITORIA`, `CONTRATO_DATOS`) — **J** · 10/11
-- [ ] Integrar las ramas `jose` y `main` (incluye los diagramas de Luhana) — **J** · 10/11
+- [x] Integrar las ramas `jose` y `main` (incluye los diagramas de Luhana) — **J** · 10/11
 - [ ] RA-01..10: requisitos de alto nivel con umbrales y normas (`config/`) — **E** · 11/11
 - [ ] Grafos causales por RA (`graphs/*.yaml`) y sus figuras — **E** · 11/11
 - [ ] Motor de razonamiento causal (SymCure) con pruebas por tipo de lógica — **J** · 11/11
