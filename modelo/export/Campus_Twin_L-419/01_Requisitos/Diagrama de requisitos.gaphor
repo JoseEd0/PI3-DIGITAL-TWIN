@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gaphor xmlns="https://gaphor.org/model" xmlns:Core="https://gaphor.org/modelinglanguage/Core" xmlns:SysML="https://gaphor.org/modelinglanguage/SysML" xmlns:UML="https://gaphor.org/modelinglanguage/UML" version="4" gaphor-version="3.3.2">
+<model>
+<Core:StyleSheet id="58d6989a-66f8-11ec-b4c8-0456e5e540ed"/>
+<UML:Package id="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed">
+<name>
+<val>Diagrama de requisitos</val>
+</name>
+<ownedDiagram>
+<reflist>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</reflist>
+</ownedDiagram>
+<ownedType>
+<reflist>
+<ref refid="f1ef5be2-ad06-11f1-84b9-ebe92336dcac"/>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+<ref refid="52e7f856-ad07-11f1-ab08-ebe92336dcac"/>
+<ref refid="803b007d-ad07-11f1-85d1-ebe92336dcac"/>
+<ref refid="0679e6bd-ad08-11f1-b12c-ebe92336dcac"/>
+<ref refid="07b36056-ad08-11f1-ac7d-ebe92336dcac"/>
+<ref refid="12ec45cc-ad08-11f1-aef0-ebe92336dcac"/>
+<ref refid="14ef1214-ad08-11f1-9caa-ebe92336dcac"/>
+<ref refid="1cd848eb-ad08-11f1-bafd-ebe92336dcac"/>
+<ref refid="1fa0e483-ad08-11f1-af52-ebe92336dcac"/>
+</reflist>
+</ownedType>
+<packagedElement>
+<reflist>
+<ref refid="f1ef5be2-ad06-11f1-84b9-ebe92336dcac"/>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+<ref refid="52e7f856-ad07-11f1-ab08-ebe92336dcac"/>
+<ref refid="803b007d-ad07-11f1-85d1-ebe92336dcac"/>
+<ref refid="0679e6bd-ad08-11f1-b12c-ebe92336dcac"/>
+<ref refid="07b36056-ad08-11f1-ac7d-ebe92336dcac"/>
+<ref refid="12ec45cc-ad08-11f1-aef0-ebe92336dcac"/>
+<ref refid="14ef1214-ad08-11f1-9caa-ebe92336dcac"/>
+<ref refid="1cd848eb-ad08-11f1-bafd-ebe92336dcac"/>
+<ref refid="1fa0e483-ad08-11f1-af52-ebe92336dcac"/>
+</reflist>
+</packagedElement>
+</UML:Package>
+<UML:Diagram id="58d6c536-66f8-11ec-b4c8-0456e5e540ed">
+<element>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</element>
+<name>
+<val>DIagrama de requisitos</val>
+</name>
+<ownedPresentation>
+<reflist>
+<ref refid="22dc2343-ad07-11f1-beec-ebe92336dcac"/>
+<ref refid="31a1c92c-ad07-11f1-a4c4-ebe92336dcac"/>
+<ref refid="52e824e7-ad07-11f1-9037-ebe92336dcac"/>
+<ref refid="803b2e20-ad07-11f1-8b6c-ebe92336dcac"/>
+<ref refid="067a14d6-ad08-11f1-addd-ebe92336dcac"/>
+<ref refid="07b38d9f-ad08-11f1-82a5-ebe92336dcac"/>
+<ref refid="12ec87c9-ad08-11f1-ba58-ebe92336dcac"/>
+<ref refid="14ef3ffb-ad08-11f1-ad08-ebe92336dcac"/>
+<ref refid="1cd87f14-ad08-11f1-90a3-ebe92336dcac"/>
+<ref refid="1fa11196-ad08-11f1-bb06-ebe92336dcac"/>
+<ref refid="cd149dbf-ad07-11f1-9d7a-ebe92336dcac"/>
+<ref refid="e8517e3c-ad07-11f1-8f78-ebe92336dcac"/>
+<ref refid="eaffc2cd-ad07-11f1-9cf2-ebe92336dcac"/>
+<ref refid="ed5ada02-ad08-11f1-bce1-ebe92336dcac"/>
+<ref refid="efdfcb8e-ad08-11f1-a909-ebe92336dcac"/>
+<ref refid="f2b3a9ab-ad08-11f1-8561-ebe92336dcac"/>
+<ref refid="f557a642-ad08-11f1-a9ed-ebe92336dcac"/>
+<ref refid="6cd875cc-ad09-11f1-843a-ebe92336dcac"/>
+<ref refid="71495817-ad09-11f1-8032-ebe92336dcac"/>
+</reflist>
+</ownedPresentation>
+</UML:Diagram>
+<SysML:Requirement id="f1ef5be2-ad06-11f1-84b9-ebe92336dcac">
+<name>
+<val>RAMA 1: Medición</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="22dc2343-ad07-11f1-beec-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="ee604aac-ad08-11f1-b033-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+</SysML:Requirement>
+<SysML:RequirementItem id="22dc2343-ad07-11f1-beec-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 251.0, 309.0)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>132.0</val>
+</width>
+<height>
+<val>78.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="f1ef5be2-ad06-11f1-84b9-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="31a19abe-ad07-11f1-8009-ebe92336dcac">
+<name>
+<val>RAMA 2: Software</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="31a1c92c-ad07-11f1-a4c4-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="e945cc18-ad07-11f1-bc7d-ebe92336dcac"/>
+<ref refid="ec45935e-ad07-11f1-b444-ebe92336dcac"/>
+<ref refid="f3bf07d7-ad08-11f1-86c8-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+</SysML:Requirement>
+<SysML:RequirementItem id="31a1c92c-ad07-11f1-a4c4-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 611.0, 309.0)</val>
+</matrix>
+<top-left>
+<val>(1.0, 0.0)</val>
+</top-left>
+<width>
+<val>132.0</val>
+</width>
+<height>
+<val>78.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="52e7f856-ad07-11f1-ab08-ebe92336dcac">
+<name>
+<val>RAMA 3: Demo MVP</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="52e824e7-ad07-11f1-9037-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="6e740fe0-ad09-11f1-a169-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+</SysML:Requirement>
+<SysML:RequirementItem id="52e824e7-ad07-11f1-9037-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 960.5, 303.5)</val>
+</matrix>
+<top-left>
+<val>(1.5, 3.0)</val>
+</top-left>
+<width>
+<val>132.0</val>
+</width>
+<height>
+<val>83.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="52e7f856-ad07-11f1-ab08-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:RequirementItem id="803b2e20-ad07-11f1-8b6c-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 612.0, 68.0)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>132.0</val>
+</width>
+<height>
+<val>90.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="803b007d-ad07-11f1-85d1-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="803b007d-ad07-11f1-85d1-ebe92336dcac">
+<name>
+<val>Campus Twin System</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="803b2e20-ad07-11f1-8b6c-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="ce6265e0-ad07-11f1-8c27-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+</SysML:Requirement>
+<SysML:DeriveReqtItem id="cd149dbf-ad07-11f1-9d7a-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="ce6265e0-ad07-11f1-8c27-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 676.0, 309.0)</val>
+</matrix>
+<points>
+<val>[(0.0, 0.0), (0.0, -151.0)]</val>
+</points>
+<head-connection>
+<ref refid="31a1c92c-ad07-11f1-a4c4-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="803b2e20-ad07-11f1-8b6c-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="ce6265e0-ad07-11f1-8c27-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="cd149dbf-ad07-11f1-9d7a-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="803b007d-ad07-11f1-85d1-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="e8517e3c-ad07-11f1-8f78-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="e945cc18-ad07-11f1-bc7d-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 385.0, 350.0)</val>
+</matrix>
+<points>
+<val>[(-2.0, -2.0), (227.0, -2.0)]</val>
+</points>
+<head-connection>
+<ref refid="22dc2343-ad07-11f1-beec-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="31a1c92c-ad07-11f1-a4c4-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="e945cc18-ad07-11f1-bc7d-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="e8517e3c-ad07-11f1-8f78-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="f1ef5be2-ad06-11f1-84b9-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="eaffc2cd-ad07-11f1-9cf2-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="ec45935e-ad07-11f1-b444-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 956.0, 332.0)</val>
+</matrix>
+<points>
+<val>[(6.0, 16.0), (-212.0, 16.0)]</val>
+</points>
+<head-connection>
+<ref refid="52e824e7-ad07-11f1-9037-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="31a1c92c-ad07-11f1-a4c4-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="ec45935e-ad07-11f1-b444-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="eaffc2cd-ad07-11f1-9cf2-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="52e7f856-ad07-11f1-ab08-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:Requirement id="0679e6bd-ad08-11f1-b12c-ebe92336dcac">
+<name>
+<val>REQ-01: Sensores</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="067a14d6-ad08-11f1-addd-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="f1015dce-ad08-11f1-90a4-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+<text>
+<val> Captura de datos en tiempo real de consumo de luz, aire acondicionado (HVAC) y aforo/ocupación de aulas o pasillos.</val>
+</text>
+</SysML:Requirement>
+<SysML:RequirementItem id="067a14d6-ad08-11f1-addd-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 192.0, 467.0)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>250.0</val>
+</width>
+<height>
+<val>140.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="0679e6bd-ad08-11f1-b12c-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="07b36056-ad08-11f1-ac7d-ebe92336dcac">
+<name>
+<val>REQ-02: Mapa Digital</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="07b38d9f-ad08-11f1-82a5-ebe92336dcac"/>
+</reflist>
+</presentation>
+<text>
+<val>Representación visual sencilla (en 2D o un modelo 3D básico) del campus UTEC para ver los edificios por dentro.</val>
+</text>
+</SysML:Requirement>
+<SysML:RequirementItem id="07b38d9f-ad08-11f1-82a5-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 267.0, 678.0)</val>
+</matrix>
+<top-left>
+<val>(-75.0, 6.0)</val>
+</top-left>
+<width>
+<val>250.0</val>
+</width>
+<height>
+<val>126.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="07b36056-ad08-11f1-ac7d-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="12ec45cc-ad08-11f1-aef0-ebe92336dcac">
+<name>
+<val>REQ-03: Dashboard</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="12ec87c9-ad08-11f1-ba58-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="f6762c65-ad08-11f1-9823-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+<text>
+<val>Pantalla web para monitorear consumo energético, recibir alertas de fallos y generar reportes de ahorro orientados a certificaciones ambientales.</val>
+</text>
+</SysML:Requirement>
+<SysML:RequirementItem id="12ec87c9-ad08-11f1-ba58-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 551.0, 466.0)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>250.0</val>
+</width>
+<height>
+<val>158.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="12ec45cc-ad08-11f1-aef0-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="14ef1214-ad08-11f1-9caa-ebe92336dcac">
+<name>
+<val>REQ-04: Copiloto Voz</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="14ef3ffb-ad08-11f1-ad08-ebe92336dcac"/>
+</reflist>
+</presentation>
+<text>
+<val>Generación de un briefing automático al iniciar la ronda nocturna y capacidad de hacer consultas orales a la plataforma.</val>
+</text>
+</SysML:Requirement>
+<SysML:RequirementItem id="14ef3ffb-ad08-11f1-ad08-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 551.0, 700.0)</val>
+</matrix>
+<top-left>
+<val>(0.0, 0.0)</val>
+</top-left>
+<width>
+<val>250.0</val>
+</width>
+<height>
+<val>140.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="14ef1214-ad08-11f1-9caa-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="1cd848eb-ad08-11f1-bafd-ebe92336dcac">
+<name>
+<val>REQ-05: Zona Piloto</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="1cd87f14-ad08-11f1-90a3-ebe92336dcac"/>
+</reflist>
+</presentation>
+<targetDirectedRelationshipPropertyPath_>
+<reflist>
+<ref refid="7238b2b1-ad09-11f1-b5c5-ebe92336dcac"/>
+</reflist>
+</targetDirectedRelationshipPropertyPath_>
+<text>
+<val>Selección de un aula o área del campus UTEC para ser utilizada como laboratorio de pruebas del prototipo.</val>
+</text>
+</SysML:Requirement>
+<SysML:RequirementItem id="1cd87f14-ad08-11f1-90a3-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1046.75, 460.0)</val>
+</matrix>
+<top-left>
+<val>(-139.5, 1.0)</val>
+</top-left>
+<width>
+<val>241.5</val>
+</width>
+<height>
+<val>129.5</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="1cd848eb-ad08-11f1-bafd-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:Requirement id="1fa0e483-ad08-11f1-af52-ebe92336dcac">
+<name>
+<val>REQ-06: Demostración en Vivo</val>
+</name>
+<owningPackage>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</owningPackage>
+<package>
+<ref refid="58d6c2e8-66f8-11ec-b4c8-0456e5e540ed"/>
+</package>
+<presentation>
+<reflist>
+<ref refid="1fa11196-ad08-11f1-bb06-ebe92336dcac"/>
+</reflist>
+</presentation>
+<text>
+<val>Muestra en tiempo real del funcionamiento del Dashboard y de las consultas de voz durante la presentación ante la clase.</val>
+</text>
+</SysML:Requirement>
+<SysML:RequirementItem id="1fa11196-ad08-11f1-bb06-ebe92336dcac">
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1025.25, 665.0)</val>
+</matrix>
+<top-left>
+<val>(-118.0, 0.0)</val>
+</top-left>
+<width>
+<val>241.5</val>
+</width>
+<height>
+<val>140.0</val>
+</height>
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<subject>
+<ref refid="1fa0e483-ad08-11f1-af52-ebe92336dcac"/>
+</subject>
+</SysML:RequirementItem>
+<SysML:DeriveReqtItem id="ed5ada02-ad08-11f1-bce1-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="ee604aac-ad08-11f1-b033-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 319.0, 471.0)</val>
+</matrix>
+<points>
+<val>[(0.0, -4.0), (0.0, -84.0)]</val>
+</points>
+<head-connection>
+<ref refid="067a14d6-ad08-11f1-addd-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="22dc2343-ad07-11f1-beec-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="ee604aac-ad08-11f1-b033-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="ed5ada02-ad08-11f1-bce1-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="0679e6bd-ad08-11f1-b12c-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="f1ef5be2-ad06-11f1-84b9-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="efdfcb8e-ad08-11f1-a909-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="f1015dce-ad08-11f1-90a4-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 305.0, 688.0)</val>
+</matrix>
+<points>
+<val>[(14.0, -4.0), (14.0, -81.0)]</val>
+</points>
+<head-connection>
+<ref refid="07b38d9f-ad08-11f1-82a5-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="067a14d6-ad08-11f1-addd-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="f1015dce-ad08-11f1-90a4-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="efdfcb8e-ad08-11f1-a909-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="07b36056-ad08-11f1-ac7d-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="0679e6bd-ad08-11f1-b12c-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="f2b3a9ab-ad08-11f1-8561-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="f3bf07d7-ad08-11f1-86c8-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 671.0, 470.0)</val>
+</matrix>
+<points>
+<val>[(5.0, -4.0), (7.0, -83.0)]</val>
+</points>
+<head-connection>
+<ref refid="12ec87c9-ad08-11f1-ba58-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="31a1c92c-ad07-11f1-a4c4-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="f3bf07d7-ad08-11f1-86c8-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="f2b3a9ab-ad08-11f1-8561-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="12ec45cc-ad08-11f1-aef0-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="31a19abe-ad07-11f1-8009-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="f557a642-ad08-11f1-a9ed-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="f6762c65-ad08-11f1-9823-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 684.0, 702.0)</val>
+</matrix>
+<points>
+<val>[(-6.0, -2.0), (-6.0, -78.0)]</val>
+</points>
+<head-connection>
+<ref refid="14ef3ffb-ad08-11f1-ad08-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="12ec87c9-ad08-11f1-ba58-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="f6762c65-ad08-11f1-9823-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="f557a642-ad08-11f1-a9ed-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="14ef1214-ad08-11f1-9caa-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="12ec45cc-ad08-11f1-aef0-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="6cd875cc-ad09-11f1-843a-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="6e740fe0-ad09-11f1-a169-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1027.5, 471.0)</val>
+</matrix>
+<points>
+<val>[(0.5, -10.0), (0.5, -81.5)]</val>
+</points>
+<head-connection>
+<ref refid="1cd87f14-ad08-11f1-90a3-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="52e824e7-ad07-11f1-9037-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="6e740fe0-ad09-11f1-a169-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="6cd875cc-ad09-11f1-843a-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="1cd848eb-ad08-11f1-bafd-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="52e7f856-ad07-11f1-ab08-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+<SysML:DeriveReqtItem id="71495817-ad09-11f1-8032-ebe92336dcac">
+<diagram>
+<ref refid="58d6c536-66f8-11ec-b4c8-0456e5e540ed"/>
+</diagram>
+<horizontal>
+<val>False</val>
+</horizontal>
+<orthogonal>
+<val>False</val>
+</orthogonal>
+<subject>
+<ref refid="7238b2b1-ad09-11f1-b5c5-ebe92336dcac"/>
+</subject>
+<matrix>
+<val>(1.0, 0.0, 0.0, 1.0, 1014.0, 672.0)</val>
+</matrix>
+<points>
+<val>[(14.0, -7.0), (14.0, -81.5)]</val>
+</points>
+<head-connection>
+<ref refid="1fa11196-ad08-11f1-bb06-ebe92336dcac"/>
+</head-connection>
+<tail-connection>
+<ref refid="1cd87f14-ad08-11f1-90a3-ebe92336dcac"/>
+</tail-connection>
+</SysML:DeriveReqtItem>
+<SysML:DeriveReqt id="7238b2b1-ad09-11f1-b5c5-ebe92336dcac">
+<presentation>
+<reflist>
+<ref refid="71495817-ad09-11f1-8032-ebe92336dcac"/>
+</reflist>
+</presentation>
+<sourceContext>
+<ref refid="1fa0e483-ad08-11f1-af52-ebe92336dcac"/>
+</sourceContext>
+<targetContext>
+<ref refid="1cd848eb-ad08-11f1-bafd-ebe92336dcac"/>
+</targetContext>
+</SysML:DeriveReqt>
+</model>
+</gaphor>
