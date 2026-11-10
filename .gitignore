@@ -61,3 +61,10 @@ demo/gaphor-vivo/campus-twin-l419-demo.gaphor
 
 # Capturas de Playwright
 .playwright-mcp/
+
+# Material del curso: los originales (pptx, docx, pdf, zip) se quedan locales.
+# Se versiona el texto extraído en docs/curso/texto/ (ver docs/curso/README.md).
+docs/curso/originales/
+
+# Código del docente: estos dos archivos traen credenciales. Se versiona su .example.
+vendor/gemelo_iot_profesor/gateway/gateway.ino
