@@ -16,9 +16,11 @@ Mosquitto :1883 ──► Telegraf ──► InfluxDB 2.7 :8086 (org utec, bucke
 - Los nodos **no** se conectan al Wi-Fi: solo lo escanean para saber en qué canal está el Gateway
   (`buscarCanal(SSID_ROUTER)`) y le envían por ESP-NOW a su MAC (`MAC_GATEWAY`).
 - El Gateway sí se conecta al Wi-Fi, traduce cada paquete a JSON y lo publica en Mosquitto.
-- El Gateway toma la hora de `pool.ntp.org`. **Sin internet, `ts` sale `null`** y Telegraf no
-  puede usarlo como marca de tiempo. Esto choca con RNF-05 (operación sin internet) y hay que
-  resolverlo, por ejemplo con un servidor NTP en la laptop.
+- El Gateway toma la hora de `pool.ntp.org`. **Sin internet, `ts` sale `null` y Telegraf descarta
+  el mensaje completo.** Se comprobó el 10/11/2026 en el stack local: el error es
+  `'json_time_key' could not be found` y no llega nada a InfluxDB. Es decir, sin NTP no se pierde
+  solo la hora, se pierden todos los datos. Esto choca con RNF-05 (operación sin internet). Las
+  salidas posibles son un servidor NTP en la laptop o un `json_time_key` opcional en Telegraf.
 
 ## 2. Nodos
 
@@ -107,7 +109,7 @@ El campo `nivel` del CO₂ toma los valores `NORMAL`, `ALERTA`, `CRITICO`, `CALE
 |---|---|
 | Suscripción | `utec/gemelo/+/+/{co2,audio,termico,magnetico,ambiente,luz,gas}` con QoS 0 |
 | Measurement | el campo `tipo`: `co2`, `audio`, `termico`, `magnetico`, `ambiente`, `luz` o `gas` |
-| Tags | `nodo`, `mac` y `grupo` (este último se saca del tópico) |
+| Tags | `nodo`, `mac`, `grupo` (sale del tópico) y `topic` (lo agrega Telegraf) |
 | Campos de texto | `nivel`, `anomalias` |
 | Campos numéricos | todos los demás, incluidos `seq`, `perdidos`, `uptime_ms` y `anom_bits` |
 | Hora | `ts` (unix_ms) |
