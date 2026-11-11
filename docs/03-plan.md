@@ -3,7 +3,7 @@
 > Espejo local del proyecto [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
 > en Asana. **Asana es la fuente de verdad** de fechas y responsables. Este archivo sirve para ver y
 > avanzar el plan sin salir del repo.
-> Última sincronización desde Asana: **10/11/2026, 20:00**. Van **42 de 71 tareas** completadas (59 %).
+> Última sincronización desde Asana: **10/11/2026, 20:00**. Van **43 de 71 tareas** completadas (61 %).
 > La estrategia, el diseño y el orden de trabajo están en [05-plan-cierre.md](05-plan-cierre.md).
 
 ## Calendario
@@ -15,7 +15,7 @@
 | **S16** | 23–27/11 | Copiloto, ensayo y **demo final**. El 27/11 es una fecha supuesta: se ajusta cuando el curso la confirme |
 
 Si se termina lo planificado para la S14 (las 25 tareas con fecha hasta el 13/11), el viernes el
-tablero queda en **52 de 71 (≈ 73 %)**. Al cierre del 10/11 ya van 42. Lo que queda después es el trabajo con hardware y la demo
+tablero queda en **52 de 71 (≈ 73 %)**. Al cierre del 10/11 ya van 43. Lo que queda después es el trabajo con hardware y la demo
 final.
 
 ## Cómo se actualiza
@@ -100,7 +100,7 @@ Responsables: **J** = José Eduardo · **C** = Carlos Dávila · **E** = Esteban
 - [x] Dashboard propio: mediciones, condición por RA y causas, efectos y recomendaciones — **J** · 12/11
 - [ ] Gaphor en vivo leyendo InfluxDB — **J** · 12/11
 - [ ] Gaphor: migrar al hardware oficial, IBD y paquetes 04 Comportamiento y 05 Razonamiento — **J** · 12/11
-- [ ] Actualizar el documento maestro y el plan al hardware y la arquitectura oficiales — **L** · 12/11
+- [x] Actualizar el documento maestro y el plan al hardware y la arquitectura oficiales — **J** · 10/11
 - [ ] Cargar las fotos con QR de los sensores en Gaphor y en Asana — **L** · 12/11
 - [ ] Programa propio del grupo: nodo de gas MQ-2 (`MQ-2.ino`) que compile — **C** · 12/11
 - [ ] Análisis de energía de las cajas (18650, regulador, consumo por nodo) — **C** · 12/11
