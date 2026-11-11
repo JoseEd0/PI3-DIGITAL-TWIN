@@ -255,7 +255,9 @@ Dávila Cabezas, Carlos Víctor Duamel (Ciencia de la Computación)</p>
 <tr><td>C</td><td>Noche de 21:30 a 03:30 con el aula apagada</td><td>0</td><td>0</td><td>Sin falsos positivos</td><td>Aprobado</td></tr>
 </table>
 <p>Los casos A y B dan la misma energía porque en ambos el aula queda vacía con las luces encendidas durante dos horas: en A desde las 10:30 y en B desde las 20:00, cuando el simulador decidió que nadie apagó. La energía real se cuenta desde que vence la tolerancia de 10 minutos del RA-08. La diferencia viene de la fracción supuesta de computadoras que quedan encendidas. Esta auditoría valida la lógica del método; su exactitud real depende de las potencias del inventario, que se revisan en el aula.</p>
-<p><i>[Insertar aquí una captura de Grafana (http://localhost:3000) con los tableros del docente mostrando los datos del grupo sim.]</i></p>
+<p>Los mismos datos llegan a Grafana, donde se ven con los dos tableros del docente sin cambios. Al cargarlos por aprovisionamiento, el grupo encontró que apuntaban a una fuente de datos sin resolver (${DS_INFLUXDB}) y que todos los paneles decían "No data"; la copia derivada de deploy/grafana/ lo corrige. Las capturas son del 11/11/2026, con datos simulados (grupo sim) y una ventana de 3 horas.</p>
+{{img:docs/reporte-ec3/figuras/grafana-completo.png|Figura 15. Tablero del docente "Gemelo digital L418 — 7 sensores" en Grafana con datos simulados: estado del salón, salud de los nodos, ocupación y puerta, y calidad del aire. El título dice L418; el aula del grupo es el L-419.}}
+{{img:docs/reporte-ec3/figuras/grafana-iot.png|Figura 16. Tablero del docente "Sensores IoT UTEC" con los mismos datos simulados: CO₂, nivel sonoro y el registro de anomalías que reporta el Gateway (aquí, ILUMINACION_BAJA del nodo 4 al terminar la clase).}}
 
 <h1>Gemelo digital en Gaphor</h1>
 <p><i>[Sección por completar cuando termine la migración del modelo. Estado al 11/11/2026: el modelo sigue describiendo la arquitectura de la EC2.]</i></p>
