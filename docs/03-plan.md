@@ -3,7 +3,7 @@
 > Espejo local del proyecto [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
 > en Asana. **Asana es la fuente de verdad** de fechas y responsables. Este archivo sirve para ver y
 > avanzar el plan sin salir del repo.
-> Última sincronización desde Asana: **10/11/2026 por la noche**. Van **27 de 71 tareas** completadas (38 %).
+> Última sincronización desde Asana: **10/11/2026, 20:00**. Van **38 de 71 tareas** completadas (54 %).
 > La estrategia, el diseño y el orden de trabajo están en [05-plan-cierre.md](05-plan-cierre.md).
 
 ## Calendario
@@ -15,7 +15,7 @@
 | **S16** | 23–27/11 | Copiloto, ensayo y **demo final**. El 27/11 es una fecha supuesta: se ajusta cuando el curso la confirme |
 
 Si se termina lo planificado para la S14 (las 25 tareas con fecha hasta el 13/11), el viernes el
-tablero queda en **52 de 71 (≈ 73 %)**. Lo que queda después es el trabajo con hardware y la demo
+tablero queda en **52 de 71 (≈ 73 %)**. Al cierre del 10/11 ya van 38. Lo que queda después es el trabajo con hardware y la demo
 final.
 
 ## Cómo se actualiza
@@ -74,9 +74,9 @@ Responsables: **J** = José Eduardo · **C** = Carlos Dávila · **E** = Esteban
 - [x] Estudiar y documentar el firmware del docente (ESP-NOW, paquetes.h, Gateway) — **J** · 10/11
 - [x] Base de datos de series temporales: InfluxDB 2.7 del docente — **J** · 10/11
 - [x] Componentes: los compró el curso (OC-UTEC-004033-26) — **L** · 10/11
-- [ ] Servidor en la laptop: stack Docker del docente + servicios del grupo (override) — **J** · 11/11
-- [ ] Ingesta: datos en formato Gateway llegando a InfluxDB (Telegraf del docente) — **J** · 11/11
-- [ ] 🏁 Hito · Datos simulados en formato Gateway visibles en InfluxDB y Grafana — **J** · 11/11
+- [x] Servidor en la laptop: stack Docker del docente + servicios del grupo (override) — **J** · 11/11
+- [x] Ingesta: datos en formato Gateway llegando a InfluxDB (Telegraf del docente) — **J** · 11/11
+- [x] 🏁 Hito · Datos simulados en formato Gateway visibles en InfluxDB y Grafana — **J** · 11/11
 
 ## S10–S14 · API, reglas y dashboard
 
@@ -84,20 +84,20 @@ Responsables: **J** = José Eduardo · **C** = Carlos Dávila · **E** = Esteban
 - [x] Reporte de consumo fantasma (sobre el simulador) — **J** · septiembre
 - [x] Dashboard web: estado en vivo (sobre el simulador) — **J** · septiembre
 - [x] Dashboard: plano 2D del laboratorio y reporte de ahorro (sobre el simulador) — **J** · septiembre
-- [ ] API del grupo sobre InfluxDB: estado, condición por RA, diagnósticos y log — **J** · 12/11
-- [ ] CP-09 y CP-10: ensayos de API, dashboard y reglas (con datos simulados) — **L** · 12/11
-- [ ] 🏁 Hito · Dashboard propio con los 3 mínimos de la EC3 — **J** · 12/11
+- [x] API del grupo sobre InfluxDB: estado, condición por RA, diagnósticos y log — **J** · 12/11
+- [x] CP-09 y CP-10: ensayos de API, dashboard y reglas (con datos simulados) — **J** · 10/11
+- [x] 🏁 Hito · Dashboard propio con los 3 mínimos de la EC3 — **J** · 12/11
 
 ## S14 · EC3: software completo con datos simulados (09/11–13/11)
 
 - [x] Centralizar material del curso y auditar el repo — **J** · 10/11
 - [x] Integrar las ramas `jose` y `main` (incluye los diagramas de Luhana) — **J** · 10/11
-- [ ] RA-01..10: requisitos de alto nivel con umbrales y normas (`config/`) — **E** · 11/11
-- [ ] Grafos causales por RA y sus figuras — **E** · 11/11
-- [ ] Motor de razonamiento causal (SymCure) con pruebas por tipo de lógica — **J** · 11/11
-- [ ] Consumo fantasma por proxy (BH1750 + MLX90640 + horario) y consulta al docente por el PZEM (RF-10) — **J** · 12/11
+- [x] RA-01..10: requisitos de alto nivel con umbrales y normas (`config/`) — **J** · 10/11
+- [x] Grafos causales por RA y sus figuras — **J** · 10/11
+- [x] Motor de razonamiento causal (SymCure) con pruebas por tipo de lógica — **J** · 11/11
+- [x] Consumo fantasma por proxy (BH1750 + MLX90640 + horario) y consulta al docente por el PZEM (RF-10) — **J** · 12/11
 - [ ] Log de eventos / footprint (`events.jsonl` + InfluxDB) con exportación a CSV — **J** · 12/11
-- [ ] Dashboard propio: mediciones, condición por RA y causas, efectos y recomendaciones — **J** · 12/11
+- [x] Dashboard propio: mediciones, condición por RA y causas, efectos y recomendaciones — **J** · 12/11
 - [ ] Gaphor en vivo leyendo InfluxDB — **J** · 12/11
 - [ ] Gaphor: migrar al hardware oficial, IBD y paquetes 04 Comportamiento y 05 Razonamiento — **J** · 12/11
 - [ ] Actualizar el documento maestro y el plan al hardware y la arquitectura oficiales — **L** · 12/11
