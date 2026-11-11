@@ -1,0 +1,156 @@
+# Requisitos de alto nivel de condición del salón (RA-01..10), pedidos por la pauta de la EC3.
+#
+# Cada RA se deriva de una necesidad (NS), tiene un evaluador que convierte las mediciones en una
+# condición (nominal, alerta, crítico o desconocido) y un grafo causal en grafos/<grafo>.yaml.
+#
+# Regla del proyecto: cuando el código del docente ya define un umbral (el bit de anomalía que
+# calcula el nodo), se usa el mismo, para que el dashboard y el nodo digan lo mismo. Esos casos
+# llevan `origen: docente`. El resto cita su norma y lleva `origen: norma`.
+#
+# Campos: `campo` es "<tipo>.<campo del JSON del Gateway>" (docs/CONTRATO_DATOS.md) o
+# "derivado.<nombre>" (lo calcula el servicio: ocupación, luces, horario...).
+
+RA-01:
+  nombre: Confort térmico
+  necesidad: NS-3
+  requisitos: [RF-02]
+  nodos: [7]
+  evaluador: rango
+  campo: ambiente.temp_c
+  unidad: "°C"
+  nominal: [20.0, 26.0]
+  critico: [18.0, 28.0]
+  histeresis: 0.5
+  origen: docente
+  norma: "ASHRAE 55-2020 (zona de confort, ~20-26 °C en ropa de interior); mismo rango que CONFORT_T_MIN/MAX del nodo ambiente del docente"
+  grafo: ra-01-temperatura
+
+RA-02:
+  nombre: Humedad adecuada
+  necesidad: NS-3
+  requisitos: [RF-02]
+  nodos: [7]
+  evaluador: rango
+  campo: ambiente.hum_pct
+  unidad: "%"
+  nominal: [30.0, 70.0]
+  critico: [20.0, 80.0]
+  histeresis: 5.0
+  origen: docente
+  norma: "ASHRAE 62.1-2022 recomienda < 65 %; se usa 70 % (HUM_ALTA del nodo del docente) por el clima húmedo de Lima"
+  grafo: ra-02-humedad
+
+RA-03:
+  nombre: Calidad de aire y ventilación
+  necesidad: NS-3
+  requisitos: [RF-02, RF-08]
+  nodos: [1]
+  evaluador: umbral_superior
+  campo: co2.co2_ppm
+  unidad: ppm
+  alerta: 1000
+  critico: 1500
+  histeresis: 100
+  origen: docente
+  norma: "ASHRAE 62.1 (CO2 interior ≲ 700 ppm sobre el exterior ≈ 1100 ppm); mismos umbrales que CO2_ALERTA_PPM y CO2_CRITICO_PPM del nodo del docente"
+  grafo: ra-03-co2
+
+RA-04:
+  nombre: Iluminación para clase
+  necesidad: NS-3
+  requisitos: [RF-02]
+  nodos: [4, 5]
+  evaluador: umbral_inferior_con_ocupacion
+  campo: luz.lux_mesa_est
+  unidad: lx
+  alerta: 300
+  critico: 150
+  histeresis: 30
+  origen: docente
+  norma: "EN 12464-1:2021, aulas: 300 lx sobre el plano de trabajo; mismo umbral que ILUM_BAJA del nodo de luz del docente. Solo aplica con el aula ocupada"
+  grafo: ra-04-iluminacion
+
+RA-05:
+  nombre: Seguridad ante gas o humo
+  necesidad: NS-4
+  requisitos: [RF-08]
+  nodos: [3]
+  evaluador: gas
+  campo: gas.rs_r0
+  unidad: "Rs/R0"
+  alerta: 0.75
+  critico: 0.50
+  origen: norma
+  norma: "Hoja de datos MQ-2 (Hanwei): Rs/R0 baja con la concentración de GLP, humo e H2. Umbrales SUPUESTOS hasta calibrar R0 en aire limpio en el aula; el bit GAS_DETECTADO o do_alarma pasan directo a crítico"
+  grafo: ra-05-gas
+
+RA-06:
+  nombre: Aforo
+  necesidad: NS-4
+  requisitos: [RF-03]
+  nodos: [5, 6]
+  evaluador: aforo
+  campo: termico.ocupacion_est
+  unidad: personas
+  alerta_fraccion: 0.9
+  critico_fraccion: 1.0
+  origen: norma
+  norma: "RNE A.040 (Educación) y aforo declarado del aula (config/aula_l419.yaml)"
+  grafo: ra-06-aforo
+
+RA-07:
+  nombre: Ambiente acústico
+  necesidad: NS-3
+  requisitos: [RF-02]
+  nodos: [2]
+  evaluador: umbral_superior
+  campo: audio.leq_db
+  unidad: "dB"
+  alerta: 70
+  critico: 85
+  histeresis: 3
+  sostenido_s: 60
+  origen: norma
+  norma: "ANSI/ASA S12.60 (fondo ≤ 35 dBA en aula vacía); 85 dBA es el límite ocupacional de 8 h (D.S. 024-2016-EM / OSHA). dB SPL aproximados (offset +120 dB sin calibrar en el nodo del docente)"
+  grafo: ra-07-ruido
+
+RA-08:
+  nombre: Consumo fantasma
+  necesidad: NS-2
+  requisitos: [RF-10]
+  nodos: [4, 5, 6]
+  evaluador: fantasma
+  campo: derivado.minutos_fantasma
+  unidad: min
+  alerta_min: 10
+  critico_min: 30
+  origen: norma
+  norma: "Criterio del grupo (RF-10): luces o equipos encendidos con el aula vacía. Estimación por proxy sin PZEM (docs/05-plan-cierre.md, D7)"
+  grafo: ra-08-consumo-fantasma
+
+RA-09:
+  nombre: Seguridad física del aula
+  necesidad: NS-4
+  requisitos: [RF-04]
+  nodos: [6, 5]
+  evaluador: seguridad_fisica
+  campo: magnetico.puerta_abierta
+  unidad: ""
+  origen: norma
+  norma: "Criterio del grupo (RF-04): puerta cerrada fuera del horario oficial; el bit PUERTA_ABIERTA_PROLONGADA (10 min) del nodo del docente se usa dentro del horario"
+  grafo: ra-09-seguridad-fisica
+
+RA-10:
+  nombre: Salud del sistema
+  necesidad: NS-5
+  requisitos: [RF-13]
+  nodos: [1, 2, 3, 4, 5, 6, 7]
+  evaluador: salud
+  campo: derivado.nodos_sin_datos
+  unidad: nodos
+  periodos_tolerados: 3
+  minimo_tolerancia_s: 30
+  fraccion_para_gateway: 0.6
+  origen: norma
+  norma: "Criterio del grupo (RF-13, lección de la Semana 7): un nodo cae tras 3 periodos propios sin datos; si cae ≥ 60 % de los nodos a la vez se sospecha del Gateway (lógica N/M)"
+  grafo: ra-10-salud

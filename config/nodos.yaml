@@ -1,0 +1,25 @@
+# Los 7 nodos de la arquitectura oficial y el Gateway, tal como están en el código del docente
+# (vendor/gemelo_iot_profesor). Los periodos salen de PERIODO_MS de cada .ino.
+
+nodos:
+  1: {tipo: co2,       sensor: "MH-Z1911A (NDIR, UART)",     periodo_s: 5,  programa: "nodo_co2.ino (docente)"}
+  2: {tipo: audio,     sensor: "INMP441 (I2S)",              periodo_s: 1,  programa: "nodo_audio.ino (docente)"}
+  3: {tipo: gas,       sensor: "MQ-2 (analógico)",           periodo_s: 5,  programa: "MQ-2.ino (Grupo 1, S8)"}
+  4: {tipo: luz,       sensor: "BH1750 / GY-302 (I2C)",      periodo_s: 10, programa: "nodo_luz.ino (docente)"}
+  5: {tipo: termico,   sensor: "MLX90640 32x24 (I2C)",       periodo_s: 5,  programa: "nodo_termico.ino (docente)"}
+  6: {tipo: magnetico, sensor: "KY-024 Hall SS49E (ADC)",    periodo_s: 10, programa: "nodo_magnetico.ino (docente)"}
+  7: {tipo: ambiente,  sensor: "BME280 / GY-BME280 (I2C)",   periodo_s: 10, programa: "nodo_ambiente.ino (docente)"}
+
+gateway:
+  modelo: "ESP32 v4"
+  topico_estado: "utec/gemelo/{grupo}/gateway/estado"
+
+# De dónde lee el servicio del grupo. Para pasar a datos reales basta cambiar `grupo`
+# (o fijar la variable de entorno CAMPUSTWIN_GRUPO) por el que use el Gateway de S1 G1.
+fuente:
+  grupo: sim
+  mqtt_host: localhost
+  mqtt_puerto: 1883
+  influx_url: http://localhost:8086
+  influx_org: utec
+  influx_bucket: gemelo

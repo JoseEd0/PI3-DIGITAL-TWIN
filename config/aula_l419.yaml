@@ -1,0 +1,120 @@
+# Datos del aula L-419: la única fuente de verdad para el simulador, el consumo fantasma,
+# los requisitos de alto nivel (RA), el plano del dashboard y el reporte.
+#
+# Cada dato lleva:
+#   valor:     el número que se usa
+#   supuesto:  true mientras no se haya medido o confirmado en el aula
+#   fuente:    de dónde salió (o qué hay que medir para reemplazarlo)
+#
+# El jueves 12/11 en el aula: medir o fotografiar, cambiar `valor`, poner `supuesto: false` y
+# anotar la fuente. No hay que tocar código: todo se recalcula al reiniciar el servidor.
+# El dashboard muestra cuántos datos siguen siendo supuestos.
+
+aula:
+  nombre: L-419
+  aforo:
+    valor: 24
+    supuesto: true
+    fuente: "Cartel de aforo en la puerta del aula (contar asientos si no hay cartel)"
+  largo_m:
+    valor: 9.0
+    supuesto: true
+    fuente: "Medir con wincha, de pared a pared"
+  ancho_m:
+    valor: 7.0
+    supuesto: true
+    fuente: "Medir con wincha, de pared a pared"
+  alto_m:
+    valor: 2.8
+    supuesto: true
+    fuente: "Medir del piso al techo o al falso techo"
+
+# Potencia nominal de lo que consume energía en el aula. Sale de la etiqueta de cada equipo.
+# Sin PZEM, el consumo fantasma se estima con este inventario (docs/05-plan-cierre.md, D7).
+inventario:
+  luminarias:
+    cantidad: {valor: 6, supuesto: true, fuente: "Contar paneles o tubos del techo"}
+    potencia_w: {valor: 36, supuesto: true, fuente: "Etiqueta del panel LED o del tubo (W)"}
+  pcs:
+    cantidad: {valor: 12, supuesto: true, fuente: "Contar PC del aula (con monitor)"}
+    potencia_w: {valor: 62, supuesto: true, fuente: "Etiqueta de la fuente del PC + monitor (W de uso típico)"}
+    espera_w: {valor: 4, supuesto: true, fuente: "Consumo en espera; si no se sabe, 3-5 W"}
+  proyector:
+    cantidad: {valor: 1, supuesto: true, fuente: "Ver si hay proyector"}
+    potencia_w: {valor: 280, supuesto: true, fuente: "Etiqueta del proyector (W)"}
+    espera_w: {valor: 1, supuesto: true, fuente: "Hoja técnica del proyector"}
+  aire_acondicionado:
+    cantidad: {valor: 1, supuesto: true, fuente: "Ver si hay aire acondicionado y cuántos"}
+    potencia_w: {valor: 1180, supuesto: true, fuente: "Placa de la unidad (W o BTU: 12000 BTU ≈ 1100-1200 W)"}
+    renueva_aire: {valor: false, supuesto: true, fuente: "Preguntar a mantenimiento: ¿toma aire de afuera o solo recircula?"}
+  base:
+    potencia_w: {valor: 45, supuesto: true, fuente: "Router, TV, cargadores y lo que esté siempre enchufado"}
+
+# Ventilación y luz natural: parámetros del modelo físico del simulador y del proxy de luces.
+ambiente:
+  renovaciones_por_hora_puerta_cerrada:
+    valor: 2.0
+    supuesto: true
+    fuente: "Típico de aula sin ventilación mecánica (ASHRAE 62.1); ajustar con la curva real de CO2"
+  renovaciones_por_hora_puerta_abierta:
+    valor: 8.0
+    supuesto: true
+    fuente: "Estimación con la puerta abierta al pasillo"
+  ventanas_se_abren:
+    valor: false
+    supuesto: true
+    fuente: "Ver si las ventanas del aula se pueden abrir"
+  lux_mesa_por_luminaria:
+    valor: 70
+    supuesto: true
+    fuente: "Con el nodo de luz: lux sobre la mesa con todas las luces / número de luminarias, de noche"
+  lux_mesa_natural_maxima:
+    valor: 180
+    supuesto: true
+    fuente: "Lux sobre la mesa a mediodía con las luces apagadas"
+
+horario:
+  dias_de_clase: {valor: [lunes, martes, miercoles, jueves, viernes], supuesto: true, fuente: "Horario oficial del L-419 (Esteban)"}
+  apertura: {valor: "07:00", supuesto: true, fuente: "Horario oficial del L-419"}
+  cierre: {valor: "22:00", supuesto: true, fuente: "Horario oficial del L-419"}
+  bloques_de_clase:
+    valor: [["08:00", "10:00"], ["10:15", "12:15"], ["14:00", "16:00"], ["18:00", "20:00"]]
+    supuesto: true
+    fuente: "Horario de clases del L-419 en el ciclo 2026-2"
+  ronda_del_vigilante: {valor: "03:00", supuesto: true, fuente: "Preguntar a seguridad"}
+
+energia:
+  tarifa_soles_kwh:
+    valor: 0.68
+    supuesto: true
+    fuente: "Factura de UTEC; si no se consigue, tarifa referencial de Osinergmin para media tensión"
+  fraccion_de_pcs_olvidados_con_luces:
+    valor: 0.5
+    supuesto: true
+    fuente: "Sin PZEM no se ve si los PC quedaron prendidos: se asume esta fracción cuando quedan las luces. Verificar en rondas nocturnas"
+  factor_emision_kg_kwh:
+    valor: 0.45
+    supuesto: true
+    fuente: "Factor de emisión de la red peruana (SEIN); citar la fuente oficial (MINAM)"
+
+# Plano 2D en metros. El origen (0, 0) es la esquina de la puerta; x a lo largo, y a lo ancho.
+# Las posiciones de los nodos siguen los comentarios del código del docente (techo centro, marco de la puerta).
+plano:
+  supuesto: true
+  fuente: "Croquis del aula tomado el jueves 12/11"
+  nodos:
+    1: {nombre: "CO2", x: 4.5, y: 6.5, montaje: "pared del fondo, a 1.5 m (zona de respiración)"}
+    2: {nombre: "Ruido", x: 6.0, y: 3.5, montaje: "techo, centro-fondo"}
+    3: {nombre: "Gas / humo", x: 3.0, y: 3.5, montaje: "techo, lejos del aire acondicionado"}
+    4: {nombre: "Luz", x: 4.5, y: 3.5, montaje: "techo, centro"}
+    5: {nombre: "Conteo térmico", x: 0.6, y: 0.5, montaje: "marco superior de la puerta, a 2.3 m"}
+    6: {nombre: "Puerta", x: 0.2, y: 0.5, montaje: "marco de la puerta, imán en la hoja"}
+    7: {nombre: "Ambiente", x: 5.0, y: 3.5, montaje: "techo, centro"}
+  gateway: {x: 8.5, y: 0.5}
+  objetos:
+    - {tipo: puerta, x: 0.0, y: 0.5, ancho: 1.0}
+    - {tipo: ventana, x: 9.0, y: 2.0, ancho: 3.0}
+    - {tipo: aire_acondicionado, x: 8.8, y: 6.0}
+    - {tipo: proyector, x: 4.5, y: 1.5}
+    - {tipo: pizarra, x: 4.5, y: 0.1, ancho: 3.0}
+    - {tipo: tablero_electrico, x: 0.2, y: 6.8}
