@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import queue
+import uuid
 from typing import Protocol
 
 log = logging.getLogger(__name__)
@@ -63,18 +64,24 @@ class BusEnMemoria:
 
 
 class ClienteMqtt:
-    """Cliente paho con reconexión automática; los mensajes llegan por un hilo a una cola."""
+    """Cliente paho con reconexión automática; los mensajes llegan por un hilo a una cola.
 
-    def __init__(self, host: str, puerto: int, identificador: str) -> None:
+    El identificador lleva un sufijo al azar: si dos procesos (el servicio y un grabador, o dos
+    servicios) se conectan con el mismo, Mosquitto desconecta al anterior y los dos se turnan
+    reconectándose cada segundo, perdiendo mensajes.
+    """
+
+    def __init__(self, host: str, puerto: int, prefijo: str) -> None:
         import paho.mqtt.client as mqtt
 
         self._cola: queue.Queue[tuple[str, bytes]] = queue.Queue()
         self._patrones: list[str] = []
-        self._cliente = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=identificador)
+        self.identificador = f"{prefijo}-{uuid.uuid4().hex[:8]}"
+        self._cliente = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=self.identificador)
         self._cliente.reconnect_delay_set(ESPERA_MINIMA_RECONEXION_S, ESPERA_MAXIMA_RECONEXION_S)
         self._cliente.on_connect = self._al_conectar
         self._cliente.on_message = lambda _c, _u, msg: self._cola.put((msg.topic, msg.payload))
-        self._cliente.on_disconnect = lambda *_: log.warning("MQTT desconectado; reintentando")
+        self._cliente.on_disconnect = self._al_desconectar
         self._cliente.connect_async(host, puerto, keepalive=SEGUNDOS_DE_KEEPALIVE)
         self._cliente.loop_start()
         self.host, self.puerto = host, puerto
@@ -83,9 +90,12 @@ class ClienteMqtt:
         if codigo.is_failure:
             log.error("MQTT rechazó la conexión: %s", codigo)
             return
-        log.info("MQTT conectado a %s:%s", self.host, self.puerto)
+        log.info("MQTT conectado a %s:%s como %s", self.host, self.puerto, self.identificador)
         for patron in self._patrones:  # al reconectar hay que volver a suscribirse
             cliente.subscribe(patron, qos=0)
+
+    def _al_desconectar(self, _cliente, _datos, _banderas, codigo, _propiedades=None) -> None:
+        log.warning("MQTT desconectado (%s); reintentando", codigo)
 
     def publicar(self, topico: str, carga: str, retenido: bool = False) -> None:
         self._cliente.publish(topico, carga, qos=0, retain=retenido)
