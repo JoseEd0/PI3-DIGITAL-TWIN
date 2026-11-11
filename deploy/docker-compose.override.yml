@@ -1,0 +1,14 @@
+# Agregados del Grupo 1 sobre el docker-compose.yml del docente, sin modificarlo.
+# Las rutas son relativas a vendor/gemelo_iot_profesor/servidor_iot (la carpeta del compose base).
+#
+# Grafana lee su aprovisionamiento de una carpeta propia para no crear nada dentro de vendor/:
+# allí se montan la fuente de datos del docente (sin cambios) y sus dos tableros.
+services:
+  grafana:
+    environment:
+      GF_PATHS_PROVISIONING: /etc/grafana/aprovisionamiento
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/aprovisionamiento/datasources:ro
+      - ../../../deploy/grafana/tableros.yml:/etc/grafana/aprovisionamiento/dashboards/tableros.yml:ro
+      - ./dashboard_gemelo_L419_7sensores.json:/var/lib/grafana/tableros/gemelo_L419_7sensores.json:ro
+      - ./dashboard_gemelo_iot.json:/var/lib/grafana/tableros/gemelo_iot.json:ro

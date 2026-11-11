@@ -1,0 +1,9 @@
+# Carga en Grafana los tableros del docente (vendor/gemelo_iot_profesor/servidor_iot/*.json).
+apiVersion: 1
+providers:
+  - name: tableros-del-docente
+    folder: "Gemelo IoT (docente)"
+    type: file
+    disableDeletion: true
+    options:
+      path: /var/lib/grafana/tableros
