@@ -97,6 +97,14 @@ Había 60 tareas, de las cuales 17 estaban cerradas.
    "Luhana Landeo". Los nombres correctos son **Huamani Ñaupas, José Eduardo** y **Landeo Quispe,
    Luhana Victoria**.
 8. La rúbrica de 4 × 4 puntos que cita el brief no está en ningún archivo del curso.
+9. **RA-02 (humedad)**: el brief propone 30–60 %, pero el nodo ambiente del docente alerta con
+   `HUM_ALTA = 70.0` y la regla del proyecto es alinear los umbrales con su código. Rige
+   **30–70 %** (crítico < 20 o > 80 %), como en `config/requisitos_ra.yaml`, el documento maestro
+   y el reporte. El 60 % de ASHRAE 62.1 queda citado como referencia, no como umbral.
+10. **Los tableros de Grafana del docente** están exportados para importarse a mano: apuntan a la
+    fuente `${DS_INFLUXDB}`, que el aprovisionamiento por archivos no resuelve, y todos sus paneles
+    decían "No data". `deploy/grafana/derivar_tableros.py` genera una copia derivada que usa la
+    fuente por defecto; el original no se toca.
 
 ## 6. Datos que faltan
 
