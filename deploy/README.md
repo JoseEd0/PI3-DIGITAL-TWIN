@@ -18,7 +18,10 @@ deploy/levantar.sh grupoX     # leyendo el Gateway real del grupo indicado
 
 El tablero queda en http://localhost:8000 (o `http://<ip-de-la-laptop>:8000` desde otra laptop
 de la red) y Grafana en http://localhost:3000, con los dos tableros del docente ya cargados
-(`docker-compose.override.yml`).
+(`docker-compose.override.yml`). Se montan desde `grafana/tableros/`, una copia derivada que
+resuelve la fuente de datos `${DS_INFLUXDB}` de la exportación del docente; sin ella todos los
+paneles dicen "No data". Si el docente actualiza sus JSON, se regenera con
+`python3 deploy/grafana/derivar_tableros.py`.
 
 ## Levantar y apagar solo el stack (desde la raíz del repo)
 
