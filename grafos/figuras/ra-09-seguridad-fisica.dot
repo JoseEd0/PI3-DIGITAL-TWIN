@@ -1,0 +1,27 @@
+digraph "ra-09-seguridad-fisica" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-09 · Actividad en el aula fuera del horario oficial"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "fuera_de_horario" [label="Fuera del horario oficial del aula\n[salida OR] · observable: horario (config/aula_l419.yaml)", fillcolor="#e6e6e6", style="rounded,filled,bold", penwidth=2];
+  "olvido_de_cierre" [label="Se olvidó cerrar la puerta\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "acceso_no_autorizado" [label="Ingreso no autorizado\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "ronda_o_limpieza" [label="Ronda del vigilante o limpieza\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "puerta_abierta" [label="Puerta abierta\n[OR-OR] · observable: KY-024 (nodo 6)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "personas_dentro" [label="Personas dentro del aula\n[OR-OR] · observable: MLX90640 (nodo 5)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "actividad_en_el_aula" [label="Actividad en el aula\n[OR-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "acceso_fuera_de_horario" [label="RA-09 violado: actividad fuera de horario\n[IF(fuera_de_horario)-OR] · observable: ", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "riesgo_de_robo" [label="Riesgo de robo de equipos\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "perdida_de_climatizacion" [label="Pérdida de climatización y energía\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "fuera_de_horario" -> "acceso_fuera_de_horario";
+  "olvido_de_cierre" -> "puerta_abierta";
+  "acceso_no_autorizado" -> "puerta_abierta";
+  "acceso_no_autorizado" -> "personas_dentro";
+  "ronda_o_limpieza" -> "puerta_abierta";
+  "ronda_o_limpieza" -> "personas_dentro";
+  "puerta_abierta" -> "actividad_en_el_aula";
+  "puerta_abierta" -> "perdida_de_climatizacion";
+  "personas_dentro" -> "actividad_en_el_aula";
+  "actividad_en_el_aula" -> "acceso_fuera_de_horario";
+  "acceso_fuera_de_horario" -> "riesgo_de_robo";
+}

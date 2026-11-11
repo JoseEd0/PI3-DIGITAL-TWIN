@@ -1,0 +1,122 @@
+ra: RA-10
+titulo: "Salud del sistema de medición"
+evento_central: sistema_degradado
+eventos:
+  - id: gateway_caido
+    texto: "Gateway caído o sin Wi-Fi"
+    clase: causa
+    salida: AND
+    observable: {sensor: "LWT del Gateway (utec/gemelo/<grupo>/gateway/estado)", campo: derivado.gateway_offline, op: "==", valor: true}
+    recomendacion: "Revisar la alimentación y el Wi-Fi del Gateway; reiniciarlo"
+  - {id: canal_espnow, texto: "Interferencia o canal ESP-NOW distinto al del router", clase: causa, salida: AND,
+     recomendacion: "Verificar que el router no cambió de canal (los nodos lo buscan por SSID al arrancar) y reiniciar los nodos"}
+  - id: falla_de_sensor
+    texto: "Algún sensor reporta FALLO_SENSOR"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "bits de anomalía de los nodos"
+      alguna:
+        - {campo: co2.anomalias, op: contiene, valor: FALLO_SENSOR}
+        - {campo: termico.anomalias, op: contiene, valor: FALLO_SENSOR}
+        - {campo: magnetico.anomalias, op: contiene, valor: FALLO_SENSOR}
+        - {campo: ambiente.anomalias, op: contiene, valor: FALLO_SENSOR}
+        - {campo: luz.anomalias, op: contiene, valor: FALLO_SENSOR}
+        - {campo: gas.anomalias, op: contiene, valor: FALLO_SENSOR}
+        - {campo: audio.anomalias, op: contiene, valor: FALLO_AUDIO}
+    recomendacion: "Revisar el cableado del sensor (I2C/UART/I2S) y su alimentación"
+  - {id: nodo1_apagado, texto: "Nodo 1 (CO2) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 1 (CO2)"}
+  - id: nodo1_sin_datos
+    texto: "Nodo 1 (CO2) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 1", campo: derivado.caidos.1, op: "==", valor: true}
+  - {id: nodo2_apagado, texto: "Nodo 2 (Ruido) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 2 (Ruido)"}
+  - id: nodo2_sin_datos
+    texto: "Nodo 2 (Ruido) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 2", campo: derivado.caidos.2, op: "==", valor: true}
+  - {id: nodo3_apagado, texto: "Nodo 3 (Gas) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 3 (Gas)"}
+  - id: nodo3_sin_datos
+    texto: "Nodo 3 (Gas) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 3", campo: derivado.caidos.3, op: "==", valor: true}
+  - {id: nodo4_apagado, texto: "Nodo 4 (Luz) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 4 (Luz)"}
+  - id: nodo4_sin_datos
+    texto: "Nodo 4 (Luz) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 4", campo: derivado.caidos.4, op: "==", valor: true}
+  - {id: nodo5_apagado, texto: "Nodo 5 (Conteo térmico) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 5 (Conteo térmico)"}
+  - id: nodo5_sin_datos
+    texto: "Nodo 5 (Conteo térmico) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 5", campo: derivado.caidos.5, op: "==", valor: true}
+  - {id: nodo6_apagado, texto: "Nodo 6 (Puerta) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 6 (Puerta)"}
+  - id: nodo6_sin_datos
+    texto: "Nodo 6 (Puerta) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 6", campo: derivado.caidos.6, op: "==", valor: true}
+  - {id: nodo7_apagado, texto: "Nodo 7 (Ambiente) sin batería o apagado", clase: causa, salida: AND,
+     recomendacion: "Revisar la batería 18650 o el cable USB del nodo 7 (Ambiente)"}
+  - id: nodo7_sin_datos
+    texto: "Nodo 7 (Ambiente) sin datos"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "salud del nodo 7", campo: derivado.caidos.7, op: "==", valor: true}
+  - {id: mayoria_sin_datos, texto: "≥ 60 % de los nodos sin datos a la vez", entrada: NM, fraccion: 0.6, salida: OR}
+  - {id: algun_nodo_sin_datos, texto: "Algún nodo sin datos", entrada: OR, salida: OR}
+  - {id: sistema_degradado, texto: "RA-10 violado: el gemelo no ve todo el aula", entrada: OR, salida: OR,
+     observable: {ra: RA-10}}
+  - {id: grafos_desconocidos, texto: "Los RA que dependen de esos nodos pasan a 'desconocido'", clase: efecto, entrada: OR}
+  - {id: dashboard_incompleto, texto: "Dashboard y Gaphor con datos incompletos", clase: efecto, entrada: OR}
+aristas:
+  - [gateway_caido, nodo1_sin_datos]
+  - [canal_espnow, nodo1_sin_datos]
+  - [nodo1_apagado, nodo1_sin_datos]
+  - [nodo1_sin_datos, mayoria_sin_datos]
+  - [nodo1_sin_datos, algun_nodo_sin_datos]
+  - [gateway_caido, nodo2_sin_datos]
+  - [canal_espnow, nodo2_sin_datos]
+  - [nodo2_apagado, nodo2_sin_datos]
+  - [nodo2_sin_datos, mayoria_sin_datos]
+  - [nodo2_sin_datos, algun_nodo_sin_datos]
+  - [gateway_caido, nodo3_sin_datos]
+  - [canal_espnow, nodo3_sin_datos]
+  - [nodo3_apagado, nodo3_sin_datos]
+  - [nodo3_sin_datos, mayoria_sin_datos]
+  - [nodo3_sin_datos, algun_nodo_sin_datos]
+  - [gateway_caido, nodo4_sin_datos]
+  - [canal_espnow, nodo4_sin_datos]
+  - [nodo4_apagado, nodo4_sin_datos]
+  - [nodo4_sin_datos, mayoria_sin_datos]
+  - [nodo4_sin_datos, algun_nodo_sin_datos]
+  - [gateway_caido, nodo5_sin_datos]
+  - [canal_espnow, nodo5_sin_datos]
+  - [nodo5_apagado, nodo5_sin_datos]
+  - [nodo5_sin_datos, mayoria_sin_datos]
+  - [nodo5_sin_datos, algun_nodo_sin_datos]
+  - [gateway_caido, nodo6_sin_datos]
+  - [canal_espnow, nodo6_sin_datos]
+  - [nodo6_apagado, nodo6_sin_datos]
+  - [nodo6_sin_datos, mayoria_sin_datos]
+  - [nodo6_sin_datos, algun_nodo_sin_datos]
+  - [gateway_caido, nodo7_sin_datos]
+  - [canal_espnow, nodo7_sin_datos]
+  - [nodo7_apagado, nodo7_sin_datos]
+  - [nodo7_sin_datos, mayoria_sin_datos]
+  - [nodo7_sin_datos, algun_nodo_sin_datos]
+  - [algun_nodo_sin_datos, sistema_degradado]
+  - [falla_de_sensor, sistema_degradado]
+  - [sistema_degradado, grafos_desconocidos]
+  - [sistema_degradado, dashboard_incompleto]

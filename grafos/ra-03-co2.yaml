@@ -1,0 +1,48 @@
+ra: RA-03
+titulo: "CO2 alto: ventilación insuficiente para la ocupación"
+evento_central: co2_alto
+eventos:
+  - id: puerta_cerrada_prolongada
+    texto: "Puerta cerrada más de 30 min"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "KY-024 (nodo 6)"
+      todas:
+        - {campo: derivado.puerta_abierta, op: "==", valor: false}
+        - {campo: derivado.minutos_puerta_cerrada, op: ">=", valor: 30}
+    recomendacion: "Abrir la puerta o las ventanas 5–10 minutos"
+  - {id: aire_sin_renovacion, texto: "Aire acondicionado sin renovación de aire exterior", clase: causa, salida: OR,
+     recomendacion: "Pedir a mantenimiento que active la toma de aire exterior"}
+  - {id: ventanas_cerradas, texto: "Ventanas cerradas o que no se abren", clase: causa, salida: OR,
+     recomendacion: "Abrir las ventanas si es posible"}
+  - id: ocupacion_alta
+    texto: "Ocupación ≥ 50 % del aforo"
+    clase: causa
+    salida: OR
+    observable: {sensor: "MLX90640 (nodo 5)", campo: derivado.ocupacion_fraccion, op: ">=", valor: 0.5}
+    recomendacion: "Hacer una pausa con el aula vacía o reducir el grupo"
+  - id: sobreaforo
+    texto: "Aforo superado"
+    clase: causa
+    salida: OR
+    observable: {sensor: "MLX90640 + KY-024", ra: RA-06}
+    recomendacion: "Reducir el número de personas al aforo del aula"
+  - {id: ventilacion_insuficiente, texto: "Renovación de aire insuficiente", entrada: OR, salida: AND}
+  - {id: fuente_de_co2, texto: "Personas exhalando CO2 en el aula", entrada: OR, salida: OR}
+  - {id: co2_alto, texto: "RA-03 violado: CO2 ≥ 1000 ppm", entrada: AND, salida: OR,
+     observable: {sensor: "MH-Z1911A (nodo 1)", ra: RA-03}}
+  - {id: fatiga, texto: "Fatiga y somnolencia", clase: efecto, entrada: OR}
+  - {id: dolor_de_cabeza, texto: "Dolor de cabeza", clase: efecto, entrada: OR}
+  - {id: menor_rendimiento, texto: "Menor rendimiento cognitivo", clase: efecto, entrada: OR}
+aristas:
+  - [puerta_cerrada_prolongada, ventilacion_insuficiente]
+  - [aire_sin_renovacion, ventilacion_insuficiente]
+  - [ventanas_cerradas, ventilacion_insuficiente]
+  - [ocupacion_alta, fuente_de_co2]
+  - [sobreaforo, fuente_de_co2]
+  - [ventilacion_insuficiente, co2_alto]
+  - [fuente_de_co2, co2_alto]
+  - [co2_alto, fatiga]
+  - [co2_alto, dolor_de_cabeza]
+  - [co2_alto, menor_rendimiento]

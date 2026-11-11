@@ -1,0 +1,45 @@
+ra: RA-02
+titulo: "Humedad relativa fuera de rango"
+evento_central: humedad_fuera_de_rango
+eventos:
+  - id: ocupacion_sin_ventilacion
+    texto: "Aula ocupada con la puerta cerrada más de 20 min"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "MLX90640 (nodo 5) + KY-024 (nodo 6)"
+      todas:
+        - {campo: derivado.ocupacion_fraccion, op: ">=", valor: 0.4}
+        - {campo: derivado.minutos_puerta_cerrada, op: ">=", valor: 20}
+    recomendacion: "Ventilar: abrir la puerta o las ventanas"
+  - {id: clima_humedo, texto: "Clima húmedo de Lima (invierno, neblina)", clase: causa, salida: OR,
+     recomendacion: "Usar el aire acondicionado en modo deshumidificar"}
+  - {id: aire_apagado, texto: "Aire acondicionado apagado (no deshumidifica)", clase: causa, salida: OR,
+     recomendacion: "Encender el aire acondicionado"}
+  - {id: aire_reseca, texto: "Aire acondicionado resecando el ambiente", clase: causa, salida: OR,
+     recomendacion: "Subir la consigna del aire o apagarlo un rato"}
+  - id: humedad_alta
+    texto: "Humedad ≥ 70 %"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "BME280 (nodo 7)", campo: ambiente.hum_pct, op: ">=", valor: 70}
+  - id: humedad_baja
+    texto: "Humedad < 30 %"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "BME280 (nodo 7)", campo: ambiente.hum_pct, op: "<", valor: 30}
+  - {id: humedad_fuera_de_rango, texto: "RA-02 violado: humedad fuera de 30–70 %", entrada: OR, salida: OR,
+     observable: {ra: RA-02}}
+  - {id: condensacion_y_moho, texto: "Condensación y moho en paredes", clase: efecto, entrada: OR}
+  - {id: dano_a_equipos, texto: "Daño a equipos electrónicos", clase: efecto, entrada: OR}
+  - {id: resequedad, texto: "Resequedad de ojos y garganta", clase: efecto, entrada: OR}
+aristas:
+  - [ocupacion_sin_ventilacion, humedad_alta]
+  - [clima_humedo, humedad_alta]
+  - [aire_apagado, humedad_alta]
+  - [aire_reseca, humedad_baja]
+  - [humedad_alta, humedad_fuera_de_rango]
+  - [humedad_baja, humedad_fuera_de_rango]
+  - [humedad_alta, condensacion_y_moho]
+  - [humedad_alta, dano_a_equipos]
+  - [humedad_baja, resequedad]

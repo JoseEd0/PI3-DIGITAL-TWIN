@@ -1,0 +1,52 @@
+ra: RA-04
+titulo: "Iluminación insuficiente con el aula ocupada"
+evento_central: iluminacion_insuficiente
+eventos:
+  - id: aula_ocupada
+    texto: "Hay personas en el aula"
+    clase: condicion
+    salida: OR
+    observable: {sensor: "MLX90640 (nodo 5)", campo: derivado.aula_vacia, op: "==", valor: false}
+  - id: luces_apagadas
+    texto: "Luces apagadas"
+    clase: causa
+    salida: OR
+    observable: {sensor: "BH1750 (nodo 4)", campo: derivado.luces_encendidas, op: "==", valor: false}
+    recomendacion: "Encender las luces del aula"
+  - id: luminaria_danada
+    texto: "Luminaria dañada (luces encendidas pero poca luz)"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "BH1750 (nodo 4)"
+      todas:
+        - {campo: derivado.luces_encendidas, op: "==", valor: true}
+        - {campo: luz.lux_mesa_est, op: "<", valor: 300}
+    recomendacion: "Reportar a mantenimiento el cambio de luminarias"
+  - id: poca_luz_natural
+    texto: "Poca luz natural (tarde, noche o día nublado)"
+    clase: causa
+    salida: OR
+    observable: {sensor: "hora del día", campo: derivado.lux_natural_esperada, op: "<", valor: 100}
+    recomendacion: "Encender las luces aunque sea de día"
+  - {id: cortinas_cerradas, texto: "Cortinas o persianas cerradas", clase: causa, salida: OR,
+     recomendacion: "Abrir las cortinas si no hay sol directo en la pizarra"}
+  - {id: luz_artificial_insuficiente, texto: "Luz artificial insuficiente", entrada: OR, salida: OR}
+  - {id: luz_natural_insuficiente, texto: "Luz natural insuficiente", entrada: OR, salida: OR}
+  - {id: luz_total_insuficiente, texto: "Menos de 300 lx sobre la mesa", entrada: AND, salida: OR,
+     observable: {sensor: "BH1750 (nodo 4)", campo: luz.lux_mesa_est, op: "<", valor: 300}}
+  - {id: iluminacion_insuficiente, texto: "RA-04 violado: < 300 lx con el aula ocupada", entrada: IF,
+     condicion: aula_ocupada, salida: OR, observable: {ra: RA-04}}
+  - {id: fatiga_visual, texto: "Fatiga visual", clase: efecto, entrada: OR}
+  - {id: menor_concentracion, texto: "Menor concentración en clase", clase: efecto, entrada: OR}
+aristas:
+  - [luces_apagadas, luz_artificial_insuficiente]
+  - [luminaria_danada, luz_artificial_insuficiente]
+  - [poca_luz_natural, luz_natural_insuficiente]
+  - [cortinas_cerradas, luz_natural_insuficiente]
+  - [luz_artificial_insuficiente, luz_total_insuficiente]
+  - [luz_natural_insuficiente, luz_total_insuficiente]
+  - [aula_ocupada, iluminacion_insuficiente]
+  - [luz_total_insuficiente, iluminacion_insuficiente]
+  - [iluminacion_insuficiente, fatiga_visual]
+  - [iluminacion_insuficiente, menor_concentracion]

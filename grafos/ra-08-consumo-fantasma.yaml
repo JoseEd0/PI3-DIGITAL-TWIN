@@ -1,0 +1,49 @@
+ra: RA-08
+titulo: "Consumo fantasma (energía con el aula vacía)"
+evento_central: consumo_fantasma
+eventos:
+  - {id: olvido_al_salir, texto: "Nadie apagó al salir de la última clase", clase: causa, salida: OR,
+     recomendacion: "Aviso al vigilante para que apague en su ronda; cartel 'apaga al salir' en la puerta"}
+  - {id: limpieza_o_mantenimiento, texto: "Limpieza o mantenimiento con las luces encendidas", clase: causa, salida: OR,
+     recomendacion: "Confirmar con limpieza el horario y pedir que apaguen al terminar"}
+  - {id: aire_programado_sin_horario, texto: "Aire acondicionado encendido sin que haya clase", clase: causa, salida: OR,
+     recomendacion: "Programar el aire con el horario de clases"}
+  - id: aula_vacia
+    texto: "Aula vacía"
+    clase: condicion
+    salida: OR
+    observable: {sensor: "MLX90640 (nodo 5)", campo: derivado.aula_vacia, op: "==", valor: true}
+  - id: luces_encendidas
+    texto: "Luces encendidas"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "BH1750 (nodo 4)", campo: derivado.luces_encendidas, op: "==", valor: true}
+  - id: aire_encendido
+    texto: "Aire acondicionado encendido (ruido mecánico)"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "INMP441 (nodo 2)", campo: audio.anomalias, op: contiene, valor: RUIDO_MECANICO_CONSTANTE}
+  - id: tiempo_superado
+    texto: "Más de 10 min en esa situación"
+    clase: condicion
+    salida: OR
+    observable: {sensor: "reloj del servicio", campo: derivado.minutos_fantasma, op: ">=", valor: 10}
+  - {id: luces_sin_ocupacion, texto: "Luces encendidas con el aula vacía", entrada: AND, salida: OR}
+  - {id: aire_sin_ocupacion, texto: "Aire encendido con el aula vacía", entrada: AND, salida: OR}
+  - {id: consumo_fantasma, texto: "RA-08 violado: consumo evitable con el aula vacía", entrada: OR, salida: OR,
+     observable: {sensor: "BH1750 + MLX90640 + horario", ra: RA-08}}
+  - {id: costo_en_soles, texto: "Costo evitable en soles", clase: efecto, entrada: OR}
+  - {id: emisiones, texto: "Emisiones evitables de CO2 (kg)", clase: efecto, entrada: OR}
+aristas:
+  - [olvido_al_salir, luces_encendidas]
+  - [limpieza_o_mantenimiento, luces_encendidas]
+  - [aire_programado_sin_horario, aire_encendido]
+  - [luces_encendidas, luces_sin_ocupacion]
+  - [aula_vacia, luces_sin_ocupacion]
+  - [tiempo_superado, luces_sin_ocupacion]
+  - [aire_encendido, aire_sin_ocupacion]
+  - [aula_vacia, aire_sin_ocupacion]
+  - [luces_sin_ocupacion, consumo_fantasma]
+  - [aire_sin_ocupacion, consumo_fantasma]
+  - [consumo_fantasma, costo_en_soles]
+  - [consumo_fantasma, emisiones]

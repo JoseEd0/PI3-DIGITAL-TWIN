@@ -1,0 +1,91 @@
+ra: RA-01
+titulo: "Temperatura fuera de la zona de confort"
+evento_central: violacion_confort
+eventos:
+  # --- causas raíz ---
+  - {id: calor_exterior, texto: "Temperatura exterior alta (verano de Lima)", clase: causa, salida: OR,
+     recomendacion: "Cerrar persianas del lado soleado y adelantar el aire acondicionado antes de la clase"}
+  - id: sol_directo
+    texto: "Radiación solar directa por las ventanas"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "BH1750 (nodo 4)"
+      todas:
+        - {campo: luz.lux_mesa_est, op: ">=", valor: 400}
+        - {campo: derivado.luces_encendidas, op: "==", valor: false}
+    recomendacion: "Bajar las cortinas o persianas del lado soleado"
+  - id: ocupacion_alta
+    texto: "Muchas personas en el aula (≥ 50 % del aforo)"
+    clase: causa
+    salida: OR
+    observable: {sensor: "MLX90640 (nodo 5)", campo: derivado.ocupacion_fraccion, op: ">=", valor: 0.5}
+    recomendacion: "Repartir al grupo en otra aula o programar una pausa"
+  - id: puerta_cerrada_prolongada
+    texto: "Puerta cerrada más de 30 min con gente dentro"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "KY-024 (nodo 6)"
+      todas:
+        - {campo: derivado.puerta_abierta, op: "==", valor: false}
+        - {campo: derivado.minutos_puerta_cerrada, op: ">=", valor: 30}
+    recomendacion: "Abrir la puerta 5 minutos para renovar el aire"
+  - {id: aire_apagado_o_averiado, texto: "Aire acondicionado apagado o sin enfriar", clase: causa, salida: OR,
+     recomendacion: "Encender el aire; si ya está encendido y no enfría, reportar a mantenimiento"}
+  - {id: equipos_encendidos, texto: "Muchos equipos encendidos (PC, proyector)", clase: causa, salida: OR,
+     recomendacion: "Apagar los PC y el proyector que no se estén usando"}
+  - {id: aire_setpoint_bajo, texto: "Aire acondicionado con temperatura muy baja", clase: causa, salida: OR,
+     recomendacion: "Subir la consigna del aire a 24 °C"}
+  - id: aire_sin_ocupacion
+    texto: "Aire encendido con el aula vacía"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "INMP441 (nodo 2) + MLX90640 (nodo 5)"
+      todas:
+        - {campo: audio.anomalias, op: contiene, valor: RUIDO_MECANICO_CONSTANTE}
+        - {campo: derivado.aula_vacia, op: "==", valor: true}
+    recomendacion: "Apagar el aire acondicionado: no hay nadie en el aula"
+  # --- intermedios ---
+  - {id: ventilacion_insuficiente, texto: "Ventilación o enfriamiento insuficiente", entrada: OR, salida: OR}
+  - {id: carga_termica_interna, texto: "Carga térmica interna alta", entrada: OR, salida: OR}
+  - id: temperatura_alta
+    texto: "Temperatura > 26 °C"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "BME280 (nodo 7)", campo: ambiente.temp_c, op: ">", valor: 26}
+  - id: temperatura_baja
+    texto: "Temperatura < 20 °C"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "BME280 (nodo 7)", campo: ambiente.temp_c, op: "<", valor: 20}
+  - id: violacion_confort
+    texto: "RA-01 violado: temperatura fuera de 20–26 °C"
+    entrada: OR
+    salida: OR
+    observable: {ra: RA-01}
+  # --- efectos ---
+  - {id: somnolencia, texto: "Ocupantes somnolientos y menor rendimiento", clase: efecto, entrada: OR}
+  - {id: golpe_de_calor, texto: "Riesgo de golpe de calor", clase: efecto, entrada: OR}
+  - {id: mas_consumo_climatizacion, texto: "Más consumo de climatización", clase: efecto, entrada: OR}
+  - {id: incomodidad_por_frio, texto: "Incomodidad por frío", clase: efecto, entrada: OR}
+  - {id: energia_desperdiciada, texto: "Energía desperdiciada", clase: efecto, entrada: OR}
+aristas:
+  - [calor_exterior, temperatura_alta]
+  - [sol_directo, temperatura_alta]
+  - [puerta_cerrada_prolongada, ventilacion_insuficiente]
+  - [aire_apagado_o_averiado, ventilacion_insuficiente]
+  - [ventilacion_insuficiente, temperatura_alta]
+  - [ocupacion_alta, carga_termica_interna]
+  - [equipos_encendidos, carga_termica_interna]
+  - [carga_termica_interna, temperatura_alta]
+  - [aire_setpoint_bajo, temperatura_baja]
+  - [aire_sin_ocupacion, temperatura_baja]
+  - [temperatura_alta, violacion_confort]
+  - [temperatura_baja, violacion_confort]
+  - [temperatura_alta, somnolencia]
+  - [temperatura_alta, golpe_de_calor]
+  - [temperatura_alta, mas_consumo_climatizacion]
+  - [temperatura_baja, incomodidad_por_frio]
+  - [aire_sin_ocupacion, energia_desperdiciada]

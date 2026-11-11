@@ -1,0 +1,38 @@
+ra: RA-05
+titulo: "Gas o humo detectado"
+evento_central: gas_o_humo
+eventos:
+  - {id: incendio, texto: "Incendio en el aula o cerca", clase: causa, salida: AND,
+     recomendacion: "Activar la alarma, evacuar por la ruta señalizada y llamar a la brigada (anexo de seguridad)"}
+  - {id: cortocircuito, texto: "Cortocircuito o sobrecarga eléctrica", clase: causa, salida: OR,
+     recomendacion: "Cortar la energía del tablero del aula y avisar a mantenimiento"}
+  - {id: fuga_de_gas, texto: "Fuga de gas (GLP o gas natural)", clase: causa, salida: OR,
+     recomendacion: "Ventilar, no accionar interruptores y evacuar; avisar a seguridad"}
+  - {id: falsa_alarma, texto: "Falsa alarma (polvo, aerosoles, limpieza)", clase: causa, salida: OR,
+     recomendacion: "Verificar en persona antes de evacuar; anotar el evento en el log"}
+  - id: sensor_sin_calentar
+    texto: "MQ-2 sin terminar su calentamiento"
+    clase: causa
+    salida: OR
+    observable: {sensor: "MQ-2 (nodo 3)", campo: gas.calentando, op: "==", valor: 1}
+    recomendacion: "Esperar a que el MQ-2 termine de calentar antes de confiar en la lectura"
+  - {id: humo, texto: "Humo en el ambiente", entrada: OR, salida: OR}
+  - id: subida_rapida_de_temperatura
+    texto: "Subida rápida de temperatura"
+    clase: sintoma
+    entrada: OR
+    observable: {sensor: "BME280 (nodo 7)", campo: ambiente.anomalias, op: contiene, valor: CAMBIO_RAPIDO_TEMP}
+  - {id: gas_o_humo, texto: "RA-05 violado: el MQ-2 detecta gas o humo", entrada: OR, salida: OR,
+     observable: {sensor: "MQ-2 (nodo 3)", ra: RA-05}}
+  - {id: riesgo_a_la_vida, texto: "Riesgo para la vida de los ocupantes", clase: efecto, entrada: OR}
+  - {id: evacuacion, texto: "Evacuación del aula (ver el conteo de ocupantes)", clase: efecto, entrada: OR}
+aristas:
+  - [incendio, humo]
+  - [cortocircuito, humo]
+  - [incendio, subida_rapida_de_temperatura]
+  - [humo, gas_o_humo]
+  - [fuga_de_gas, gas_o_humo]
+  - [falsa_alarma, gas_o_humo]
+  - [sensor_sin_calentar, gas_o_humo]
+  - [gas_o_humo, riesgo_a_la_vida]
+  - [gas_o_humo, evacuacion]

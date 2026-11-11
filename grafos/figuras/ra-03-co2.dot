@@ -1,0 +1,27 @@
+digraph "ra-03-co2" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-03 · CO2 alto: ventilación insuficiente para la ocupación"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "puerta_cerrada_prolongada" [label="Puerta cerrada más de 30 min\n[salida OR] · observable: KY-024 (nodo 6)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "aire_sin_renovacion" [label="Aire acondicionado sin renovación de aire exterior\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "ventanas_cerradas" [label="Ventanas cerradas o que no se abren\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "ocupacion_alta" [label="Ocupación ≥ 50 % del aforo\n[salida OR] · observable: MLX90640 (nodo 5)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "sobreaforo" [label="Aforo superado\n[salida OR] · observable: MLX90640 + KY-024", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "ventilacion_insuficiente" [label="Renovación de aire insuficiente\n[OR-AND] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "fuente_de_co2" [label="Personas exhalando CO2 en el aula\n[OR-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "co2_alto" [label="RA-03 violado: CO2 ≥ 1000 ppm\n[AND-OR] · observable: MH-Z1911A (nodo 1)", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "fatiga" [label="Fatiga y somnolencia\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "dolor_de_cabeza" [label="Dolor de cabeza\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "menor_rendimiento" [label="Menor rendimiento cognitivo\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "puerta_cerrada_prolongada" -> "ventilacion_insuficiente";
+  "aire_sin_renovacion" -> "ventilacion_insuficiente";
+  "ventanas_cerradas" -> "ventilacion_insuficiente";
+  "ocupacion_alta" -> "fuente_de_co2";
+  "sobreaforo" -> "fuente_de_co2";
+  "ventilacion_insuficiente" -> "co2_alto";
+  "fuente_de_co2" -> "co2_alto";
+  "co2_alto" -> "fatiga";
+  "co2_alto" -> "dolor_de_cabeza";
+  "co2_alto" -> "menor_rendimiento";
+}

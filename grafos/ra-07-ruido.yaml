@@ -1,0 +1,39 @@
+ra: RA-07
+titulo: "Ruido excesivo en el aula"
+evento_central: ruido_excesivo
+eventos:
+  - id: actividad_grupal
+    texto: "Actividad grupal con mucha gente"
+    clase: causa
+    salida: OR
+    observable: {sensor: "MLX90640 (nodo 5)", campo: derivado.ocupacion_fraccion, op: ">=", valor: 0.5}
+    recomendacion: "Pedir moderar la voz o dividir la actividad en grupos"
+  - id: equipos_ruidosos
+    texto: "Equipo con ruido mecánico constante (aire, proyector)"
+    clase: causa
+    salida: OR
+    observable: {sensor: "INMP441 (nodo 2)", campo: audio.anomalias, op: contiene, valor: RUIDO_MECANICO_CONSTANTE}
+    recomendacion: "Revisar el aire acondicionado o el ventilador del proyector"
+  - id: ruido_exterior
+    texto: "Ruido del pasillo con la puerta abierta"
+    clase: causa
+    salida: OR
+    observable: {sensor: "KY-024 (nodo 6)", campo: derivado.puerta_abierta, op: "==", valor: true}
+    recomendacion: "Cerrar la puerta del aula"
+  - id: impactos
+    texto: "Golpes o portazos"
+    clase: causa
+    salida: OR
+    observable: {sensor: "INMP441 (nodo 2)", campo: audio.anomalias, op: contiene, valor: RUIDO_IMPACTO}
+    recomendacion: "Revisar el cierre de la puerta (amortiguador)"
+  - {id: ruido_excesivo, texto: "RA-07 violado: más de 70 dB sostenidos", entrada: OR, salida: OR,
+     observable: {sensor: "INMP441 (nodo 2)", ra: RA-07}}
+  - {id: baja_inteligibilidad, texto: "No se entiende al docente", clase: efecto, entrada: OR}
+  - {id: estres, texto: "Estrés y fatiga auditiva", clase: efecto, entrada: OR}
+aristas:
+  - [actividad_grupal, ruido_excesivo]
+  - [equipos_ruidosos, ruido_excesivo]
+  - [ruido_exterior, ruido_excesivo]
+  - [impactos, ruido_excesivo]
+  - [ruido_excesivo, baja_inteligibilidad]
+  - [ruido_excesivo, estres]

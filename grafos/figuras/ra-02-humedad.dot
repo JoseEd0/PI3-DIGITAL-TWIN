@@ -1,0 +1,25 @@
+digraph "ra-02-humedad" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-02 · Humedad relativa fuera de rango"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "ocupacion_sin_ventilacion" [label="Aula ocupada con la puerta cerrada más de 20 min\n[salida OR] · observable: MLX90640 (nodo 5) + KY-024 (nodo 6)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "clima_humedo" [label="Clima húmedo de Lima (invierno, neblina)\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "aire_apagado" [label="Aire acondicionado apagado (no deshumidifica)\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "aire_reseca" [label="Aire acondicionado resecando el ambiente\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "humedad_alta" [label="Humedad ≥ 70 %\n[OR-OR] · observable: BME280 (nodo 7)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "humedad_baja" [label="Humedad < 30 %\n[OR-OR] · observable: BME280 (nodo 7)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "humedad_fuera_de_rango" [label="RA-02 violado: humedad fuera de 30–70 %\n[OR-OR] · observable: ", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "condensacion_y_moho" [label="Condensación y moho en paredes\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "dano_a_equipos" [label="Daño a equipos electrónicos\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "resequedad" [label="Resequedad de ojos y garganta\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "ocupacion_sin_ventilacion" -> "humedad_alta";
+  "clima_humedo" -> "humedad_alta";
+  "aire_apagado" -> "humedad_alta";
+  "aire_reseca" -> "humedad_baja";
+  "humedad_alta" -> "humedad_fuera_de_rango";
+  "humedad_alta" -> "condensacion_y_moho";
+  "humedad_alta" -> "dano_a_equipos";
+  "humedad_baja" -> "humedad_fuera_de_rango";
+  "humedad_baja" -> "resequedad";
+}

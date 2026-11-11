@@ -1,0 +1,27 @@
+digraph "ra-04-iluminacion" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-04 · Iluminación insuficiente con el aula ocupada"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "aula_ocupada" [label="Hay personas en el aula\n[salida OR] · observable: MLX90640 (nodo 5)", fillcolor="#e6e6e6", style="rounded,filled,bold", penwidth=2];
+  "luces_apagadas" [label="Luces apagadas\n[salida OR] · observable: BH1750 (nodo 4)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "luminaria_danada" [label="Luminaria dañada (luces encendidas pero poca luz)\n[salida OR] · observable: BH1750 (nodo 4)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "poca_luz_natural" [label="Poca luz natural (tarde, noche o día nublado)\n[salida OR] · observable: hora del día", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "cortinas_cerradas" [label="Cortinas o persianas cerradas\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "luz_artificial_insuficiente" [label="Luz artificial insuficiente\n[OR-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "luz_natural_insuficiente" [label="Luz natural insuficiente\n[OR-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "luz_total_insuficiente" [label="Menos de 300 lx sobre la mesa\n[AND-OR] · observable: BH1750 (nodo 4)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "iluminacion_insuficiente" [label="RA-04 violado: < 300 lx con el aula ocupada\n[IF(aula_ocupada)-OR] · observable: ", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "fatiga_visual" [label="Fatiga visual\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "menor_concentracion" [label="Menor concentración en clase\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "aula_ocupada" -> "iluminacion_insuficiente";
+  "luces_apagadas" -> "luz_artificial_insuficiente";
+  "luminaria_danada" -> "luz_artificial_insuficiente";
+  "poca_luz_natural" -> "luz_natural_insuficiente";
+  "cortinas_cerradas" -> "luz_natural_insuficiente";
+  "luz_artificial_insuficiente" -> "luz_total_insuficiente";
+  "luz_natural_insuficiente" -> "luz_total_insuficiente";
+  "luz_total_insuficiente" -> "iluminacion_insuficiente";
+  "iluminacion_insuficiente" -> "fatiga_visual";
+  "iluminacion_insuficiente" -> "menor_concentracion";
+}

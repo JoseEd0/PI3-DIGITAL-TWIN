@@ -1,0 +1,21 @@
+digraph "ra-06-aforo" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-06 · Aforo superado"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "evento_no_programado" [label="Evento o reunión fuera del horario de clases\n[salida OR] · observable: horario + MLX90640", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "clase_sobredimensionada" [label="Clase con más alumnos de los que caben\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "conteo_erroneo" [label="Conteo térmico con errores (cruces dudosos o corregidos)\n[salida OR] · observable: MLX90640 (nodo 5)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "sobreaforo" [label="RA-06 violado: ocupación ≥ 90 % del aforo\n[OR-OR] · observable: MLX90640 (nodo 5) + KY-024 (nodo 6)", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "co2_en_aumento" [label="CO2 por encima de 1000 ppm\n[OR-AND] · observable: MH-Z1911A (nodo 1)", fillcolor="#e8dcf7", style="rounded,filled,bold", penwidth=2];
+  "ruido_alto" [label="Ruido por encima de 70 dB\n[OR-AND] · observable: INMP441 (nodo 2)", fillcolor="#e8dcf7", style="rounded,filled,bold", penwidth=2];
+  "calor" [label="Calor por la carga térmica de las personas\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "riesgo_en_evacuacion" [label="Evacuación más lenta y riesgosa\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "evento_no_programado" -> "sobreaforo";
+  "clase_sobredimensionada" -> "sobreaforo";
+  "conteo_erroneo" -> "sobreaforo";
+  "sobreaforo" -> "co2_en_aumento";
+  "sobreaforo" -> "ruido_alto";
+  "sobreaforo" -> "calor";
+  "sobreaforo" -> "riesgo_en_evacuacion";
+}

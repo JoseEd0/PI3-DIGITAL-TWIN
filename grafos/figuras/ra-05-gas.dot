@@ -1,0 +1,25 @@
+digraph "ra-05-gas" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-05 · Gas o humo detectado"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "incendio" [label="Incendio en el aula o cerca\n[salida AND] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "cortocircuito" [label="Cortocircuito o sobrecarga eléctrica\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "fuga_de_gas" [label="Fuga de gas (GLP o gas natural)\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "falsa_alarma" [label="Falsa alarma (polvo, aerosoles, limpieza)\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "sensor_sin_calentar" [label="MQ-2 sin terminar su calentamiento\n[salida OR] · observable: MQ-2 (nodo 3)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "humo" [label="Humo en el ambiente\n[OR-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "subida_rapida_de_temperatura" [label="Subida rápida de temperatura\n[OR-AND] · observable: BME280 (nodo 7)", fillcolor="#d9ecff", style="rounded,filled,bold", penwidth=2];
+  "gas_o_humo" [label="RA-05 violado: el MQ-2 detecta gas o humo\n[OR-OR] · observable: MQ-2 (nodo 3)", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "riesgo_a_la_vida" [label="Riesgo para la vida de los ocupantes\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "evacuacion" [label="Evacuación del aula (ver el conteo de ocupantes)\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "incendio" -> "humo";
+  "incendio" -> "subida_rapida_de_temperatura";
+  "cortocircuito" -> "humo";
+  "fuga_de_gas" -> "gas_o_humo";
+  "falsa_alarma" -> "gas_o_humo";
+  "sensor_sin_calentar" -> "gas_o_humo";
+  "humo" -> "gas_o_humo";
+  "gas_o_humo" -> "riesgo_a_la_vida";
+  "gas_o_humo" -> "evacuacion";
+}

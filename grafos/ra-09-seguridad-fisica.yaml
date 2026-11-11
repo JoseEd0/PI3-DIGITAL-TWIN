@@ -1,0 +1,42 @@
+ra: RA-09
+titulo: "Actividad en el aula fuera del horario oficial"
+evento_central: acceso_fuera_de_horario
+eventos:
+  - id: fuera_de_horario
+    texto: "Fuera del horario oficial del aula"
+    clase: condicion
+    salida: OR
+    observable: {sensor: "horario (config/aula_l419.yaml)", campo: derivado.fuera_de_horario, op: "==", valor: true}
+  - {id: olvido_de_cierre, texto: "Se olvidó cerrar la puerta", clase: causa, salida: OR,
+     recomendacion: "Que el vigilante cierre el aula en su ronda"}
+  - {id: acceso_no_autorizado, texto: "Ingreso no autorizado", clase: causa, salida: OR,
+     recomendacion: "Enviar al vigilante a verificar y revisar las cámaras del pasillo"}
+  - {id: ronda_o_limpieza, texto: "Ronda del vigilante o limpieza", clase: causa, salida: OR,
+     recomendacion: "Confirmar por radio que es personal autorizado"}
+  - id: puerta_abierta
+    texto: "Puerta abierta"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "KY-024 (nodo 6)", campo: derivado.puerta_abierta, op: "==", valor: true}
+  - id: personas_dentro
+    texto: "Personas dentro del aula"
+    entrada: OR
+    salida: OR
+    observable: {sensor: "MLX90640 (nodo 5)", campo: derivado.ocupacion, op: ">", valor: 0}
+  - {id: actividad_en_el_aula, texto: "Actividad en el aula", entrada: OR, salida: OR}
+  - {id: acceso_fuera_de_horario, texto: "RA-09 violado: actividad fuera de horario", entrada: IF,
+     condicion: fuera_de_horario, salida: OR, observable: {ra: RA-09}}
+  - {id: riesgo_de_robo, texto: "Riesgo de robo de equipos", clase: efecto, entrada: OR}
+  - {id: perdida_de_climatizacion, texto: "Pérdida de climatización y energía", clase: efecto, entrada: OR}
+aristas:
+  - [olvido_de_cierre, puerta_abierta]
+  - [acceso_no_autorizado, puerta_abierta]
+  - [acceso_no_autorizado, personas_dentro]
+  - [ronda_o_limpieza, puerta_abierta]
+  - [ronda_o_limpieza, personas_dentro]
+  - [puerta_abierta, actividad_en_el_aula]
+  - [personas_dentro, actividad_en_el_aula]
+  - [fuera_de_horario, acceso_fuera_de_horario]
+  - [actividad_en_el_aula, acceso_fuera_de_horario]
+  - [acceso_fuera_de_horario, riesgo_de_robo]
+  - [puerta_abierta, perdida_de_climatizacion]

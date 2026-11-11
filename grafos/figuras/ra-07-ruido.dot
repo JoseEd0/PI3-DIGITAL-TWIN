@@ -1,0 +1,19 @@
+digraph "ra-07-ruido" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-07 · Ruido excesivo en el aula"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "actividad_grupal" [label="Actividad grupal con mucha gente\n[salida OR] · observable: MLX90640 (nodo 5)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "equipos_ruidosos" [label="Equipo con ruido mecánico constante (aire, proyector)\n[salida OR] · observable: INMP441 (nodo 2)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "ruido_exterior" [label="Ruido del pasillo con la puerta abierta\n[salida OR] · observable: KY-024 (nodo 6)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "impactos" [label="Golpes o portazos\n[salida OR] · observable: INMP441 (nodo 2)", fillcolor="#fde2c4", style="rounded,filled,bold", penwidth=2];
+  "ruido_excesivo" [label="RA-07 violado: más de 70 dB sostenidos\n[OR-OR] · observable: INMP441 (nodo 2)", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "baja_inteligibilidad" [label="No se entiende al docente\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "estres" [label="Estrés y fatiga auditiva\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "actividad_grupal" -> "ruido_excesivo";
+  "equipos_ruidosos" -> "ruido_excesivo";
+  "ruido_exterior" -> "ruido_excesivo";
+  "impactos" -> "ruido_excesivo";
+  "ruido_excesivo" -> "baja_inteligibilidad";
+  "ruido_excesivo" -> "estres";
+}

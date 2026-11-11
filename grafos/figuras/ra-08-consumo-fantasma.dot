@@ -1,0 +1,30 @@
+digraph "ra-08-consumo-fantasma" {
+  rankdir=LR; splines=true; nodesep=0.25; ranksep=0.5;
+  label="RA-08 · Consumo fantasma (energía con el aula vacía)"; labelloc=t; fontsize=18; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11];
+  edge [color="#555555", arrowsize=0.7];
+  "olvido_al_salir" [label="Nadie apagó al salir de la última clase\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "limpieza_o_mantenimiento" [label="Limpieza o mantenimiento con las luces encendidas\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "aire_programado_sin_horario" [label="Aire acondicionado encendido sin que haya clase\n[salida OR] · inferido", fillcolor="#fde2c4", style="rounded,filled,dashed", penwidth=1];
+  "aula_vacia" [label="Aula vacía\n[salida OR] · observable: MLX90640 (nodo 5)", fillcolor="#e6e6e6", style="rounded,filled,bold", penwidth=2];
+  "luces_encendidas" [label="Luces encendidas\n[OR-OR] · observable: BH1750 (nodo 4)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "aire_encendido" [label="Aire acondicionado encendido (ruido mecánico)\n[OR-OR] · observable: INMP441 (nodo 2)", fillcolor="#ffffff", style="rounded,filled,bold", penwidth=2];
+  "tiempo_superado" [label="Más de 10 min en esa situación\n[salida OR] · observable: reloj del servicio", fillcolor="#e6e6e6", style="rounded,filled,bold", penwidth=2];
+  "luces_sin_ocupacion" [label="Luces encendidas con el aula vacía\n[AND-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "aire_sin_ocupacion" [label="Aire encendido con el aula vacía\n[AND-OR] · inferido", fillcolor="#ffffff", style="rounded,filled,dashed", penwidth=1];
+  "consumo_fantasma" [label="RA-08 violado: consumo evitable con el aula vacía\n[OR-OR] · observable: BH1750 + MLX90640 + horario", fillcolor="#f8c9c9", style="rounded,filled,bold", penwidth=3];
+  "costo_en_soles" [label="Costo evitable en soles\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "emisiones" [label="Emisiones evitables de CO2 (kg)\n[OR-AND] · inferido", fillcolor="#e8dcf7", style="rounded,filled,dashed", penwidth=1];
+  "olvido_al_salir" -> "luces_encendidas";
+  "limpieza_o_mantenimiento" -> "luces_encendidas";
+  "aire_programado_sin_horario" -> "aire_encendido";
+  "aula_vacia" -> "luces_sin_ocupacion";
+  "aula_vacia" -> "aire_sin_ocupacion";
+  "luces_encendidas" -> "luces_sin_ocupacion";
+  "aire_encendido" -> "aire_sin_ocupacion";
+  "tiempo_superado" -> "luces_sin_ocupacion";
+  "luces_sin_ocupacion" -> "consumo_fantasma";
+  "aire_sin_ocupacion" -> "consumo_fantasma";
+  "consumo_fantasma" -> "costo_en_soles";
+  "consumo_fantasma" -> "emisiones";
+}

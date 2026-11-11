@@ -1,0 +1,44 @@
+ra: RA-06
+titulo: "Aforo superado"
+evento_central: sobreaforo
+eventos:
+  - id: evento_no_programado
+    texto: "Evento o reunión fuera del horario de clases"
+    clase: causa
+    salida: OR
+    observable: {sensor: "horario + MLX90640", campo: derivado.fuera_de_horario, op: "==", valor: true}
+    recomendacion: "Verificar que el evento tenga reserva y no supere el aforo"
+  - {id: clase_sobredimensionada, texto: "Clase con más alumnos de los que caben", clase: causa, salida: OR,
+     recomendacion: "Coordinar con la Dirección Académica un aula más grande"}
+  - id: conteo_erroneo
+    texto: "Conteo térmico con errores (cruces dudosos o corregidos)"
+    clase: causa
+    salida: OR
+    observable:
+      sensor: "MLX90640 (nodo 5)"
+      alguna:
+        - {campo: termico.anomalias, op: contiene, valor: CONTEO_CORREGIDO}
+        - {campo: termico.cruces_dudosos, op: ">", valor: 0}
+    recomendacion: "Contar a mano y reiniciar el contador del nodo térmico"
+  - {id: sobreaforo, texto: "RA-06 violado: ocupación ≥ 90 % del aforo", entrada: OR, salida: OR,
+     observable: {sensor: "MLX90640 (nodo 5) + KY-024 (nodo 6)", ra: RA-06}}
+  - id: co2_en_aumento
+    texto: "CO2 por encima de 1000 ppm"
+    clase: efecto
+    entrada: OR
+    observable: {sensor: "MH-Z1911A (nodo 1)", campo: co2.co2_ppm, op: ">=", valor: 1000}
+  - id: ruido_alto
+    texto: "Ruido por encima de 70 dB"
+    clase: efecto
+    entrada: OR
+    observable: {sensor: "INMP441 (nodo 2)", campo: audio.leq_db, op: ">", valor: 70}
+  - {id: calor, texto: "Calor por la carga térmica de las personas", clase: efecto, entrada: OR}
+  - {id: riesgo_en_evacuacion, texto: "Evacuación más lenta y riesgosa", clase: efecto, entrada: OR}
+aristas:
+  - [evento_no_programado, sobreaforo]
+  - [clase_sobredimensionada, sobreaforo]
+  - [conteo_erroneo, sobreaforo]
+  - [sobreaforo, co2_en_aumento]
+  - [sobreaforo, ruido_alto]
+  - [sobreaforo, calor]
+  - [sobreaforo, riesgo_en_evacuacion]
