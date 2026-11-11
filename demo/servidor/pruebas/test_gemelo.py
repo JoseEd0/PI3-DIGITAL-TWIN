@@ -198,3 +198,78 @@ def test_a_velocidad_alta_la_latencia_mqtt_no_tumba_los_nodos():
     for _ in range(40):
         servicio.ciclo(0.5)
     assert nivel(servicio, "RA-10") == "nominal"
+
+
+# --- log en InfluxDB y grabación (RF-11) --------------------------------------------------------------
+
+def test_los_eventos_y_los_ra_tambien_van_al_registro():
+    from gemelo.influx import RegistroEnMemoria, punto_de_evento
+
+    registro = RegistroEnMemoria()
+    servicio = Servicio(BusEnMemoria(), Simulador(Reloj(LUNES_9AM), semilla=1), Bitacora(None), registro=registro)
+    correr(servicio, 70)
+    servicio.aplicar_escenario("gas")
+    correr(servicio, 15)
+    assert any(e.ra == "RA-05" for e, _ in registro.eventos)
+    assert registro.requisitos_escritos and "RA-05" in registro.requisitos_escritos[-1][1]
+    linea = punto_de_evento(next(e for e, _ in registro.eventos if e.ra == "RA-05"), "sim").to_line_protocol()
+    assert linea.startswith("campustwin_evento,") and "ra=RA-05" in linea and "severidad_num=2i" in linea
+
+
+def test_una_grabacion_simulada_se_reproduce_igual(tmp_path):
+    from gemelo import grabacion
+
+    guion = grabacion.leer_guion("0:clase,2:gas")
+    cabecera, mensajes = grabacion.grabar_simulacion(guion, 4, LUNES_9AM, semilla=7)
+    ruta = grabacion.escribir(tmp_path / "gas.jsonl", cabecera, mensajes)
+    otra_cabecera, otros = grabacion.grabar_simulacion(guion, 4, LUNES_9AM, semilla=7)
+    assert [m.carga for m in mensajes] == [m.carga for m in otros]  # determinista con la misma semilla
+
+    reproductor = grabacion.Reproductor(ruta, velocidad=1)
+    servicio = Servicio(BusEnMemoria(), reproductor, Bitacora(None))
+    assert servicio.grupo == "rep" and servicio.origen == "reproducido (simulado)"
+    while not reproductor.terminado:
+        servicio.ciclo(1.0)
+    assert reproductor.avance == 1.0 and reproductor.reloj.pausado
+    assert nivel(servicio, "RA-05") == "critico"
+    assert servicio.instantanea()["fuente"]["reproduccion"]["terminado"]
+    with pytest.raises(ValueError):
+        servicio.aplicar_escenario("gas")
+
+
+def test_una_grabacion_invalida_se_rechaza(tmp_path):
+    from gemelo import grabacion
+
+    ruta = tmp_path / "mala.jsonl"
+    ruta.write_text('{"formato": "otro"}\n')
+    with pytest.raises(grabacion.GrabacionInvalida):
+        grabacion.leer(ruta)
+    with pytest.raises(ValueError):
+        grabacion.leer_guion("0:no-existe")
+
+
+def test_la_grabacion_del_broker_ubica_los_mensajes_por_su_ts():
+    from gemelo import grabacion
+
+    bus = BusEnMemoria()
+    simulador = Simulador(Reloj(LUNES_9AM), semilla=1)
+
+    class BusQueSeLlena(BusEnMemoria):
+        def recibir_pendientes(self):
+            for topico, carga, retenido in simulador.avanzar(5):
+                bus.publicar(topico, carga, retenido)
+            return bus.recibir_pendientes()
+
+        def suscribir(self, patron):
+            bus.suscribir(patron)
+
+    cabecera, mensajes = grabacion.grabar_del_broker(BusQueSeLlena(), "sim", segundos=0.5)
+    assert cabecera.origen == "simulado" and mensajes
+    assert all(m.t >= 0 for m in mensajes) and "/campustwin/" not in "".join(m.topico for m in mensajes)
+
+
+def test_cp06_la_estimacion_del_fantasma_se_acerca_a_la_verdad_simulada():
+    from gemelo.auditoria import CASOS, auditar
+
+    resultado = auditar(CASOS[0])
+    assert resultado.verdad_tras_tolerancia_kwh > 0 and resultado.aprobado
