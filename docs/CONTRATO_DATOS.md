@@ -154,3 +154,23 @@ Lo que el docente **no** cubre, y por eso es el aporte del grupo:
    dashboard muestra "DATOS SIMULADOS".
 3. **Nodo nuevo, `tipo` nuevo.** Si se agrega un nodo (por ejemplo, PZEM como nodo 8), lleva un `tipo`
    nuevo en `paquetes.h`. Ese cambio se coordina con el docente, porque el Gateway es común a todos.
+
+## 9. Lo que publica y escribe el grupo
+
+Todo va aparte del Gateway: en tópicos `campustwin/` y en measurements propios.
+
+| Dónde | Nombre | Contenido |
+|---|---|---|
+| MQTT | `utec/gemelo/<grupo>/campustwin/evento` | Cada evento del log (JSON de `EventoDelAula`: ts, tipo, severidad, mensaje, origen, ra, nodo, causas, recomendaciones) |
+| MQTT | `utec/gemelo/<grupo>/campustwin/ra` | Cada 10 s: `{"ts", "origen", "RA-01": nivel, …}`, con nivel -1 desconocido, 0 nominal, 1 alerta y 2 crítico |
+| InfluxDB | `campustwin_evento` | Tags `grupo`, `origen`, `tipo`, `severidad`, `ra`, `nodo`. Fields `mensaje`, `severidad_num`, `causas` y `recomendaciones`. Lo escribe el servicio directamente, porque Telegraf solo escucha los 7 tipos |
+| InfluxDB | `campustwin_ra` | Tags `grupo`, `origen`, `ra`. Fields `nivel` (−1..2) y `nivel_texto` |
+| Archivo | `logs/events.jsonl` | El mismo log, una línea por evento. Es la copia que no depende de InfluxDB |
+
+Grupos de datos:
+
+- `sim`: el simulador;
+- `rep`: la reproducción de una grabación (`gemelo/grabacion.py`), con el `ts` original. El campo
+  `origen` dice "reproducido (simulado)" o "reproducido (real)";
+- el que use el Gateway real.
+

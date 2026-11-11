@@ -15,6 +15,19 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # una vez
 .venv/bin/python -m gemelo --simular --sin-broker # sin Docker: todo en memoria
 .venv/bin/python -m gemelo --grupo grupoX         # datos reales del Gateway, sin simulador
 .venv/bin/python -m gemelo.figuras                # figuras de los grafos en grafos/figuras/
+.venv/bin/python -m gemelo.auditoria              # CP-06: docs/pruebas/CP-06-consumo-fantasma.md
+```
+
+Grabación y reproducción (RF-11, CP-11). Las grabaciones van a `grabaciones/`, ignorada por git:
+
+```bash
+# genera una grabación determinista con el simulador (sin broker): guion minuto:escenario
+.venv/bin/python -m gemelo.grabacion simular --guion 0:clase,4:gas,10:restablecer --minutos 15 --salida ../../grabaciones/gas.jsonl
+# graba lo que publica un grupo en Mosquitto (en S15, el del Gateway real)
+.venv/bin/python -m gemelo.grabacion grabar --grupo grupoX --minutos 30 --salida ../../grabaciones/real.jsonl
+.venv/bin/python -m gemelo.grabacion info ../../grabaciones/gas.jsonl
+# la reproduce en el grupo `rep`; el tablero muestra "DATOS REPRODUCIDOS" y el avance
+.venv/bin/python -m gemelo --reproducir ../../grabaciones/gas.jsonl --velocidad 10
 .venv/bin/python -m pytest                        # pruebas (ambos paquetes)
 ```
 
@@ -30,7 +43,10 @@ Módulos de `gemelo/`:
 | `grafos.py` | Carga de `grafos/*.yaml` y evaluación de los eventos observables |
 | `fantasma.py` | Consumo fantasma por proxy (inventario × tiempo) |
 | `bitacora.py` | Log de eventos `logs/events.jsonl` y exportación a CSV |
-| `transporte.py` | MQTT (paho) o bus en memoria |
+| `influx.py` | Escribe el log (`campustwin_evento`) y el nivel de cada RA (`campustwin_ra`) en InfluxDB, por lotes y con reintentos; solo si hay `INFLUX_TOKEN` |
+| `grabacion.py` | Graba los mensajes del Gateway o del simulador y los reproduce con su hora original (RF-11) |
+| `auditoria.py` | CP-06: compara el consumo fantasma estimado con la verdad del simulador |
+| `transporte.py` | MQTT (paho) o bus en memoria. Cada proceso usa un `client_id` distinto: con el mismo, Mosquitto los desconecta por turnos |
 | `servicio.py` | El ciclo que une todo |
 | `api.py` | API REST, SSE y tablero |
 
