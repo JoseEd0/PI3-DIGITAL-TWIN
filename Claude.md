@@ -153,5 +153,5 @@ descripciones de PR o comentarios de código.
 - No commitear ni pushear sin que se pida explícitamente.
 - Nada de binarios pesados ni datasets grandes en el repo. Si hace falta, guardar el CSV o MD
   derivado y documentar de dónde salió.
-- La rama de trabajo es `jose`. `main` y `jose` están separadas: hay que integrarlas (tarea en
-  Asana).
+- La rama de trabajo es `jose`. Desde el 10/11 `main` sigue a `jose` (se integraron los diagramas
+  de Luhana): al subir, se actualizan las dos.
