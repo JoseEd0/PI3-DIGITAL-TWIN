@@ -16,7 +16,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-from .configuracion import RAIZ_DEL_REPO
+from .configuracion import RAIZ_DEL_REPO, ZONA_HORARIA
 
 log = logging.getLogger(__name__)
 
@@ -48,7 +48,9 @@ class Bitacora:
     def registrar(self, momento: datetime, tipo: str, severidad: str, mensaje: str, origen: str, **extra) -> EventoDelAula:
         if severidad not in SEVERIDADES:
             raise ValueError(f"Severidad desconocida: {severidad}")
-        evento = EventoDelAula(momento.isoformat(timespec="seconds"), tipo, severidad, mensaje, origen, **extra)
+        # El Gateway fecha en UTC; el log se lee en la hora del aula (Lima), con su desfase explícito.
+        local = momento.astimezone(ZONA_HORARIA)
+        evento = EventoDelAula(local.isoformat(timespec="seconds"), tipo, severidad, mensaje, origen, **extra)
         self.eventos.appendleft(evento)
         if self.ruta is not None:
             try:

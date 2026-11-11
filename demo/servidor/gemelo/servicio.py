@@ -49,6 +49,11 @@ MAGNITUD_PRINCIPAL = {
 SEVERIDAD_POR_NIVEL = {ALERTA: "alerta", CRITICO: "critico"}
 
 
+def _hora_del_aula(momento: datetime) -> str:
+    """El Gateway fecha en UTC; la API y el tablero muestran la hora de Lima, con su desfase."""
+    return momento.astimezone(ZONA_HORARIA).isoformat(timespec="seconds")
+
+
 class Servicio:
     def __init__(self, transporte: Transporte, simulador: Simulador | None = None,
                  bitacora: Bitacora | None = None, grupo: str | None = None,
@@ -152,7 +157,7 @@ class Servicio:
         campo, _ = MAGNITUD_PRINCIPAL[lectura.tipo]
         valor = lectura.campos.get(campo)
         if valor is not None and lectura.momento is not None:
-            self.tendencias[lectura.nodo].append((lectura.momento.isoformat(timespec="seconds"), valor))
+            self.tendencias[lectura.nodo].append((_hora_del_aula(lectura.momento), valor))
 
     # -- evaluación -----------------------------------------------------------------------------
     def _evaluar(self) -> None:
@@ -256,7 +261,7 @@ class Servicio:
                 "valor": ultima.campos.get(campo) if ultima else None,
                 "campos": ultima.campos if ultima else {},
                 "anomalias": list(ultima.anomalias) if ultima else [],
-                "ts": ultima.momento.isoformat(timespec="seconds") if ultima and ultima.momento else None,
+                "ts": _hora_del_aula(ultima.momento) if ultima and ultima.momento else None,
                 "tendencia": list(self.tendencias[ident])[-60:],
             })
         return filas

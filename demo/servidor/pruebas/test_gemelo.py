@@ -273,3 +273,11 @@ def test_cp06_la_estimacion_del_fantasma_se_acerca_a_la_verdad_simulada():
 
     resultado = auditar(CASOS[0])
     assert resultado.verdad_tras_tolerancia_kwh > 0 and resultado.aprobado
+
+
+def test_el_log_usa_la_hora_de_lima_aunque_el_gateway_feche_en_utc():
+    from datetime import timezone
+
+    bitacora = Bitacora(None)
+    evento = bitacora.registrar(datetime(2026, 11, 11, 2, 38, 44, tzinfo=timezone.utc), "luces", "info", "x", "simulado")
+    assert evento.ts == "2026-11-10T21:38:44-05:00"

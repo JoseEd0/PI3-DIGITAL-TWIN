@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from .configuracion import ZONA_HORARIA
 from .estado import EstadoDelAula
 
 NOMINAL, ALERTA, CRITICO, DESCONOCIDO = "nominal", "alerta", "critico", "desconocido"
@@ -32,7 +33,7 @@ class Condicion:
         return {
             "ra": self.ra, "nombre": self.nombre, "nivel": self.nivel, "valor": self.valor,
             "unidad": self.unidad, "mensaje": self.mensaje,
-            "desde": self.desde.isoformat(timespec="seconds") if self.desde else None,
+            "desde": self.desde.astimezone(ZONA_HORARIA).isoformat(timespec="seconds") if self.desde else None,
         }
 
 
