@@ -74,3 +74,6 @@ logs/
 
 # Grabaciones de mensajes (RF-11): se regeneran con python -m gemelo.grabacion
 grabaciones/
+
+# Reporte armado con las figuras incrustadas (se regenera con docs/reporte-ec3/armar.py)
+docs/reporte-ec3/reporte-ec3.html
