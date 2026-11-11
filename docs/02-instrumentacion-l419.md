@@ -1,161 +1,126 @@
-# Instrumentación de un espacio de enseñanza — Aula laboratorio L-419
+# Instrumentación del aula laboratorio L-419 — arquitectura oficial
 
-> Fuente: `Instrumentacion_L419 (1).xlsx`, hoja `Instrumentacion L-419`.
-> Datos crudos en [data/instrumentacion-l419.csv](data/instrumentacion-l419.csv).
-> Lista de materiales por módulo · Moneda: Soles (S/) · Precios consultados el **27/08/2026**.
-> **Versión 2 (10/09/2026)**: incorpora la revisión técnica de
-> [00-idea-principal.md §14.1](00-idea-principal.md#141-revisión-técnica-del-10092026).
-> Los ítems nuevos o cambiados llevan la marca **(v2)**; los ítems 31 y 32 son nuevos y el 20
-> cambió de audífono Bluetooth a teléfono del equipo. El Excel original queda como registro
-> de la v1; este archivo y el CSV son la lista vigente.
+> **Historial:** reescrito el **10/11/2026** para la arquitectura oficial del curso. La lista de
+> materiales propia del grupo (v2 del 10/09/2026, S/ 2808) queda resumida en la
+> [sección 6](#6-histórico-propuesta-original-del-grupo-reemplazada); la versión completa está en
+> git y en [data/instrumentacion-l419.csv](data/instrumentacion-l419.csv).
+>
+> Fuentes: el código del docente en [vendor/gemelo_iot_profesor/](../vendor/README.md), el
+> [contrato de datos](CONTRATO_DATOS.md), [config/nodos.yaml](../config/nodos.yaml),
+> [config/aula_l419.yaml](../config/aula_l419.yaml) (`plano`) y la
+> [lista de compra del curso](curso/texto/lista-de-compra.md).
+>
+> **Estado al 10/11/2026:** el hardware está en el L-414 y **ningún nodo está armado ni
+> instalado**. No hay mediciones reales; las ubicaciones son supuestas hasta tomar el croquis del
+> aula.
 
 ## 1. Cómo funciona
 
-**Cadena de datos:** Sensores → ESP32 → Wi-Fi → Raspberry Pi (servidor) → Red local → dashboard web y app de voz
+**Cadena de datos:** sensor → ESP32 → ESP-NOW → Gateway ESP32 → Wi-Fi/MQTT → laptop con Docker
+(Mosquitto → Telegraf → InfluxDB → Grafana) → servicios del grupo → dashboard, Gaphor y copiloto.
 
 | Aspecto | Descripción |
 |---|---|
-| Transporte | Cada sensor se conecta a un ESP32 que envía los datos por Wi-Fi (MQTT). Los enchufes inteligentes publican directo al broker con firmware local. El BLE del radar solo se usa para configurarlo. |
-| Servidor | Todos los datos llegan a una Raspberry Pi que actúa como servidor, y desde ahí el dashboard se ve en cualquier computadora de la red. |
-| Instalación | Ningún sensor usa cable de datos hacia la computadora. La instalación no requiere perforar paredes ni cortar conductores; abrir la tapa del tablero para abrazar la pinza no es intervención y lo supervisa Servicios Generales. |
-| Sin internet | Todo (broker, base de datos, dashboard, voz, hora y enchufes) corre en la red local del proyecto. Ningún componente depende de una nube. |
+| Transporte | Cada nodo envía un paquete binario (`paquetes.h`, ≤ 250 B) por **ESP-NOW** a la MAC del Gateway. Los nodos no se conectan al Wi-Fi: solo lo escanean para hallar el canal del Gateway. |
+| Gateway | Traduce cada paquete a JSON y lo publica en `utec/gemelo/<grupo>/nodo<id>/<tipo>`; su estado va por LWT en `.../gateway/estado`. Cuenta las muestras perdidas por huecos en `seq`. |
+| Servidor | Una laptop con el stack Docker del docente. Los servicios del grupo se agregan con `docker-compose.override.yml`; cualquier laptop de la misma red abre el dashboard (`:8000`) y Grafana (`:3000`). |
+| Instalación | Cajas a batería con montaje adhesivo: sin cable de datos, sin 220 V, sin perforar paredes ni tocar el tablero. |
+| Sin internet | Todo corre en la red local, salvo la hora: el Gateway la toma de `pool.ntp.org` y sin ella Telegraf descarta los mensajes. Se resuelve con NTP local en la laptop (pendiente, S15). |
+| Autoría | Firmware de los nodos y del Gateway y stack del servidor: **docente** (J. F. Figueroa). Nodo MQ-2 (`MQ-2.ino`): **grupo**. Cajas: otros grupos del curso. |
 
-## 2. Lista de materiales
+## 2. Los 7 nodos
 
-Convenciones de la hoja original:
+Periodos de `PERIODO_MS` en cada `.ino` del docente (y de `config/nodos.yaml` para el MQ-2).
+Anomalías: los bits que calcula cada nodo y el Gateway traduce a texto (contrato, §4). Son las
+observaciones de entrada del motor causal. Coordenadas en metros desde la esquina de la puerta
+(x a lo largo, y a lo ancho), todas **supuestas**.
 
-- **Enlace** — *Ficha del producto* abre la página exacta del artículo; *Ver en la categoría*
-  abre el listado de la tienda donde se encuentra.
-- **Precio** — *Verificado 27/08/26* = precio consultado ese día en la tienda;
-  *Por cotizar* = aún sin confirmar.
+| Nodo | `tipo` | Sensor | Magnitudes que envía | Interfaz y pines | Periodo | Anomalías que emite | Ubicación (x, y) y montaje | RA | Caja | Programa |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | `co2` | MH-Z1911A (familia MH-Z19, NDIR) | `co2_ppm`, `delta_30s`, `temp_c`, `nivel` | UART2: RX 16, TX 17, 9600 baudios | 5 s | `FALLO_SENSOR`, `CO2_PICO_RAPIDO`, `CO2_ALERTA_VENTILACION`, `CO2_CRITICO` | (4.5, 6.5) pared del fondo, a 1.5 m (zona de respiración) | RA-03 | S1 G1 | `nodo_co2.ino` (docente) |
+| 2 | `audio` | INMP441 | `leq_db`, `lmax_db`, `pico_db`, `base_db`, `freq_dom_hz`, `tonal` | I²S: SCK 26, WS 25, SD 33, a 16 kHz | 1 s | `FALLO_AUDIO`, `RUIDO_IMPACTO`, `RUIDO_FUERTE_SOSTENIDO`, `RUIDO_MECANICO_CONSTANTE` | (6.0, 3.5) techo, centro-fondo | RA-07 | S8 G4 | `nodo_audio.ino` (docente) |
+| 3 | `gas` | MQ-2 | `v_ao`, `rs_r0`, `do_alarma`, `calentando` | Analógica + digital | 5 s | `FALLO_SENSOR`, `GAS_DETECTADO` | (3.0, 3.5) techo, lejos del aire acondicionado | RA-05 | S8 G2 | `MQ-2.ino` (**grupo**, en elaboración) |
+| 4 | `luz` | BH1750 (GY-302) | `lux`, `lux_min`, `lux_max`, `lux_mesa_est`, `luces_cambio` | I²C: SDA 21, SCL 22 | 10 s, y en el acto si cambian las luces | `FALLO_SENSOR`, `ILUMINACION_BAJA` | (4.5, 3.5) techo, centro | RA-04, RA-08 | S9 G3 | `nodo_luz.ino` (docente) |
+| 5 | `termico` | MLX90640 32×24 | `entradas`, `salidas`, `ocupacion_est`, `personas_en_vista`, `cruces_dudosos`, `t_fondo`, `t_max` | I²C: SDA 21, SCL 22 | 5 s, y en el acto tras un cruce | `FALLO_SENSOR`, `CONTEO_CORREGIDO`, `OBJETO_ESTATICO` | (0.6, 0.5) marco superior de la puerta, a 2.3 m | RA-06, RA-04, RA-08, RA-09 | S9 G5 | `nodo_termico.ino` (docente) |
+| 6 | `magnetico` | KY-024 (Hall lineal SS49E) | `puerta_abierta`, `aperturas`, `seg_abierta`, `campo_raw` | Analógica en GPIO 34 | 10 s, y en el acto ante un cambio | `FALLO_SENSOR`, `PUERTA_ABIERTA_PROLONGADA` | (0.2, 0.5) marco de la puerta, imán en la hoja | RA-09, RA-06, RA-08 | S9 G2 | `nodo_magnetico.ino` (docente) |
+| 7 | `ambiente` | BME280 (GY-BME280) | `temp_c`, `hum_pct`, `pres_hpa` | I²C: SDA 21, SCL 22 | 10 s | `FALLO_SENSOR`, `TEMP_FUERA_CONFORT`, `HUMEDAD_ALTA`, `CAMBIO_RAPIDO_TEMP` | (5.0, 3.5) techo, centro | RA-01, RA-02 | S1 G5 | `nodo_ambiente.ino` (docente) |
 
-### Procesadores
+Todos los nodos usan un ESP32 DevKit V1 y la misma cabecera de paquete (`version`, `tipo`,
+`nodo_id`, `seq`, `uptime_ms`). El RA-10 (salud del sistema) usa los siete y el Gateway.
 
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | ESP32 DevKit V1 **(v2: 5 u.)** | 240 MHz, 520 KB RAM, 4 MB flash, 3.3 V. Wi-Fi + Bluetooth BLE. Nodos: energía, ambiental, ocupación ×2 y audio | Naylamp Mechatronics | [Ficha](https://naylampmechatronics.com/espressif-esp/384-esp32-devkit-v1-nodemcu-32-30-pin-esp32-wifi-micro-usb.html) | 000384 | 5 | 35 | 175 | Verificado 27/08/26 |
-| 2 | ESP32-C3 SuperMini | 160 MHz, muy bajo consumo, ideal con batería. Wi-Fi + BLE 5.0. Nodo de puerta (RNF-04) | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/84-espressif-esp) | — | 1 | 28 | 28 | Por cotizar |
-| 3 | Raspberry Pi 5 (4 GB) | Servidor local: guarda datos y corre el dashboard. Wi-Fi + BLE + Ethernet | Naylamp Mechatronics | [Ficha](https://naylampmechatronics.com/raspberry-pi/1255-raspberry-pi-5-4gb.html) | 001255 | 1 | 550 | 550 | Por cotizar |
-| 4 | microSD 64 GB Clase 10 | Almacenamiento del servidor | Retail local | [Categoría](https://naylampmechatronics.com/21-accesorios-raspberry) | — | 1 | 45 | 45 | Por cotizar |
-| 5 | Case con ventilador para Pi 5 | Evita sobrecalentamiento | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/21-accesorios-raspberry) | 001325 | 1 | 70 | 70 | Verificado 27/08/26 |
-| 31 | Batería de RTC para Pi 5 **(v2)** | Celda ML1220 con conector: la Pi mantiene la hora sin internet tras un corte (RNF-05) | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/21-accesorios-raspberry) | — | 1 | 20 | 20 | Por cotizar |
-| | **Subtotal Procesadores** | | | | | **10** | | **888** | |
+Notas de cada sensor, tomadas del código del docente:
 
-> Se eligió el ESP32 porque trae Wi-Fi y Bluetooth incluidos, sin necesidad de módulos extra.
+- **MH-Z1911A:** calienta 3 min; válido de 300 a 10000 ppm; alerta en 1000 ppm y crítico en 1500,
+  con histéresis de 100 y 3 confirmaciones.
+- **INMP441:** dB SPL ≈ dBFS + 120 (sin calibrar); calibra en silencio los primeros 5 s. **No
+  guarda audio.**
+- **MQ-2:** necesita precalentamiento y calibrar R0 en aire limpio; `rs_r0` ≈ 1 en aire limpio y
+  baja con gas o humo. Su calefactor consume unos 150 mA. El código del docente no trae este nodo:
+  lo escribe el grupo con la estructura de `nodo_co2.ino`.
+- **BH1750:** estima la luz sobre la mesa como `lux × 0.482`; iluminación baja bajo 300 lx.
+- **MLX90640:** el conteo se hace en el ESP32 (sustrae el fondo, sigue las cabezas y detecta el
+  cruce de las líneas A y B) y **no envía la matriz**. Se coordina con el KY-024 de la puerta.
+- **KY-024:** salida invertida (< 1200 es cerrada, > 1800 es abierta); antirrebote de 150 ms;
+  apertura prolongada a los 10 min.
+- **BME280:** confort de 20 a 26 °C; humedad alta desde 70 %; cambio rápido si varía más de
+  1.5 °C en 5 min.
 
-### Energía
+## 3. Gateway y servidor
 
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 6 | PZEM-004T v3.0 con pinza 100 A | Mide voltaje, corriente, potencia y energía. 80-260 V, precisión ±0.5 % | Grupo Electrostore | [Ficha](https://grupoelectrostore.com/shop/sensores/corriente/modulo-sensor-de-corriente-ac-pzem-004t/) | — | 1 | 85 | 85 | Por cotizar |
-| 7 | Pinza no invasiva SCT-013 | Transformador de corriente no invasivo, se abraza al cable sin cortarlo | Grupo Electrostore | [Ficha](https://grupoelectrostore.com/shop/sensores/corriente/sensor-de-corriente-no-invasivo-50a-sct-013-050-1v/) | — | 2 | 40 | 80 | Por cotizar |
-| 8 | Enchufe inteligente con medición, compatible con Tasmota/ESPHome **(v2)** | Mide equipos individuales (proyector, PC). 220 V / 16 A, Wi-Fi. Firmware local que publica por MQTT sin nube (RF-12, RNF-05); p. ej. Sonoff S31/POW o Athom | Mercado Libre Perú | [Categoría](https://listado.mercadolibre.com.pe/enchufe-medidor-de-consumo) | — | 2 | 95 | 190 | Por cotizar |
-| | **Subtotal Energía** | | | | | **5** | | **355** | |
-
-> El PZEM da la mejor medición (RF-01), pero necesita toma de tensión en un tomacorriente y la
-> pinza abrazada al alimentador dentro del tablero. Si no lo autorizan, los enchufes inteligentes
-> (RF-12) sirven como reemplazo con ±5 % y no requieren permiso. Los enchufes deben ser
-> flasheables: los de nube no funcionan sin internet.
-
-### Ambiente
-
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 9 | Sensor de CO₂ SCD41 | 400-5000 ppm. También mide temperatura y humedad | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/36-sensores-gas) | — | 1 | 190 | 190 | Por cotizar |
-| 10 | Sensor SHT31 | Temperatura ±0.3 °C, humedad ±2 % | Naylamp Mechatronics | [Ficha](https://naylampmechatronics.com/sensores-temperatura-y-humedad/363-sensor-de-temperatura-y-humedad-relativa-sht31.html) | 000363 | 2 | 30 | 60 | Verificado 27/08/26 |
-| 11 | Sensor de luz BH1750 | 1-65535 lux. Detecta luces encendidas sin gente | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/39-sensores-luz-y-sonido) | — | 2 | 18 | 36 | Por cotizar |
-| | **Subtotal Ambiente** | | | | | **5** | | **286** | |
-
-> El CO₂ sube cuando entran personas, así que sirve para confirmar la ocupación medida por el radar.
-
-### Ocupación
-
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 12 | Radar de presencia HLK-LD2410C | 24 GHz, alcance 6 m, ángulo 60°. Bluetooth integrado | Naylamp Mechatronics | [Ficha](https://naylampmechatronics.com/sensores-proximidad/1080-sensor-de-presencia-radar-hlk-ld2410c.html) | 001080 | 2 | 55 | 110 | Por cotizar |
-| 13 | Sensor de movimiento PIR HC-SR501 | Alcance 3-7 m, ángulo 120° | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/38-sensores-proximidad) | — | 3 | 12 | 36 | Por cotizar |
-| 14 | Sensor de distancia VL53L1X | Láser, 4 m. En la puerta cuenta entradas y salidas | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/228-tof-time-of-flight) | — | 2 | 60 | 120 | Por cotizar |
-| | **Subtotal Ocupación** | | | | | **7** | | **266** | |
-
-> El radar detecta a personas sentadas y quietas, que es donde falla el PIR. No usa cámara,
-> así que no hay problema de datos personales. Los dos radares van en dos nodos separados (puerta
-> y fondo del laboratorio); el ToF va solo en el nodo de la puerta.
-
-### Puerta y seguridad
-
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 15 | Sensor magnético de puerta | Detecta apertura. Montaje adhesivo | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/48-sensores-varios) | — | 2 | 12 | 24 | Por cotizar |
-| 16 | Sensor de vibración SW-420 | Detecta golpes o apertura forzada | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/48-sensores-varios) | — | 1 | 12 | 12 | Por cotizar |
-| | **Subtotal Puerta y seguridad** | | | | | **3** | | **36** | |
-
-> Funciona con batería y solo despierta cuando la puerta se mueve, así que dura meses sin recarga.
-
-### Copiloto de voz
-
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 17 | Micrófono INMP441 | Micrófono digital, salida I2S | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/39-sensores-luz-y-sonido) | — | 1 | 38 | 38 | Por cotizar |
-| 18 | Amplificador MAX98357A | 3.2 W, entrada digital | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/39-sensores-luz-y-sonido) | — | 1 | 42 | 42 | Por cotizar |
-| 19 | Parlante 4 Ω / 3 W | Salida de audio | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/39-sensores-luz-y-sonido) | — | 1 | 18 | 18 | Por cotizar |
-| 20 | Teléfono Android del equipo **(v2)** | Corre la app de voz (PWA) en el navegador con micrófono y parlante propios; ya disponible, sin costo | Equipo PI3 | — | — | 1 | 0 | 0 | No aplica |
-| | **Subtotal Copiloto de voz** | | | | | **4** | | **98** | |
-
-> Este es el componente de Interacción Humano-Computador del proyecto. En la v2 el vigilante usa
-> la app de voz en el teléfono (RF-09); el nodo de audio fijo (ítems 17-19) es una extensión
-> opcional que se arma solo si el hito S12 se cumple antes de tiempo.
-
-### Integración
-
-| N° | Elemento | Especificaciones | Tienda | Enlace | SKU | Cant. | S/ c/u | Total S/ | Estado precio |
-|---|---|---|---|---|---|---|---|---|---|
-| 21 | Router Wi-Fi TP-Link TL-WR840N | Red propia, si la red UTEC bloquea los dispositivos | Mercado Libre Perú | [Ficha](https://www.mercadolibre.com.pe/tp-link-tl-wr840n-router-wifi-n-24ghz-300mbps-4-puertos-10100-color-blanco/p/MPE15314118) | — | 1 | 110 | 110 | Por cotizar |
-| 22 | Fuente 5 V / 3 A USB-C **(v2: 5 u.)** | Alimenta los cinco nodos fijos (energía, ambiental, ocupación ×2, audio) | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/145-fuentes-usb) | — | 5 | 30 | 150 | Por cotizar |
-| 23 | Fuente oficial Raspberry Pi 5 (27 W) | La Pi 5 necesita esta fuente específica | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/21-accesorios-raspberry) | — | 1 | 95 | 95 | Por cotizar |
-| 24 | Batería LiPo 2000 mAh + cargador TP4056 | Nodo de puerta (1 en uso + 1 de repuesto) | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/100-li-po) | — | 2 | 45 | 90 | Por cotizar |
-| 25 | Caja plástica ABS con tapa **(v2: 6 u.)** | Protege y monta cada uno de los seis nodos; la del nodo de energía aloja la toma de tensión con enchufe y fusible (RNF-01) | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/229-cajas) | — | 6 | 25 | 150 | Por cotizar |
-| 26 | Conversor de nivel 3.3 V ↔ 5 V | Conecta sensores de 5 V al ESP32 | Naylamp Mechatronics | [Ficha](https://naylampmechatronics.com/conversores-ttl/67-conversor-de-nivel-logico-4ch-5v3v.html) | 000067 | 3 | 8 | 24 | Verificado 27/08/26 |
-| 27 | Adaptador USB-TTL CP2102 | Cargar y depurar el programa | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/45-conversores-ttl) | — | 2 | 25 | 50 | Por cotizar |
-| 28 | Kit de cables, protoboard y estaño | Armado y conexiones | Naylamp Mechatronics | [Categoría](https://naylampmechatronics.com/97-protoboard) | — | 1 | 80 | 80 | Por cotizar |
-| 29 | Multímetro digital | Verificar voltajes en la instalación | Retail local | [Categoría](https://naylampmechatronics.com/112-multimetros) | — | 1 | 70 | 70 | Por cotizar |
-| 30 | Cinta 3M VHB y bridas | Montaje sin perforar paredes | Mercado Libre / ferretería | [Categoría](https://listado.mercadolibre.com.pe/cinta-doble-contacto-3m-vhb) | — | 1 | 35 | 35 | Por cotizar |
-| 32 | Termohigrómetro digital de referencia **(v2)** | Referencia de temperatura y humedad para la verificación de consistencia (CP-07) | Retail local | — | — | 1 | 25 | 25 | Por cotizar |
-| | **Subtotal Integración** | | | | | **24** | | **879** | |
-
-> El ESP32 DevKit ya trae el chip CP2102 integrado, así que el adaptador USB-TTL puede ser prescindible.
-
-### **TOTAL GENERAL DEL PROYECTO: S/ 2808**
-
-## 3. Resumen de costos por módulo
-
-| Módulo | Total (S/) | % del proyecto |
-|---|---|---|
-| Procesadores | 888 | 31.62 % |
-| Energía | 355 | 12.64 % |
-| Ambiente | 286 | 10.19 % |
-| Ocupación | 266 | 9.47 % |
-| Puerta y seguridad | 36 | 1.28 % |
-| Copiloto de voz | 98 | 3.49 % |
-| Integración | 879 | 31.30 % |
-| **TOTAL** | **2808** | **100 %** |
-
-## 4. Versión mínima
-
-Si el presupuesto es limitado, esta versión mantiene la demo completa. Se reemplaza la
-Raspberry Pi por una laptop del equipo y el copiloto de voz corre en un teléfono del equipo, así
-que no necesita el nodo de audio.
-
-| Elemento | Cant. | S/ c/u | Total (S/) |
+| Equipo | Qué es | Dónde va | Configuración |
 |---|---|---|---|
-| ESP32 DevKit V1 | 2 | 35 | 70 |
-| Enchufe inteligente compatible con Tasmota/ESPHome | 1 | 95 | 95 |
-| Sensor SHT31 | 1 | 30 | 30 |
-| Sensor de luz BH1750 | 1 | 18 | 18 |
-| Radar LD2410C | 1 | 55 | 55 |
-| Sensor de puerta | 1 | 12 | 12 |
-| Fuentes, cajas y cables | 1 | 190 | 190 |
-| Router Wi-Fi | 1 | 110 | 110 |
-| **TOTAL VERSIÓN MÍNIMA** | | | **580** |
+| **Gateway** | ESP32 v4 con `gateway.ino` del docente. Wi-Fi STA, cola de 32 mensajes, MQTT QoS 0 sin credenciales, estado por LWT | (8.5, 0.5) en el plano supuesto; lo opera S1 G1 (procesador central) | `GRUPO`, `SSID_ROUTER` y la clave del Wi-Fi. `gateway.ino` trae credenciales: está en `.gitignore` y se versiona `gateway.ino.example` |
+| **Laptop** | Docker con Mosquitto `:1883`, Telegraf, InfluxDB 2.7 `:8086` (org `utec`, bucket `gemelo`) y Grafana `:3000` del docente, más el servicio del grupo `:8000` | En la misma red que el Gateway. Hoy, la laptop de José | `deploy/.env` (no versionado) y `deploy/levantar.sh`; el `docker-compose.yml` del docente no se toca |
+| **Red local** | Router del aula o red "UTEC Proyectos" | — | Pendiente: NTP local en la laptop para que el Gateway tenga hora sin internet |
 
-> La desventaja es que no se pueden tomar datos de noche ni durante días seguidos, porque la
-> laptop no se queda en el laboratorio. Con ella no se cumplen RF-10 (consumo fantasma) ni RNF-06.
+## 4. Hardware comprado por el curso
+
+Orden de compra **OC-UTEC-004033-26** (Naylamp), transcrita de la planilla del curso y de las
+etiquetas fotografiadas en [curso/imagenes/](curso/imagenes/). El grupo no compró hardware. Las
+cantidades son las de la OC; donde no hay foto, no se conocen.
+
+| N° | Categoría | Sensor o modelo | Interfaz | Cantidad en la OC | Uso en la arquitectura |
+|---|---|---|---|---|---|
+| 1 | Ruido | INMP441 | I²S | 2 | Nodo 2 |
+| 2 | CO₂ | MH-Z19B pedido; llegó **MH-Z1911A** (Winsen) | UART | 2 | Nodo 1 |
+| 3 | Temperatura, humedad y presión | BME280 | I²C | 2 | Nodo 7 |
+| 4 | Luz | BH1750 (GY-302) | I²C | 2 | Nodo 4 |
+| 5 | Ocupación térmica | MLX90640 32×24 | I²C | sin foto | Nodo 5 |
+| 6 | Procesamiento | ESP32 DevKit V1 (NodeMCU-32, 30 pines) | Wi-Fi + Bluetooth | 2 | Nodos |
+| 7 | Humo | Detector Wi-Fi Tuya | Wi-Fi (nube) | 1 | **Reemplazado por el MQ-2** (anuncio del 21/10) |
+| 8 | Hall | KY-024 (SS49E, lineal) | Analógica + digital | 4 | Nodo 6 |
+| 9 | Energía | PZEM-004T v3.0 (100 A + TC) | UART (Modbus) | sin foto | **No está en la arquitectura oficial.** La planilla lo rotula "Ocupación del ambiente", que parece un error. Pregunta abierta al docente: ¿nodo 8? |
+| — | Gas y humo | MQ-2 | Analógica + digital | — (no figura en la planilla) | Nodo 3 |
+| — | Alimentación | 18650 de 1600 mAh y porta-batería | — | — (no figura en la planilla) | Una por caja |
+| — | Montaje | Protoboard de 170 puntos | — | — (no figura en la planilla) | Una por caja |
+
+Cada caja lleva ESP32 DevKit V1, el sensor, la protoboard, la 18650 y su porta-batería. La 18650
+entrega de 3.0 a 4.2 V, así que hace falta un regulador (LDO de 3.3 V o elevador a 5 V con
+TP4056), y el MH-Z1911A y el MQ-2 consumen demasiado para pasar el día a batería. El análisis por
+nodo va en [06-energia-cajas.md](06-energia-cajas.md) (en elaboración).
+
+## 5. Qué no se mide directamente
+
+| Magnitud | Por qué | Cómo se resuelve |
+|---|---|---|
+| Energía eléctrica | Sin PZEM ni enchufes en la arquitectura oficial | **Estimación por proxy**: luces (BH1750), aula vacía (MLX90640), aire acondicionado por ruido mecánico (INMP441) y horario, por el inventario de potencias de `config/aula_l419.yaml`. Se presenta como estimación (RF-01, RF-10, RF-12) |
+| Batería e intensidad de señal de cada nodo | No vienen en el paquete del docente | Una batería agotada se ve como nodo sin datos (RA-10) |
+| Vibración de la puerta | El SW-420 salió con la arquitectura oficial | Retirada de RF-04 |
+
+## 6. Histórico: propuesta original del grupo (reemplazada)
+
+Lista de materiales v2 del 10/09/2026 (precios del 27/08/2026), que el grupo armó antes de que el
+curso fijara la arquitectura. **No se compró**: la reemplaza el hardware del curso. El detalle por
+ítem (tienda, enlace, SKU y precio) está en [data/instrumentacion-l419.csv](data/instrumentacion-l419.csv)
+y en la versión anterior de este archivo en git.
+
+| Módulo | S/ | Contenido | Reemplazo oficial |
+|---|---|---|---|
+| Procesadores | 888 | 5 ESP32 DevKit, ESP32-C3, Raspberry Pi 5 con microSD, case y batería RTC | ESP32 DevKit por nodo y laptop con Docker |
+| Energía | 355 | PZEM-004T, 2 pinzas SCT-013 y 2 enchufes Tasmota | Estimación por proxy (PZEM sin integrar) |
+| Ambiente | 286 | SCD41, 2 SHT31 y 2 BH1750 | MH-Z1911A, BME280 y BH1750 |
+| Ocupación | 266 | 2 LD2410C, 3 PIR y 2 VL53L1X | MLX90640 con KY-024 |
+| Puerta y seguridad | 36 | 2 magnéticos y SW-420 | KY-024 (sin vibración) |
+| Copiloto de voz | 98 | INMP441, MAX98357A y parlante (el teléfono, sin costo) | INMP441 como sensor de ruido; copiloto en el teléfono |
+| Integración | 879 | Router, fuentes, LiPo, cajas, conversores, multímetro, cinta VHB y termohigrómetro | Cajas del curso con 18650 |
+| **Total** | **2808** | Versión mínima: **S/ 580** (sin Pi, con laptop) | — |

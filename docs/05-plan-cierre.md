@@ -93,7 +93,7 @@ código), está rotulado como real o simulado, y está cerrado en Asana y marcad
 |---|---|---|
 | A1 ✅ | Stack del docente en Docker con credenciales propias en `deploy/.env` | `docker compose ps` muestra 4 servicios arriba y un mensaje de prueba llega a InfluxDB |
 | A2 | `deploy/docker-compose.override.yml` con el servicio del grupo y el simulador, y los tableros del docente cargados en Grafana | Un solo comando levanta todo y Grafana muestra "Gemelo digital L418 — 7 sensores" con datos `sim` |
-| A3 | Simulador migrado a 7 nodos en formato Gateway (paho-mqtt) | Publica co2, audio, gas, luz, térmico, magnético, ambiente y el estado del Gateway, con los periodos reales (5, 1, 10, 10, 5, 10 y 10 s) y los mismos niveles y bits de anomalía que calcula el código del docente. Hay pruebas de formato contra el JSON del contrato |
+| A3 | Simulador migrado a 7 nodos en formato Gateway (paho-mqtt) | Publica co2, audio, gas, luz, térmico, magnético, ambiente y el estado del Gateway, con los periodos reales (5, 1, 5, 10, 5, 10 y 10 s) y los mismos niveles y bits de anomalía que calcula el código del docente. Hay pruebas de formato contra el JSON del contrato |
 | A4 | Escenarios nuevos del simulador | Clase normal, salón vacío con luces (fantasma), aire acondicionado averiado (calor), sobreaforo, puerta abierta fuera de horario, gas o humo, nodo caído (falla o batería) y Gateway caído (LWT `offline`). Se activan desde la API y el dashboard |
 | A5 | Grabación y reproducción (RF-11) | `--grabar archivo.jsonl` y `--reproducir archivo.jsonl` producen el mismo flujo MQTT |
 

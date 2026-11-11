@@ -24,10 +24,10 @@ propio: el nodo MQ-2.
 | [docs/CONTRATO_DATOS.md](docs/CONTRATO_DATOS.md) | Paquetes ESP-NOW, tópicos y JSON del Gateway, measurements de InfluxDB y bits de anomalía |
 | [docs/curso/README.md](docs/curso/README.md) | Material del docente y reportes entregados: qué sirve para qué. El texto de cada uno está en `docs/curso/texto/` |
 | [docs/curso/brief-ec3.md](docs/curso/brief-ec3.md) | Brief de la EC3 (v3): requisitos RA, grafos, dashboard, Gaphor y estructura del reporte |
-| [docs/00-idea-principal.md](docs/00-idea-principal.md) | Documento maestro: problema, stakeholders, requisitos NS/RF/RNF/CP y riesgos. **Todavía describe el hardware antiguo**; está pendiente migrarlo |
+| [docs/00-idea-principal.md](docs/00-idea-principal.md) | Documento maestro: problema, stakeholders, requisitos NS/RF/RNF/CP, RA-01..10 con sus grafos, y riesgos, sobre la arquitectura oficial (migrado el 10/11) |
 | [docs/01-preformulacion.md](docs/01-preformulacion.md) | Histórico: la idea original |
-| [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | BOM propio del grupo (S/ 2808). Lo reemplaza el hardware que compró el curso ([lista](docs/curso/texto/lista-de-compra.md)) |
-| [docs/03-plan.md](docs/03-plan.md) | Espejo local de Asana: 75 tareas con responsable, fecha y casilla |
+| [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | Instrumentación oficial: los 7 nodos, el Gateway, la laptop y el hardware que compró el curso ([lista](docs/curso/texto/lista-de-compra.md)). El BOM propio de S/ 2808 queda al final como histórico |
+| [docs/03-plan.md](docs/03-plan.md) | Espejo local de Asana: 71 tareas con responsable, fecha y casilla |
 | [docs/04-demo.md](docs/04-demo.md) | La demo simulada de septiembre (arquitectura anterior) |
 | [modelo/README.md](modelo/README.md) | Modelo SysML en Gaphor: diagramas, exportación y regeneración |
 | [demo/README.md](demo/README.md) | Cómo levantar el simulador, el tablero y el modelo en vivo |
