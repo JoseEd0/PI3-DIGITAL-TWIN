@@ -1,3 +1,46 @@
+# Servidor del grupo
+
+Hay dos paquetes:
+
+| Paquete | Qué es | Estado |
+|---|---|---|
+| `gemelo/` | **Servicio actual (EC3).** Lee el formato del Gateway del docente (MQTT), evalúa RA-01..10 (`config/requisitos_ra.yaml`), diagnostica con los grafos causales (`grafos/`, motor SymCure), estima el consumo fantasma, lleva el log de eventos y sirve la API y el tablero (`demo/tablero`). Incluye el simulador de los 7 nodos oficiales | En uso |
+| `campus_twin_demo/` | La demo de septiembre, con la arquitectura anterior | Histórico: se conserva con sus pruebas |
+
+## Correr el servicio
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # una vez
+.venv/bin/python -m gemelo --simular              # con Mosquitto del stack (deploy/levantar.sh lo hace todo)
+.venv/bin/python -m gemelo --simular --sin-broker # sin Docker: todo en memoria
+.venv/bin/python -m gemelo --grupo grupoX         # datos reales del Gateway, sin simulador
+.venv/bin/python -m gemelo.figuras                # figuras de los grafos en grafos/figuras/
+.venv/bin/python -m pytest                        # pruebas (ambos paquetes)
+```
+
+Módulos de `gemelo/`:
+
+| Módulo | Qué hace |
+|---|---|
+| `gateway.py` | Formato exacto de los mensajes del Gateway (tópico, campos, anomalías) |
+| `simulador.py` | Los 7 nodos con la lógica de anomalías del código del docente y los escenarios de la demo |
+| `estado.py` | Últimas lecturas, salud y variables derivadas (aula vacía, luces, horario, minutos de consumo fantasma) |
+| `requisitos.py` | Evaluadores de RA-01..10 con histéresis |
+| `razonamiento.py` | Motor SymCure: V, F, S y D; entrada OR, AND, N/M o IF; salida AND u OR; propagación aguas arriba y aguas abajo |
+| `grafos.py` | Carga de `grafos/*.yaml` y evaluación de los eventos observables |
+| `fantasma.py` | Consumo fantasma por proxy (inventario × tiempo) |
+| `bitacora.py` | Log de eventos `logs/events.jsonl` y exportación a CSV |
+| `transporte.py` | MQTT (paho) o bus en memoria |
+| `servicio.py` | El ciclo que une todo |
+| `api.py` | API REST, SSE y tablero |
+
+Todo valor del aula sale de `config/aula_l419.yaml` (con la marca `supuesto`): el jueves se edita
+ese archivo y todo se recalcula, sin tocar código.
+
+---
+
+## Demo de septiembre (`campus_twin_demo/`)
+
 # Servidor de la demo
 
 Simula los seis nodos del L-419 y expone los datos por la misma API que tendrá el
