@@ -14,8 +14,11 @@
 
 ## 0. Resumen en una pantalla
 
-- **Objetivo:** el viernes 13/11 a las 23:59 se entrega **un solo archivo** con el reporte de la EC3
-  y se hace la **demo en vivo**. El sistema debe correr de punta a punta con la arquitectura del
+- **Calendario (confirmado por José el 10/11):**
+  - **S14 (09–13/11):** EC3, con todo el software funcionando con datos simulados y el reporte;
+  - **S15 (16–20/11):** ensamblaje y pruebas con hardware;
+  - **S16 (23–27/11):** demo final. El 27/11 es una fecha supuesta.
+- **Objetivo de la EC3:** el viernes 13/11 a las 23:59 se entrega **un solo archivo** con el reporte. El sistema debe correr de punta a punta con la arquitectura del
   docente:
 
   ```
@@ -212,6 +215,19 @@ Plan B: un video del mismo guion, grabado el jueves en la noche.
 
 ## 6. Lo que falta saber: preguntas concretas
 
+### Supuestos de trabajo (decididos el 10/11, mientras el docente responde)
+
+| Pregunta | Supuesto con el que se trabaja | Qué cambia si el docente dice otra cosa |
+|---|---|---|
+| PZEM | **Proxy sin PZEM** (luces + ocupación + horario × inventario) | Si se integra como nodo 8, cambia solo la fuente del consumo |
+| .ino propio | **Nodo MQ-2 (nodo 3)**. Es un sensor oficial: reemplazó al Tuya el 21/10, está en `paquetes.h`, en el Gateway y en el Grafana del docente, pero no tiene programa en el ZIP | Si no lo acepta, se escribe otro nodo con la misma plantilla |
+| Servidor | **Stack propio en la laptop con el mismo formato.** Para los datos reales nos suscribimos al Mosquitto de S1 G1, o S1 G1 publica también en el nuestro | Solo cambia el host o el grupo en la configuración |
+| Hora sin internet | **NTP local en la laptop**, que se prueba en S15. José pregunta si "UTEC Proyectos" tiene internet (lo más probable es que sí) | Si hay internet, el NTP local queda como respaldo |
+| Salón | **L-419**. El código del docente dice L418 por herencia | Solo cambia `config/aula_l419.yaml` |
+| Interfaz | **Web propia + el Grafana del docente enlazado** (históricos y CSV) | — |
+| Calendario | EC3 en S14, hardware en S15 y demo final en S16 | Se mueven las fechas en Asana |
+| Datos del aula | **Un solo archivo, `config/aula_l419.yaml`.** Cada valor lleva `supuesto: true` y su fuente. Todo se calcula desde ahí: simulador, consumo fantasma, RA, plano, dashboard y reporte. El dashboard muestra cuántos valores siguen siendo supuestos | El jueves se edita ese archivo y todo se recalcula, sin tocar el código |
+
 ### Para el docente (por correo o en clase)
 
 1. **PZEM-004T:** ¿se integrará como nodo 8? Si es así, ¿quién lo programa y qué `tipo` y paquete
@@ -266,7 +282,8 @@ logotipo.
 
 ## 7. Después de la EC3: terminar el proyecto
 
-La fecha supuesta es la semana del 16 al 20/11; se ajusta cuando se conozca el calendario.
+Las fechas son S15 (16–20/11) para el hardware y S16 (23–27/11) para el copiloto, la maratón y la
+demo final.
 
 | Paso | Qué | Hecho cuando |
 |---|---|---|

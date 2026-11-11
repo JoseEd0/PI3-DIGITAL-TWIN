@@ -3,9 +3,20 @@
 > Espejo local del proyecto [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
 > en Asana. **Asana es la fuente de verdad** de fechas y responsables. Este archivo sirve para ver y
 > avanzar el plan sin salir del repo.
-> Última sincronización desde Asana: **10/11/2026**. Van **26 de 75 tareas** completadas.
-> La estrategia de cierre (qué se hace hasta el 13/11 y qué después) está en
-> [05-plan-cierre.md](05-plan-cierre.md).
+> Última sincronización desde Asana: **10/11/2026 por la noche**. Van **27 de 71 tareas** completadas (38 %).
+> La estrategia, el diseño y el orden de trabajo están en [05-plan-cierre.md](05-plan-cierre.md).
+
+## Calendario
+
+| Semana | Fechas | Qué se hace |
+|---|---|---|
+| **S14** | 09–13/11 | **EC3:** todo el software funcionando con datos simulados y rotulados, y el reporte (viernes 13/11, 23:59) |
+| **S15** | 16–20/11 | Ensamblaje de las cajas, pruebas con hardware en el L-414 e instalación en el L-419 |
+| **S16** | 23–27/11 | Copiloto, ensayo y **demo final**. El 27/11 es una fecha supuesta: se ajusta cuando el curso la confirme |
+
+Si se termina lo planificado para la S14 (las 25 tareas con fecha hasta el 13/11), el viernes el
+tablero queda en **52 de 71 (≈ 73 %)**. Lo que queda después es el trabajo con hardware y la demo
+final.
 
 ## Cómo se actualiza
 
@@ -15,43 +26,25 @@
   modelo SysML, y después las tareas.
 
 Responsables: **J** = José Eduardo · **C** = Carlos Dávila · **E** = Esteban Sotomayor · **L** = Luhana Landeo.
-Las fechas son de entrega. Asana gratuito no permite fecha de inicio.
 
-## Reorganización del 10/11/2026
+## Historial de cambios del tablero
 
-El curso fijó una **arquitectura oficial** el 07/11. Tiene 7 nodos ESP32 que envían por ESP-NOW a
-un Gateway, y una laptop con Mosquitto, Telegraf, InfluxDB y Grafana. El código es del docente y
-está en `vendor/`. El curso compró el hardware. Por eso el tablero se reorganizó así:
-
-- **Se reabrió 1 tarea:** "Instalación definitiva de los nodos" figuraba como completada sin que
-  existieran nodos.
-- **Se cerraron 8 tareas por trabajo que ya existía:**
-  - 4 de software hecho sobre el simulador entre el 10/09 y el 23/09 (`demo/`);
-  - la tarea de componentes, porque los compró el curso;
-  - la base de datos, que es la InfluxDB del docente;
-  - el estudio del firmware del docente;
-  - la centralización del material.
-- **Se renombraron 30 tareas** para quitar el hardware antiguo (SHT31, SCD41, LD2410C, PIR, ToF,
-  SW-420, SCT-013, Tasmota, Raspberry Pi y MAX98357A) y la arquitectura antigua.
-- **Se agregaron 15 tareas:** las que pide la EC3 (RA, grafos, motor causal, log, dashboard propio,
-  Gaphor y fotos con QR), el programa .ino propio, la cita en el L-414, la energía de las cajas, el
-  NTP local y el logotipo.
-- **Las pruebas con hardware real pasan al 20/11**, después de la EC3 y sujetas a una cita en el
-  L-414. Esa fecha es supuesta: cámbienla si el curso fija otra.
-
-## Estado por fase
-
-| Fase en Asana | Tareas | Hechas | Lo que queda |
-|---|---|---|---|
-| S4 · Formulación y modelado | 7 | 7 | — |
-| S5–S6 · Especificación, permisos y compras | 10 | 10 | — |
-| S7 · Firmware base y servidor | 6 | 3 | Levantar el stack del docente con datos simulados (11/11) |
-| S8–S9 · Integración de nodos | 10 | 0 | Consumo fantasma por proxy y MQ-2.ino (12/11). El resto, con hardware (20/11) |
-| S10–S11 · API, reglas y dashboard | 7 | 4 | API sobre InfluxDB y dashboard EC3 (12/11) |
-| S12 · Copiloto de voz | 6 | 0 | Es opcional (13/11) |
-| S13 · Pruebas de sistema | 7 | 0 | Pruebas simuladas (11–12/11). Las físicas, el 20/11 |
-| S14 · Entrega final | 19 | 2 | El núcleo de la EC3 (10–13/11) |
-| Gestión y transversales | 3 | 0 | Siguen abiertas todo el ciclo |
+- **10/11, mañana.** Adopción de la arquitectura oficial del curso:
+  - se reabrió "Instalación definitiva de los nodos", que estaba cerrada sin que existieran nodos;
+  - se cerraron 8 tareas por trabajo que ya existía;
+  - se renombraron 30 tareas para quitar el hardware antiguo;
+  - se agregaron 15 tareas nuevas.
+- **10/11, noche.** Limpieza con el calendario real (EC3 en S14, hardware en S15 y demo en S16):
+  - **Secciones renombradas:** S7–S14 Servidor, S10–S14 API, S14 EC3, S15 Hardware, S16 Demo final y
+    Pruebas.
+  - **Se eliminaron 4 tareas:**
+    - "CP-01 Ensayo de exactitud de energía", porque el PZEM no está en la arquitectura oficial y el
+      consumo se estima por proxy;
+    - "Copiloto: voz del navegador", "Briefing automático" e "Hito · Copiloto", que se unieron en
+      una sola tarea de copiloto.
+  - **Se cerró** "Registro de riesgos", porque la revisión está en `05-plan-cierre.md` §8.
+  - **Se movieron fechas:** la demo final, el póster y el ensayo pasan a S16.
+  - **Fecha de fin del proyecto:** pasa al 27/11.
 
 ## S4 · Formulación y modelado (31/08–06/09)
 
@@ -76,81 +69,77 @@ está en `vendor/`. El curso compró el hardware. Por eso el tablero se reorgani
 - [x] Simulador, tablero y Gaphor en vivo sobre la arquitectura anterior (`demo/`) — **J** · 23/09
 - [x] 🏁 Hito S6 · Componentes en mano y contrato de datos definido — **L** · 18/09
 
-## S7 · Firmware base y servidor
+## S7–S14 · Servidor y datos (stack del docente en la laptop)
 
-- [x] Estudiar y documentar el firmware del docente (ESP-NOW, paquetes.h, Gateway) — **J** · hecho el 10/11
-- [x] Base de datos de series temporales: InfluxDB 2.7 del docente — **J** · hecho el 10/11
-- [x] Componentes: los compró el curso (OC-UTEC-004033-26) — **L** · hecho el 10/11
+- [x] Estudiar y documentar el firmware del docente (ESP-NOW, paquetes.h, Gateway) — **J** · 10/11
+- [x] Base de datos de series temporales: InfluxDB 2.7 del docente — **J** · 10/11
+- [x] Componentes: los compró el curso (OC-UTEC-004033-26) — **L** · 10/11
 - [ ] Servidor en la laptop: stack Docker del docente + servicios del grupo (override) — **J** · 11/11
 - [ ] Ingesta: datos en formato Gateway llegando a InfluxDB (Telegraf del docente) — **J** · 11/11
 - [ ] 🏁 Hito · Datos simulados en formato Gateway visibles en InfluxDB y Grafana — **J** · 11/11
 
-## S8–S9 · Integración de nodos
+## S10–S14 · API, reglas y dashboard
 
-- [ ] Consumo fantasma por proxy (BH1750 + MLX90640 + horario) y consulta al docente por el PZEM (RF-10) — **J** · 12/11
-- [ ] Programa propio del grupo: nodo de gas MQ-2 (`MQ-2.ino`) que compile — **C** · 12/11
-- [ ] Probar en el L-414 los nodos ambiente (BME280), luz (BH1750) y CO₂ (MH-Z1911A) con el código del docente — **L** · 20/11
-- [ ] Conteo de personas: MLX90640 + KY-024 con el código del docente, prueba en el L-414 (RF-03) — **E** · 20/11
-- [ ] CP-01 Ensayo de exactitud de energía (si se integra el PZEM) — **C** · 20/11
-- [ ] CP-02 Ensayo de conteo de personas (MLX90640 + KY-024) — **E** · 20/11
-- [ ] CP-07 Verificación ambiental: BME280, MH-Z1911A y BH1750 contra referencia — **L** · 20/11
-- [ ] CP-08 Ensayo de eventos de puerta (KY-024) — **E** · 20/11
-- [ ] Instalación de los 7 nodos en el L-419 (después de la EC3) — **C** · 20/11
-- [ ] 🏁 Hito · Siete nodos probados en el L-414 — **C** · 20/11
-
-## S10–S11 · API, reglas y dashboard
-
-- [x] Motor de reglas y alertas configurables (sobre el simulador) — **J** · hecho en septiembre
-- [x] Reporte de consumo fantasma (sobre el simulador) — **J** · hecho en septiembre
-- [x] Dashboard web: estado en vivo (sobre el simulador) — **J** · hecho en septiembre
-- [x] Dashboard: plano 2D del laboratorio y reporte de ahorro (sobre el simulador) — **J** · hecho en septiembre
+- [x] Motor de reglas y alertas configurables (sobre el simulador) — **J** · septiembre
+- [x] Reporte de consumo fantasma (sobre el simulador) — **J** · septiembre
+- [x] Dashboard web: estado en vivo (sobre el simulador) — **J** · septiembre
+- [x] Dashboard: plano 2D del laboratorio y reporte de ahorro (sobre el simulador) — **J** · septiembre
 - [ ] API del grupo sobre InfluxDB: estado, condición por RA, diagnósticos y log — **J** · 12/11
 - [ ] CP-09 y CP-10: ensayos de API, dashboard y reglas (con datos simulados) — **L** · 12/11
 - [ ] 🏁 Hito · Dashboard propio con los 3 mínimos de la EC3 — **J** · 12/11
 
-## S12 · Copiloto de voz (opcional para la EC3)
+## S14 · EC3: software completo con datos simulados (09/11–13/11)
 
-- [ ] Copiloto: voz del navegador (Web Speech API) en español sobre la API del grupo (RF-09) — **E** · 13/11
-- [ ] Copiloto PWA: consultas orales desde el navegador del celular — **E** · 13/11
-- [ ] Briefing automático de inicio de ronda — **E** · 13/11
-- [ ] 🏁 Hito · Copiloto respondiendo en el celular (opcional) — **E** · 13/11
-- [ ] Validar el nodo de ruido INMP441 del docente (dB, sin guardar audio) — **E** · 20/11
-- [ ] CP-04 Ensayo del copiloto de voz — **L** · 20/11
-
-## S13 · Pruebas de sistema
-
-- [ ] RF-11 y CP-11: simulador en formato Gateway con grabación y reproducción — **J** · 11/11
-- [ ] CP-06 Auditoría de consumo fantasma (con datos simulados) — **J** · 12/11
-- [ ] CP-12 y CP-13: privacidad (MLX90640, INMP441) y energía de las cajas (18650) — **E** · 12/11
-- [ ] CP-14 Auditoría de costos, configuración y credenciales del repositorio — **L** · 12/11
-- [ ] CP-03 Resiliencia: Gateway caído, canal ESP-NOW y operación sin internet — **C** · 20/11
-- [ ] CP-05 Maratón de 72 h sin intervención — **L** · 20/11
-- [ ] 🏁 Hito · Casos de prueba ejecutados (simulados ahora, físicos después) — **L** · 20/11
-
-## S14 · Entrega final (09/11–13/11)
-
-- [x] Centralizar material del curso y auditar el repo (`docs/curso`, `vendor`, `AUDITORIA`, `CONTRATO_DATOS`) — **J** · 10/11
+- [x] Centralizar material del curso y auditar el repo — **J** · 10/11
 - [x] Integrar las ramas `jose` y `main` (incluye los diagramas de Luhana) — **J** · 10/11
 - [ ] RA-01..10: requisitos de alto nivel con umbrales y normas (`config/`) — **E** · 11/11
-- [ ] Grafos causales por RA (`graphs/*.yaml`) y sus figuras — **E** · 11/11
+- [ ] Grafos causales por RA y sus figuras — **E** · 11/11
 - [ ] Motor de razonamiento causal (SymCure) con pruebas por tipo de lógica — **J** · 11/11
+- [ ] Consumo fantasma por proxy (BH1750 + MLX90640 + horario) y consulta al docente por el PZEM (RF-10) — **J** · 12/11
 - [ ] Log de eventos / footprint (`events.jsonl` + InfluxDB) con exportación a CSV — **J** · 12/11
 - [ ] Dashboard propio: mediciones, condición por RA y causas, efectos y recomendaciones — **J** · 12/11
 - [ ] Gaphor en vivo leyendo InfluxDB — **J** · 12/11
 - [ ] Gaphor: migrar al hardware oficial, IBD y paquetes 04 Comportamiento y 05 Razonamiento — **J** · 12/11
 - [ ] Actualizar el documento maestro y el plan al hardware y la arquitectura oficiales — **L** · 12/11
 - [ ] Cargar las fotos con QR de los sensores en Gaphor y en Asana — **L** · 12/11
-- [ ] Cita en el L-414 (Open Lab) para probar el hardware con el código del docente — **C** · 12/11
+- [ ] Programa propio del grupo: nodo de gas MQ-2 (`MQ-2.ino`) que compile — **C** · 12/11
 - [ ] Análisis de energía de las cajas (18650, regulador, consumo por nodo) — **C** · 12/11
+- [ ] Cita en el L-414 (Open Lab) para probar el hardware con el código del docente — **C** · 12/11
 - [ ] Logotipo de sensores y procesador (verificar la entrega en Canvas) — **E** · 12/11
-- [ ] Póster y presentación — **E** · 12/11
 - [ ] Reporte EC3: un solo archivo (.docx y .pdf) según las pautas — **L** · 13/11
-- [ ] Ensayo completo de la demo — **C** · 13/11
-- [ ] 🏁 ENTREGA FINAL · Presentación y demo en vivo — **J** · 13/11
-- [ ] NTP local en la laptop para que el Gateway funcione sin internet (RNF-05) — **C** · 20/11
+
+## Pruebas del sistema (simuladas en S14, físicas en S15–S16)
+
+- [ ] RF-11 y CP-11: simulador en formato Gateway con grabación y reproducción — **J** · 11/11
+- [ ] CP-06 Auditoría de consumo fantasma (con datos simulados) — **J** · 12/11
+- [ ] CP-12 y CP-13: privacidad (MLX90640, INMP441) y energía de las cajas (18650) — **E** · 12/11
+- [ ] CP-14 Auditoría de costos, configuración y credenciales del repositorio — **L** · 12/11
+- [ ] CP-03 Resiliencia: Gateway caído, canal ESP-NOW y operación sin internet — **C** · 20/11
+- [ ] 🏁 Hito · Casos de prueba ejecutados (simulados ahora, físicos después) — **L** · 26/11
+
+## S15 · Ensamblaje, pruebas en el L-414 e instalación (16/11–20/11)
+
+- [ ] NTP local en la laptop para que el Gateway funcione sin internet (RNF-05) — **C** · 18/11
+- [ ] Probar en el L-414 los nodos ambiente (BME280), luz (BH1750) y CO₂ (MH-Z1911A) con el código del docente — **L** · 20/11
+- [ ] Conteo de personas: MLX90640 + KY-024 con el código del docente, prueba en el L-414 — **E** · 20/11
+- [ ] Validar el nodo de ruido INMP441 del docente (dB, sin guardar audio) — **E** · 20/11
+- [ ] CP-02 Ensayo de conteo de personas (MLX90640 + KY-024) — **E** · 20/11
+- [ ] CP-07 Verificación ambiental: BME280, MH-Z1911A y BH1750 contra referencia — **L** · 20/11
+- [ ] CP-08 Ensayo de eventos de puerta (KY-024) — **E** · 20/11
+- [ ] Instalación de los 7 nodos en el L-419 — **C** · 20/11
+- [ ] 🏁 Hito · Siete nodos probados en el L-414 — **C** · 20/11
+
+## S16 · Copiloto, ensayo y demo final (23/11–27/11)
+
+- [ ] Copiloto de voz PWA: briefing de ronda y consultas orales (RF-09) — **E** · 25/11
+- [ ] CP-04 Ensayo del copiloto de voz — **L** · 26/11
+- [ ] CP-05 Maratón de 72 h sin intervención — **L** · 26/11
+- [ ] Póster y presentación — **E** · 26/11
+- [ ] Ensayo completo de la demo — **C** · 26/11
+- [ ] 🏁 DEMO FINAL · Presentación y demo en vivo (fecha supuesta) — **J** · 27/11
 
 ## Gestión y transversales
 
-- [ ] Reunión semanal de avance y actualización del tablero — **J** · 13/11
-- [ ] Registro de riesgos: revisar mitigaciones cada dos semanas — **L** · 13/11
+- [x] Registro de riesgos: revisar mitigaciones cada dos semanas — **L** · 10/11
 - [ ] Bitácora de mediciones y calibraciones — **L** · 20/11
+- [ ] Reunión semanal de avance y actualización del tablero — **J** · 27/11

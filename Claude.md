@@ -109,8 +109,18 @@ documentación, pruebas y reporte).
   credenciales al reporte, a Asana ni a un commit.
 - **`docs/curso/`**: los originales del curso (`originales/`) no se versionan. Se versiona el texto
   extraído (`texto/`) y las fotos reducidas (`imagenes/`).
-- **`demo/`** es el sistema simulado de septiembre: `servidor/` (simulador y API FastAPI),
-  `frontend/` (React) y `gaphor-vivo/`. Evoluciona hacia el contrato oficial y no se descarta.
+- **`config/`** es la única fuente de datos del aula y de los umbrales:
+  - `aula_l419.yaml`: cada valor lleva `supuesto` y `fuente`. Cuando se mide algo en el aula, se
+    cambia aquí y nada más;
+  - `requisitos_ra.yaml`: RA-01..10 con su evaluador, sus umbrales y su norma;
+  - `nodos.yaml`: los 7 nodos y la fuente de datos (`grupo`).
+- **`grafos/`** tiene un YAML por RA, con el formato que explica `grafos/README.md`. Las figuras de
+  `grafos/figuras/` se regeneran con `python -m gemelo.figuras`.
+- **`demo/servidor/gemelo/`** es el servicio actual (EC3): sigue el contrato oficial, corre el
+  motor SymCure, lleva el log y sirve la API. **`demo/tablero/`** es su dashboard.
+  `deploy/levantar.sh` levanta todo con un comando.
+- **`demo/`**, además, guarda el sistema simulado de septiembre: `servidor/campus_twin_demo/`,
+  `frontend/` y `gaphor-vivo/`. Es histórico y se conserva con sus pruebas.
   - Umbrales, periodos, tarifa y horario viven en `configuracion.py`.
   - El enlace con Gaphor solo puede usar la biblioteca estándar, porque corre en el intérprete de
     Gaphor, que no tiene pip.
