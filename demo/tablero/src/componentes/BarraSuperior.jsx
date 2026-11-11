@@ -22,7 +22,10 @@ export default function BarraSuperior({ estado, conectado }) {
     <header className="barra">
       {fuente.simulado && (
         <div className="franja-simulada" role="status">
-          DATOS SIMULADOS · grupo «{fuente.grupo}» · mismo formato que el Gateway del curso
+          {fuente.reproduccion
+            ? <>DATOS REPRODUCIDOS · {fuente.reproduccion.archivo} ({fuente.origen}) ·{' '}
+                {fuente.reproduccion.terminado ? 'terminó' : `${Math.round(fuente.reproduccion.avance * 100)} %`}</>
+            : <>DATOS SIMULADOS · grupo «{fuente.grupo}» · mismo formato que el Gateway del curso</>}
         </div>
       )}
       <div className="barra-fila">

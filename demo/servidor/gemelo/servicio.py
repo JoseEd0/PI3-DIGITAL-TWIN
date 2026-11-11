@@ -6,7 +6,11 @@ En cada ciclo:
 3. evalúa RA-01..10 y, para cada uno en alerta o crítico, corre su grafo causal;
 4. registra en el log los cambios (RA, puerta, cruces, anomalías, nodos, Gateway);
 5. acumula el consumo fantasma estimado y publica sus propias salidas en
-   utec/gemelo/<grupo>/campustwin/... sin tocar los tópicos del Gateway.
+   utec/gemelo/<grupo>/campustwin/... sin tocar los tópicos del Gateway;
+6. si hay InfluxDB, escribe ahí también el log y la condición de cada RA.
+
+La fuente local puede ser el simulador o el reproductor de una grabación: los dos dan un reloj
+del aula y los mensajes a publicar, con la misma interfaz.
 """
 
 from __future__ import annotations
@@ -23,8 +27,9 @@ from .configuracion import ZONA_HORARIA, cargar_aula, cargar_fuente, cargar_nodo
 from .estado import EstadoDelAula
 from .fantasma import EstimadorDeConsumoFantasma
 from .grafos import Razonador, cargar_grafos
+from .influx import RegistroDeSalidas
 from .requisitos import ALERTA, CRITICO, DESCONOCIDO, GRAVEDAD, EvaluadorDeRequisitos
-from .simulador import ESCENARIOS, Simulador
+from .simulador import Simulador
 from .transporte import Transporte
 
 log = logging.getLogger(__name__)
@@ -46,10 +51,12 @@ SEVERIDAD_POR_NIVEL = {ALERTA: "alerta", CRITICO: "critico"}
 
 class Servicio:
     def __init__(self, transporte: Transporte, simulador: Simulador | None = None,
-                 bitacora: Bitacora | None = None, grupo: str | None = None) -> None:
+                 bitacora: Bitacora | None = None, grupo: str | None = None,
+                 registro: RegistroDeSalidas | None = None) -> None:
         self.transporte = transporte
-        self.simulador = simulador
+        self.simulador = simulador  # o un gemelo.grabacion.Reproductor
         self.bitacora = bitacora or Bitacora()
+        self.registro = registro
         self.aula = cargar_aula()
         self.nodos = cargar_nodos()
         self.requisitos = cargar_requisitos()
@@ -71,6 +78,8 @@ class Servicio:
 
     @property
     def origen(self) -> str:
+        if self.simulador:
+            return self.simulador.origen
         return "simulado" if self.grupo == "sim" else "real"
 
     def _latencia(self, segundos_reales: float) -> timedelta:
@@ -202,6 +211,8 @@ class Servicio:
         evento = self.bitacora.registrar(self.estado.ahora or self.ahora(), tipo, severidad, mensaje, self.origen, **extra)
         self.transporte.publicar(f"{gateway.PREFIJO}/{self.grupo}/campustwin/evento",
                                  json.dumps(evento.__dict__, ensure_ascii=False))
+        if self.registro:
+            self.registro.evento(evento, self.grupo)
 
     def _publicar_salidas(self) -> None:
         ahora = self.estado.ahora
@@ -211,15 +222,29 @@ class Servicio:
         cuerpo = {"ts": int(ahora.timestamp() * 1000), "origen": self.origen,
                   **{ra: GRAVEDAD[c.nivel] for ra, c in self.condiciones.items()}}
         self.transporte.publicar(f"{gateway.PREFIJO}/{self.grupo}/campustwin/ra", json.dumps(cuerpo))
+        if self.registro:
+            self.registro.requisitos(ahora, self.condiciones, self.grupo, self.origen)
+
+    def cerrar(self) -> None:
+        self.transporte.cerrar()
+        if self.registro:
+            self.registro.cerrar()
 
     # -- control --------------------------------------------------------------------------------
     def aplicar_escenario(self, nombre: str) -> None:
         if not self.simulador:
             raise RuntimeError("No hay simulador: el servicio está leyendo datos reales")
         self.simulador.aplicar_escenario(nombre)
-        self._registrar("escenario", "info", f"Escenario de demostración: {ESCENARIOS[nombre]}")
+        self._registrar("escenario", "info", f"Escenario de demostración: {self.simulador.escenarios[nombre]}")
 
     # -- lectura para la API ----------------------------------------------------------------------
+    def _reproduccion(self) -> dict | None:
+        avance = getattr(self.simulador, "avance", None)
+        if avance is None:
+            return None
+        return {"archivo": self.simulador.ruta.name, "avance": round(avance, 3),
+                "terminado": self.simulador.terminado, "descripcion": self.simulador.cabecera.descripcion}
+
     def mediciones(self) -> list[dict]:
         filas = []
         for ident, nodo in self.estado.nodos.items():
@@ -246,9 +271,10 @@ class Servicio:
                 "fecha": local.strftime("%d/%m/%Y"), "velocidad": reloj.velocidad if reloj else 1.0,
                 "pausado": reloj.pausado if reloj else False, "fueraDeHorario": self.estado.fuera_de_horario(),
             },
-            "fuente": {"grupo": self.grupo, "origen": self.origen, "simulado": self.origen == "simulado",
+            "fuente": {"grupo": self.grupo, "origen": self.origen, "simulado": self.origen != "real",
                        "escenario": self.simulador.escenario if self.simulador else None,
-                       "escenarios": ESCENARIOS if self.simulador else {}},
+                       "escenarios": self.simulador.escenarios if self.simulador else {},
+                       "reproduccion": self._reproduccion()},
             "aula": {"nombre": self.aula.nombre, "aforo": self.aula.aforo, "supuestos": self.aula.resumen_de_supuestos()},
             "mediciones": self.mediciones(),
             "derivados": self.estado.derivados(),

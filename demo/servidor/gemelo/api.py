@@ -34,7 +34,7 @@ def crear_app(servicio: Servicio) -> FastAPI:
         tarea = asyncio.create_task(_correr(servicio))
         yield
         tarea.cancel()
-        servicio.transporte.cerrar()
+        servicio.cerrar()
 
     app = FastAPI(title="Campus Twin L-419 — servicio del Grupo 1", lifespan=vida)
     # El tablero en modo desarrollo (vite, otro puerto) también tiene que poder leer la API.

@@ -71,3 +71,6 @@ vendor/gemelo_iot_profesor/gateway/gateway.ino
 
 # Log de eventos del aula (footprint) generado al correr el servicio
 logs/
+
+# Grabaciones de mensajes (RF-11): se regeneran con python -m gemelo.grabacion
+grabaciones/

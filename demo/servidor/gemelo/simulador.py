@@ -423,6 +423,8 @@ class Simulador:
         self.estado = EstadoDelAula()
         self.nodos = {n.id: CLASES_DE_NODO[n.tipo](n, self.azar) for n in cargar_nodos().values()}
         self.escenario = "normal"
+        self.escenarios = ESCENARIOS
+        self.origen = "simulado"
         self.gateway_en_linea = True
         self._clase_forzada: tuple[datetime, int] | None = None
         self._luces_olvidadas = False
