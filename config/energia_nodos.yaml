@@ -1,0 +1,127 @@
+# Presupuesto de energía de las cajas (nodos 1-7) y del Gateway.
+#
+# ESTIMADO, SIN MEDICIÓN REAL (pendiente para S15 con multímetro, CP-13). Todos los valores salen
+# de hojas de datos o de la lectura del código del docente; ninguno se midió.
+#
+# Cada dato lleva, como en config/aula_l419.yaml:
+#   valor:     el número que se usa
+#   supuesto:  true mientras no se haya medido con la caja real
+#   fuente:    de dónde salió (o qué hay que medir para reemplazarlo)
+#
+# En S15: medir, cambiar `valor`, poner `supuesto: false`, anotar la fuente y regenerar la tabla:
+#   demo/servidor/.venv/bin/python firmware/energia/autonomia.py
+# El análisis completo está en docs/06-energia-cajas.md.
+
+bateria:
+  capacidad_mah:
+    valor: 1600
+    supuesto: true
+    fuente: "Lista de compra y brief EC3: 18650 de 1600 mAh (capacidad nominal de la etiqueta, sin ensayo de descarga)"
+  voltaje_nominal_v:
+    valor: 3.7
+    supuesto: true
+    fuente: "Voltaje nominal de una celda Li-ion 18650 (rango 3.0-4.2 V)"
+  fraccion_util_ldo:
+    valor: 0.85
+    supuesto: true
+    fuente: "Curva típica de descarga Li-ion: un LDO de 3.3 V deja de regular cerca de 3.4-3.5 V, y por debajo queda ~10-15 % de la carga"
+  fraccion_util_elevador:
+    valor: 0.95
+    supuesto: true
+    fuente: "Un elevador sigue funcionando hasta el corte de la protección de la celda (~3.0 V)"
+
+reguladores:
+  ldo_3v3_iq_ma:
+    valor: 0.05
+    supuesto: true
+    fuente: "Hoja de datos ME6211 (Iq ~40 µA) / AP2112K (Iq ~55 µA). NO está en la lista de compra"
+  elevador_5v_eficiencia:
+    valor: 0.85
+    supuesto: true
+    fuente: "Hoja de datos MT3608 (hasta 93 %); ~85 % de 3.7 a 5 V con 150-300 mA. NO está en la lista de compra"
+  ams1117_iq_ma:
+    valor: 5.0
+    supuesto: true
+    fuente: "Hoja de datos AMS1117 (corriente de reposo 5 mA típ., 10 máx.). Es el regulador del DevKit V1 cuando se alimenta por VIN o USB"
+  voltaje_riel_5v:
+    valor: 5.0
+    supuesto: false
+    fuente: "VIN/USB del DevKit V1"
+
+esp32:
+  radio_escucha_ma:
+    valor: 100
+    supuesto: true
+    fuente: "Hoja de datos ESP32-WROOM-32: RX/escucha 95-100 mA. Los nodos del docente hacen WiFi.mode(WIFI_STA) sin conectarse y sin sueño (ni deep sleep ni light sleep en ningún .ino), así que la radio queda escuchando siempre"
+  tx_ma:
+    valor: 240
+    supuesto: true
+    fuente: "Hoja de datos ESP32-WROOM-32: TX 802.11b 1 Mbps a 19.5 dBm, 240 mA"
+  tx_ms_por_envio:
+    valor: 1.0
+    supuesto: true
+    fuente: "Estimado: paquete ESP-NOW de 19-38 B (paquetes.h) a 1 Mbps más el ACK, menos de 1 ms"
+  placa_ma:
+    valor: 3.0
+    supuesto: true
+    fuente: "LED rojo de encendido (~1-2 mA) y puente USB-serie CP2102 en reposo del DevKit V1. Medir en S15"
+
+# riel: "3v3" (sensor a 3.3 V: puede ir con LDO al pin 3V3) o "5v" (sensor a 5 V: necesita elevador a VIN).
+# envios_por_s sale de PERIODO_MS de cada .ino (los envíos por evento no cambian el promedio).
+nodos:
+  1:
+    tipo: co2
+    sensor: "MH-Z1911A"
+    riel: 5v
+    sensor_ma: {valor: 60, supuesto: true, fuente: "Hoja de datos Winsen MH-Z19B: promedio < 60 mA a 5 V, pico 150 mA (lámpara IR). Confirmar con la hoja del MH-Z1911A"}
+    envios_por_s: {valor: 0.2, supuesto: false, fuente: "nodo_co2.ino: PERIODO_MS = 5000"}
+  2:
+    tipo: audio
+    sensor: "INMP441"
+    riel: 3v3
+    sensor_ma: {valor: 1.4, supuesto: true, fuente: "Hoja de datos TDK InvenSense INMP441: 1.4 mA típ."}
+    envios_por_s: {valor: 1.0, supuesto: false, fuente: "nodo_audio.ino: un paquete por segundo"}
+  3:
+    tipo: gas
+    sensor: "MQ-2"
+    riel: 5v
+    sensor_ma: {valor: 153, supuesto: true, fuente: "Hoja de datos Hanwei MQ-2: calefactor de 33 Ω a 5 V = 150 mA (≤ 800 mW), más ~3 mA del LED y el LM393 del módulo"}
+    envios_por_s: {valor: 0.2, supuesto: false, fuente: "firmware/MQ-2/MQ-2.ino: PERIODO_MS = 5000"}
+  4:
+    tipo: luz
+    sensor: "BH1750 (GY-302)"
+    riel: 3v3
+    sensor_ma: {valor: 0.2, supuesto: true, fuente: "Hoja de datos ROHM BH1750FVI: 120 µA típ. midiendo (190 máx.), más el regulador del módulo"}
+    envios_por_s: {valor: 0.1, supuesto: false, fuente: "nodo_luz.ino: PERIODO_MS = 10000"}
+    admite_sueno: true   # lectura puntual: puede dormir entre lecturas
+  5:
+    tipo: termico
+    sensor: "MLX90640"
+    riel: 3v3
+    sensor_ma: {valor: 23, supuesto: true, fuente: "Hoja de datos Melexis MLX90640: < 23 mA"}
+    envios_por_s: {valor: 0.2, supuesto: false, fuente: "nodo_termico.ino: PERIODO_MS = 5000"}
+  6:
+    tipo: magnetico
+    sensor: "KY-024 (SS49E)"
+    riel: 3v3
+    sensor_ma: {valor: 8, supuesto: true, fuente: "Hoja de datos Honeywell SS49E: 6 mA típ. (10 máx.), más el LM393 y el LED de encendido del módulo"}
+    envios_por_s: {valor: 0.1, supuesto: false, fuente: "nodo_magnetico.ino: PERIODO_MS = 10000"}
+  7:
+    tipo: ambiente
+    sensor: "BME280 (GY-BME280)"
+    riel: 3v3
+    sensor_ma: {valor: 0.1, supuesto: true, fuente: "Hoja de datos Bosch BME280: 3.6 µA a 1 Hz en modo forzado; domina el regulador del módulo"}
+    envios_por_s: {valor: 0.1, supuesto: false, fuente: "nodo_ambiente.ino: PERIODO_MS = 10000"}
+    admite_sueno: true   # el BME280 ya trabaja en modo forzado
+
+gateway:
+  descripcion: "ESP32 v4 conectado al Wi-Fi y a MQTT"
+  radio_ma: {valor: 110, supuesto: true, fuente: "gateway.ino.example: WiFi.setSleep(false), radio siempre encendida; hoja de datos ESP32 (RX 95-100 mA) más los envíos MQTT"}
+  envios_por_s: {valor: 1.9, supuesto: true, fuente: "Suma de los periodos de los 7 nodos (config/nodos.yaml): un mensaje MQTT por paquete"}
+
+# Escenario hipotético, NO implementado en el código del docente: el nodo duerme (deep sleep)
+# entre lecturas y guarda el canal ESP-NOW en la memoria RTC para no volver a escanear (~2 s).
+sueno_profundo:
+  despierto_s: {valor: 0.3, supuesto: true, fuente: "Estimado: arranque + lectura + envío ESP-NOW sin escaneo de canal"}
+  dormido_ma: {valor: 0.01, supuesto: true, fuente: "Hoja de datos ESP32: deep sleep ~10 µA con temporizador RTC"}
+  periodo_s: {valor: 60, supuesto: true, fuente: "Brief EC3 v2: envíos cada 30-60 s para nodos ambientales"}
