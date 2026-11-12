@@ -17,7 +17,7 @@ Dávila Cabezas, Carlos Víctor Duamel (Ciencia de la Computación)</p>
 
 <h1>Abstracto</h1>
 <p>Campus Twin es el gemelo digital del aula laboratorio L-419 de UTEC. El proyecto nació en la Semana 7 para atacar el consumo fantasma: luces, computadoras y aire acondicionado encendidos en un aula vacía. En la EC3 el grupo adoptó la arquitectura oficial del curso: siete nodos ESP32, cada uno con un sensor, envían sus mediciones por ESP-NOW a un Gateway ESP32, que las publica por MQTT en una laptop con Mosquitto, Telegraf, InfluxDB y Grafana. El firmware de los nodos y del Gateway, y el stack del servidor, son del docente. El aporte del grupo es la capa que interpreta esos datos: diez requisitos de alto nivel de condición del salón (RA-01 a RA-10) con sus umbrales y normas, un grafo causal por requisito, un motor de razonamiento con la metodología SymCure, un tablero web propio, la estimación del consumo fantasma sin medidor de energía, un log de eventos en archivo y en InfluxDB, la grabación y reproducción de sesiones, y el programa del nodo de gas MQ-2.</p>
-<p>Todo el software funciona de punta a punta sobre datos simulados con el formato exacto del Gateway del docente. Lo verifican 90 pruebas automáticas. Además, una sesión grabada de 12 minutos se reprodujo por el stack real del docente y sus 1372 mensajes llegaron completos a InfluxDB. La estimación del consumo fantasma difiere en +4,3 % de la potencia que conoce el simulador. No hay todavía ninguna medición real: las pruebas con hardware se hacen en la semana 15, en el L-414, y la instalación en el L-419 va después.</p>
+<p>Todo el software funciona de punta a punta sobre datos simulados con el formato exacto del Gateway del docente. Lo verifican 111 pruebas automáticas. Además, una sesión grabada de 12 minutos se reprodujo por el stack real del docente y sus 1372 mensajes llegaron completos a InfluxDB. La estimación del consumo fantasma difiere en +4,3 % de la potencia que conoce el simulador. No hay todavía ninguna medición real: las pruebas con hardware se hacen en la semana 15, en el L-414, y la instalación en el L-419 va después.</p>
 
 <h1>Introducción</h1>
 <p>En el reporte de la Semana 7 el grupo identificó un problema concreto en el L-419: el aula queda con luces y equipos encendidos cuando no hay clase, y nadie lo detecta hasta la ronda del vigilante. El gemelo digital propuesto mide el estado del aula, lo compara con lo que el aula debe cumplir y explica por qué ocurre cada desviación. El marco de trabajo es el de sistemas autónomos y la ingeniería de sistemas de la NASA presentados en la Semana 1: necesidades de los interesados, requisitos verificables, arquitectura, modelo SysML y casos de prueba.</p>
@@ -54,7 +54,7 @@ Dávila Cabezas, Carlos Víctor Duamel (Ciencia de la Computación)</p>
 <tr><td>Log de eventos en archivo e InfluxDB</td><td>Grupo</td><td>Simulado</td><td>CP-11: 1372 de 1372 mensajes</td></tr>
 <tr><td>Auditoría de credenciales del repositorio</td><td>Grupo</td><td>Real</td><td>CP-14</td></tr>
 <tr><td>Análisis de energía de las cajas</td><td>Grupo</td><td>Estimado</td><td>Hojas de datos; medición en S15 (CP-13)</td></tr>
-<tr><td>Modelo SysML en Gaphor</td><td>Grupo</td><td>En migración</td><td>Sección de Gaphor</td></tr>
+<tr><td>Modelo SysML en Gaphor</td><td>Grupo</td><td>Hecho; enlace en vivo simulado</td><td>Sección de Gaphor</td></tr>
 </table>
 
 <h1>Sensores y procesadores</h1>
@@ -260,23 +260,56 @@ Dávila Cabezas, Carlos Víctor Duamel (Ciencia de la Computación)</p>
 {{img:docs/reporte-ec3/figuras/grafana-iot.png|Figura 16. Tablero del docente "Sensores IoT UTEC" con los mismos datos simulados: CO₂, nivel sonoro y el registro de anomalías que reporta el Gateway (aquí, ILUMINACION_BAJA del nodo 4 al terminar la clase).}}
 
 <h1>Gemelo digital en Gaphor</h1>
-<p><i>[Sección por completar cuando termine la migración del modelo. Estado al 11/11/2026: el modelo sigue describiendo la arquitectura de la EC2.]</i></p>
-<p>El modelo SysML del proyecto está en Gaphor (modelo/campus-twin-l419.gaphor) y se genera con un script (modelo/tools/build_model.py), para que el modelo y la documentación no se desalineen. En la EC2 tenía cuatro paquetes y doce diagramas: siete de requisitos (necesidades, requisitos funcionales y no funcionales, y trazabilidad) y cinco de definición de bloques (arquitectura, nodos e instrumentación, servidor y tipos de valor). En septiembre se agregó una vista en vivo: un enlace que escribe en una copia del modelo el valor de cada sensor mientras corre la demo.</p>
-<p>Cambios previstos para la EC3:</p>
+<p>El gemelo digital del L-419 se modela en Gaphor con SysML. El archivo modelo/campus-twin-l419.gaphor es el entregable y el script modelo/tools/build_model.py lo regenera por completo, de modo que cada elemento se puede rastrear hasta el documento maestro, la configuración o el código del docente. Para la EC3 el modelo pasó de 12 diagramas en 4 paquetes (Semana 7) a 36 diagramas en 6 paquetes, y dejó de describir la propuesta original (Raspberry Pi, PZEM, SHT31) para describir la arquitectura oficial del curso.</p>
 <table border="1">
-<tr><td><b>Cambio</b></td><td><b>Paquete</b></td><td><b>Estado</b></td></tr>
-<tr><td>Reemplazar el hardware anterior por los 7 nodos oficiales, el Gateway y la laptop, marcando qué es del docente y qué del grupo</td><td>02 Estructura</td><td>Pendiente</td></tr>
-<tr><td>Diagrama de bloques internos (IBD) con el flujo nodo, ESP-NOW, Gateway, MQTT, Telegraf, InfluxDB, Grafana y servicio del grupo</td><td>02 Estructura</td><td>Pendiente</td></tr>
-<tr><td>Agregar RA-01 a RA-10 con su trazabilidad a las necesidades y requisitos</td><td>01 Requisitos</td><td>Pendiente</td></tr>
-<tr><td>Máquinas de estado: niveles de un RA con histéresis, calentamiento de los sensores y salud de un nodo</td><td>04 Comportamiento (nuevo)</td><td>Pendiente</td></tr>
-<tr><td>Grafos causales de los RA generados desde los mismos YAML</td><td>05 Razonamiento (nuevo)</td><td>Pendiente</td></tr>
-<tr><td>Vista en vivo leyendo la API del servicio nuevo</td><td>Gaphor en vivo</td><td>Pendiente</td></tr>
+<tr><td><b>Paquete</b></td><td><b>Semana 7</b></td><td><b>EC3</b></td><td><b>Qué cambió</b></td></tr>
+<tr><td>00 Vista general</td><td>2</td><td>2</td><td>Se conservan; el mapa de requisitos usa los textos del 10/11</td></tr>
+<tr><td>01 Requisitos</td><td>4</td><td>6</td><td>Se agregan los RA-01 a RA-10 con su derivación y su trazabilidad a la arquitectura oficial</td></tr>
+<tr><td>02 Estructura</td><td>4</td><td>9</td><td>Se conservan los 4 de septiembre y se agrega el subpaquete «Arquitectura oficial EC3»: 4 diagramas de bloques y 1 diagrama interno de bloques</td></tr>
+<tr><td>03 Verificación</td><td>2</td><td>3</td><td>Casos de prueba actualizados: sin CP-01 (retirado el 10/11), con CP-16 y con los casos de los RA</td></tr>
+<tr><td>04 Comportamiento</td><td>—</td><td>6</td><td>Nuevo: 3 actividades, 2 máquinas de estados y 1 diagrama de casos de uso</td></tr>
+<tr><td>05 Diagnóstico causal</td><td>—</td><td>10</td><td>Nuevo: un diagrama por RA, enlazado a la figura de su grafo</td></tr>
 </table>
-<p>Usos del modelo: monitoreo en vivo (los bloques de los sensores muestran su valor actual), análisis de trazabilidad (qué bloque satisface cada requisito y qué prueba lo verifica) y apoyo a decisiones (qué RA depende de qué nodo cuando uno falla).</p>
+<h2>Estructura: la arquitectura oficial</h2>
+<p>El diagrama de bloques del sistema muestra los siete nodos, el Gateway ESP32, la red Wi-Fi local, la laptop con Docker y el aula que se monitorea. Cada caja de nodo hereda de una caja abstracta el ESP32 DevKit V1, la protoboard de 170 puntos, la batería 18650 con su porta-batería y el regulador (pendiente de definir), y agrega su sensor. Cada sensor declara los campos que entrega en el JSON del Gateway (co2_ppm, leq_db, rs_r0, etc.) y referencia la foto de su etiqueta con QR de la orden de compra. El MQ-2 y el MLX90640 no tienen foto, y el modelo lo dice.</p>
+{{img:modelo/export/Campus_Twin_L-419/02_Estructura/0_Arquitectura_oficial_EC3/1_bdd_Arquitectura_oficial_Gemelo_digital_del_L_419.png|Figura 17. Diagrama de bloques del sistema oficial: red de nodos ESP-NOW, Gateway, red Wi-Fi, laptop y aula.}}
+{{img:modelo/export/Campus_Twin_L-419/02_Estructura/0_Arquitectura_oficial_EC3/2_bdd_Arquitectura_oficial_Cajas_de_los_7_nodos.png|Figura 18. Las cajas de los siete nodos, con los campos que entrega cada sensor. El índice tonal del INMP441 se declara de 0 a 1.}}
+<p>El diagrama interno de bloques (IBD) sigue el dato de punta a punta: sensor, ESP32 (por UART, I²S, I²C o entrada analógica), ESP-NOW, Gateway, Wi-Fi y MQTT, Mosquitto, Telegraf, InfluxDB y, al final, el servicio del grupo, el tablero, Gaphor en vivo y el copiloto. Cada conector lleva el medio por el que viaja y un flujo de ítem con su sentido (24 flujos). Incluye el simulador, que hoy es la única fuente de datos.</p>
+{{img:modelo/export/Campus_Twin_L-419/02_Estructura/0_Arquitectura_oficial_EC3/Cadena_de_datos_L-419/5_ibd_Arquitectura_oficial_Flujo_de_datos.png|Figura 19. Diagrama interno de bloques del flujo de datos, del sensor al tablero.}}
+<h2>Requisitos y trazabilidad</h2>
+<p>El modelo tiene las 7 necesidades (NS), los 13 requisitos funcionales y los 12 no funcionales con el texto del documento maestro, y los diez requisitos de alto nivel RA-01 a RA-10 leídos de config/requisitos_ra.yaml, el mismo archivo que usa el servicio. Al regenerar el modelo, el script comprueba que todo RF y todo RA tenga un bloque que lo satisface (satisfy) y un caso de prueba que lo verifica (verify), y que todo RNF tenga caso de prueba. Hoy no queda ninguno sin cubrir. El satisfy de los RA apunta a los bloques de la arquitectura oficial: los nodos que miden cada RA y el evaluador de RA, que satisface los diez.</p>
+<p>El 12/11 se agregaron cuatro requisitos no funcionales para las cajas de los nodos: montaje (RNF-09), operación (RNF-10), dimensiones y fabricación (RNF-11) y energía (RNF-12). Derivan de NS-5 y los satisface el bloque «Caja de nodo». Los verifican un caso de prueba nuevo, CP-16 (inspección de las cajas, para RNF-09, RNF-10 y RNF-11), y CP-13 (autonomía, para RNF-12). Ambos ensayos están pendientes para la semana 15.</p>
+{{img:modelo/export/Campus_Twin_L-419/01_Requisitos/6_req_Requisitos_Trazabilidad_de_los_RA_a_la_arquitectura_oficial.png|Figura 20. Trazabilidad de los RA: los nodos que miden cada uno y el evaluador de RA los satisfacen.}}
+<p>El paquete 05 Diagnóstico causal tiene un diagrama por RA con su texto completo, una nota con su grafo (título, causas raíz y efectos) y la ruta de su figura en grafos/figuras/. Las figuras se enlazan por ruta y no se incrustan: pesarían unos 2 MB dentro del archivo del modelo y quedarían desactualizadas cada vez que se regeneran los grafos.</p>
+<h2>Comportamiento</h2>
+<p>Los seis diagramas del paquete 04 salen del firmware del docente, del servicio del grupo y de la pauta de la EC3, y cada uno cita su fuente en una nota.</p>
+<ul>
+<li><b>Actividades.</b> Telemetría de un nodo: del arranque al estado del aula, en tres carriles (nodo, Gateway y laptop), con la nueva búsqueda de canal tras 10 envíos fallidos y la cola de 32 mensajes del Gateway. Entrada y salida de personas: la rama del KY-024 y la de la MLX90640 corren en paralelo y las junta el servicio. Detección, diagnóstico y alerta: evaluación de RA-01 a RA-10, recorrido del grafo SymCure y avisos por el log, MQTT, el tablero y la voz.</li>
+<li><b>Máquinas de estados.</b> Aula: vacía, ocupada, sobreaforo, luces sin ocupación (RA-08), uso fuera de horario (RA-09) y alarma de gas (RA-05), que manda sobre todos los demás. Nodo: calentando, activo, falla del sensor y sin datos (lo decide el servicio tras tres periodos sin paquete).</li>
+<li><b>Casos de uso.</b> Clase, mantenimiento, limpieza, emergencia, monitoreo del administrador y ronda del vigilante, con los casos que varios comparten: condición de los RA, diagnóstico causal, salud de los nodos, registro de eventos, consumo fantasma y consulta por voz.</li>
+</ul>
+{{img:modelo/export/Campus_Twin_L-419/04_Comportamiento/Telemetría_de_un_nodo/1_act_Comportamiento_Telemetría_de_un_nodo.png|Figura 21. Actividad: telemetría de un nodo, del arranque a InfluxDB y al estado del aula.}}
+{{img:modelo/export/Campus_Twin_L-419/04_Comportamiento/Estados_del_aula/4_stm_Comportamiento_Estados_del_aula.png|Figura 22. Máquina de estados del aula.}}
+{{img:modelo/export/Campus_Twin_L-419/04_Comportamiento/6_uc_Comportamiento_Casos_de_uso_del_aula.png|Figura 23. Casos de uso del aula.}}
+<p>Modelar el comportamiento obligó a leer el código con cuidado y dejó cuatro hallazgos. Dos ya se corrigieron el 12/11: el servicio ahora no repite la alerta de un RA durante 15 minutos (RF-08), y el documento maestro dice que los nodos vuelven a buscar el canal tras 10 envíos fallidos, no solo al arrancar. Quedan dos, anotados en modelo/README.md: el nodo térmico cuenta personas sin mirar al KY-024 (los junta el servicio, así que la coordinación que pide RF-03 la hace el servicio), y el tópico de diagnóstico previsto todavía no se publica, porque las causas y recomendaciones viajan dentro de cada evento.</p>
+<h2>Gaphor en vivo</h2>
+<p>El enlace en vivo (demo/gaphor-vivo/) abre una copia del modelo, consulta la API del servicio del grupo (http://localhost:8000/api/estado) cada segundo y hace dos cosas. Escribe en el bloque de cada uno de los 7 sensores los campos que su nodo reportó (37 valores por consulta, por ejemplo co2_ppm = 422 en el MH-Z1911A). Además pinta cada bloque según la condición de su RA: gris azulado si es nominal, ámbar en alerta, rojo oscuro en crítico y gris tenue si el nodo está caído o su RA no se puede evaluar. Si un nodo participa en varios RA, toma el color del peor. La nota del diagrama rotula la fuente: mientras sea el simulador, dice DATOS SIMULADOS. El código usa solo la biblioteca estándar, porque corre en el intérprete de Gaphor, y nunca modifica el entregable: trabaja sobre una copia.</p>
+{{img:docs/reporte-ec3/figuras/gaphor-en-vivo-gas.png|Figura 24. Gaphor en vivo con el escenario simulado «gas»: el RA-05 está en crítico y el bloque del MQ-2 se pinta de rojo. Datos simulados del 12/11/2026.}}
+<p><b>Verificación.</b> 21 pruebas automáticas, parte de las 111 del servicio, comparan la tabla de nodos y RA del enlace con config/nodos.yaml, config/requisitos_ra.yaml y los bloques del modelo, y comprueban los colores y el formato de cada campo. Además, el enlace se corrió contra el simulador: con el escenario gas se pintaron de rojo el MQ-2 y la caja del nodo 3, y con nodo-sin-bateria quedaron en gris el nodo 5 y el nodo 4, cuyos RA no se pueden evaluar sin el 5.</p>
+<h2>Estado al 12/11/2026</h2>
+<table border="1">
+<tr><td><b>Parte</b></td><td><b>Estado</b></td></tr>
+<tr><td>Diagramas del modelo (36) y su exportación en SVG y PNG</td><td>Hecho; se regeneran con build_model.py</td></tr>
+<tr><td>Arquitectura oficial, IBD, RA, trazabilidad y comportamiento</td><td>Hecho. El modelo se basa en la documentación y el código: ningún dato es una medición real</td></tr>
+<tr><td>Enlace en vivo con 7 sensores y color por RA</td><td>Simulado: probado con el simulador; sin probar con el Gateway real</td></tr>
+<tr><td>Requisitos de las cajas RNF-09 a RNF-12 y caso de prueba CP-16</td><td>Hecho en el modelo; el ensayo físico está pendiente (semana 15)</td></tr>
+<tr><td>Comportamiento con hardware (conteo, puerta, autonomía)</td><td>Pendiente (semana 15)</td></tr>
+</table>
+<p>El firmware de los nodos, el Gateway y el stack del servidor son del docente, y el modelo los representa sin modificarlos. El modelo, el script que lo genera, los diagramas de comportamiento y el enlace en vivo son del grupo. El modelo sirve para el monitoreo en vivo, para el análisis de trazabilidad (qué bloque satisface cada requisito y qué prueba lo verifica) y para apoyar decisiones (qué RA depende de qué nodo cuando uno falla).</p>
 
 <h1>Gestión del proyecto en Asana</h1>
-{{img:docs/reporte-ec3/figuras/asana-lista-s14.png|Figura 17. Vista de lista del proyecto en Asana (captura real del 11/11/2026), sección S14 · EC3: cada tarea tiene responsable y fecha; las cerradas aparecen con el visto verde y las pendientes (Gaphor, logotipo, fotos con QR y la cita en el L-414) siguen abiertas.}}
-{{img:docs/reporte-ec3/figuras/asana-tarea-cerrada.png|Figura 18. Una tarea cerrada con su evidencia (captura real): la descripción dice qué se hizo, en qué archivo y con cuántas pruebas.}}
+{{img:docs/reporte-ec3/figuras/asana-lista-s14.png|Figura 25. Vista de lista del proyecto en Asana (captura real del 11/11/2026), sección S14 · EC3: cada tarea tiene responsable y fecha; las cerradas aparecen con el visto verde y las pendientes (Gaphor, logotipo, fotos con QR y la cita en el L-414) siguen abiertas.}}
+{{img:docs/reporte-ec3/figuras/asana-tarea-cerrada.png|Figura 26. Una tarea cerrada con su evidencia (captura real): la descripción dice qué se hizo, en qué archivo y con cuántas pruebas.}}
 <p>El grupo gestiona el proyecto en un tablero de Asana con 71 tareas, cada una con responsable y fecha. Las tareas usan los mismos identificadores que los requisitos y las pruebas (RF, RNF, CP y RA), así que cada requisito se puede seguir desde el documento maestro hasta su tarea. El repositorio tiene un espejo del tablero (docs/03-plan.md) que se actualiza en la misma pasada que Asana.</p>
 <p>Desde la EC2, Asana se usó así:</p>
 <ul>
@@ -284,7 +317,7 @@ Dávila Cabezas, Carlos Víctor Duamel (Ciencia de la Computación)</p>
 <li><b>Limpieza:</b> se eliminaron 4 tareas obsoletas o duplicadas (la prueba del PZEM y tres tareas repetidas del copiloto), y las secciones se ordenaron por semana: S14 EC3, S15 Hardware y S16 Demo final.</li>
 <li><b>Cierre con evidencia:</b> una tarea se cierra solo cuando el entregable existe. La nota de cierre dice dónde está y si se probó con datos simulados o reales. Cuando una tarea la terminó otro integrante, se reasignó a quien la hizo.</li>
 </ul>
-<p>Al 11/11/2026 hay 45 de 71 tareas cerradas (63 %). Las pendientes son, en su mayoría, las pruebas con hardware de la semana 15 y la demo final de la semana 16.</p>
+<p>Al 12/11/2026 hay 47 de 71 tareas cerradas (66 %). Las pendientes son, en su mayoría, las pruebas con hardware de la semana 15 y la demo final de la semana 16.</p>
 
 <h1>Conclusiones y próximos pasos</h1>
 <p>El grupo integró su proyecto a la arquitectura oficial sin cambiar el formato del Gateway, y construyó sobre ella la capa que el curso pide para la EC3:</p>
