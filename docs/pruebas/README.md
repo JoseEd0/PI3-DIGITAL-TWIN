@@ -10,9 +10,10 @@ repo), **simulado** (datos del simulador) o **pendiente**.
 | CP-11 | Simulador en formato Gateway, grabación y reproducción | Simulado | `test_gemelo.py` (pruebas de grabación) y la prueba de punta a punta de abajo |
 | CP-14 | Costos, configuración y credenciales del repositorio | Real (revisión del repo) | [CP-14-auditoria-repositorio.md](CP-14-auditoria-repositorio.md) |
 | CP-12 | Privacidad (RNF-02) e instalación no invasiva (RNF-01) | Privacidad: **real** (revisión de código). Instalación: **pendiente** (S15) | [CP-12-privacidad.md](CP-12-privacidad.md) |
-| CP-13 | Autonomía de las cajas con 18650 | Estimación de hoja de datos (**no es una medición**). Medición: **pendiente** (S15) | [docs/06-energia-cajas.md](../06-energia-cajas.md) |
+| CP-13 | Autonomía de las cajas con 18650 (RNF-04, RNF-12) | Estimación de hoja de datos (**no es una medición**). Medición: **pendiente** (S15) | [docs/06-energia-cajas.md](../06-energia-cajas.md) |
 | CP-02, 03, 07, 08 | Conteo, resiliencia, ambiente y puerta | **Pendiente** (S15, con hardware) | Plan en `docs/05-plan-cierre.md` |
 | CP-04, 05 | Copiloto de voz y maratón de 72 h | **Pendiente** (S16) | — |
+| CP-16 | Inspección de las cajas: montaje, interruptor, aperturas y dimensiones (RNF-09..11) | **Pendiente** (S15, con las cajas impresas) | Criterios en `docs/00-idea-principal.md` §8.3 |
 
 ## CP-11 · grabación y reproducción de punta a punta (10/11/2026, simulado)
 

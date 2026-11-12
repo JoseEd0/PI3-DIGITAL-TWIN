@@ -62,8 +62,8 @@ las tareas de [Asana](https://app.asana.com/1/1218151758126339/project/121815635
 
 - **NS-1..7**: necesidades de los stakeholders;
 - **RF-01..13**: requisitos funcionales;
-- **RNF-01..08**: requisitos no funcionales;
-- **CP-01..15**: casos de prueba;
+- **RNF-01..12**: requisitos no funcionales (09..12, de las cajas, desde el 12/11);
+- **CP-01..16**: casos de prueba (CP-01 retirado; CP-16, inspección de las cajas);
 - **RA-01..10**: requisitos de alto nivel de condición del salón, nuevos para la EC3. Cada uno tiene
   su propio grafo causal.
 
