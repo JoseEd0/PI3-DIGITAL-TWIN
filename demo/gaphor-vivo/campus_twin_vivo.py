@@ -1,19 +1,20 @@
 """Refleja el estado del laboratorio simulado dentro de Gaphor, en vivo.
 
-Abre la copia de demostracion del modelo SysML y va escribiendo, cada segundo,
-el valor de cada magnitud en la propiedad del bloque que le corresponde. Lo que
-se ve en pantalla es el modelo del proyecto con numeros encima: el mismo bloque
-`Nodo Ambiental` que se entrego en la semana 4, mostrando el CO2 de ahora.
+Abre la copia de demostracion del modelo SysML oficial y consulta
+`GET /api/estado` del servicio del grupo. Cada segundo escribe, en el bloque de cada
+uno de los 7 sensores, los campos que su nodo reporto, y pinta el bloque segun la
+condicion de su RA. Lo que se ve en pantalla es el modelo del proyecto con numeros
+y colores encima: el bloque `MH-Z1911A` mostrando el CO2 de ahora.
 
 Corre con el interprete que trae Gaphor, asi que solo usa la biblioteca
 estandar:
 
-    MODELO_DEMO=... API=http://127.0.0.1:8000 \
+    MODELO_DEMO=... API=http://localhost:8000 \
         /Applications/Gaphor.app/Contents/MacOS/gaphor exec campus_twin_vivo.py
 
 Variables de entorno:
     MODELO_DEMO  copia del modelo que se abre (obligatoria)
-    API          base del servidor de la demo (por defecto 127.0.0.1:8000)
+    API          base del servicio del grupo (por defecto http://localhost:8000)
     PERIODO      segundos entre consultas (por defecto 1)
     LOG          archivo donde escribir el registro (por defecto, la salida)
     MAX_TICKS    termina despues de N actualizaciones (para pruebas)
@@ -43,12 +44,13 @@ from gaphor.transaction import Transaction  # noqa: E402
 from gaphor.ui import Session, run  # noqa: E402
 from gaphor.UML.uml import Comment, LiteralString, Property  # noqa: E402
 
-API = os.environ.get("API", "http://127.0.0.1:8000").rstrip("/")
+API = os.environ.get("API", "http://localhost:8000").rstrip("/")
 PERIODO = float(os.environ.get("PERIODO", "1"))
 MAX_TICKS = int(os.environ.get("MAX_TICKS", "0"))
 GUARDAR_EN = os.environ.get("GUARDAR_EN", "")
 TIEMPO_DE_ESPERA = 4.0
 INTENTOS_DE_ENGANCHE = 50  # 20 s esperando a que Gaphor termine de leer el modelo
+INTENTOS_PARA_EL_DIAGRAMA = 10  # los diagramas se cargan despues de los bloques
 ESPERA_TRAS_ERROR = 3.0
 MARCA_DEL_PANEL = "ESTADO EN VIVO"
 
@@ -108,22 +110,8 @@ class EnlaceConElModelo:
             literal.value = texto
 
     def _escribir_magnitudes(self, estado: dict) -> None:
-        resumen = estado.get("resumen", {})
-        for bloque, campos in enlace.MAPA_DE_PROPIEDADES.items():
-            for propiedad, clave, formatear in campos:
-                if clave in resumen:
-                    self._fijar(bloque, propiedad, formatear(resumen[clave]))
-
-        salud = estado.get("salud", [])
-        senales = [fila["senal"] for fila in salud if fila.get("senal") is not None]
-        if senales:
-            bloque, propiedad = enlace.PROPIEDAD_DE_SENAL
-            self._fijar(bloque, propiedad, f"{min(senales):.0f}")
-
-        perdidas = [fila.get("muestrasPerdidas", 0.0) for fila in salud]
-        if perdidas:
-            bloque, propiedad = enlace.PROPIEDAD_DE_MUESTRAS_PERDIDAS
-            self._fijar(bloque, propiedad, f"{max(perdidas):.2f}")
+        for (bloque, propiedad), texto in enlace.valores_de_propiedades(estado).items():
+            self._fijar(bloque, propiedad, texto)
 
     def _escribir_panel(self, estado: dict) -> None:
         if self._panel is None:
@@ -140,11 +128,9 @@ class EnlaceConElModelo:
         if hoja.styleSheet != css:
             hoja.styleSheet = css
 
-    def aplicar(self, estado: dict, latencia: float) -> None:
+    def aplicar(self, estado: dict) -> None:
         with Transaction(self.eventos):
             self._escribir_magnitudes(estado)
-            bloque, propiedad = enlace.PROPIEDAD_DE_LATENCIA
-            self._fijar(bloque, propiedad, f"{latencia:.3f}")
             self._escribir_panel(estado)
             self._escribir_colores(estado)
 
@@ -216,24 +202,29 @@ class DemoEnVivo:
         self.consultor = Consultor(self.al_recibir)
         self.actualizaciones = 0
         self.intentos_de_enganche = 0
+        self.intentos_con_bloques = 0
 
     def al_recibir(self, estado, latencia: float) -> bool:
         if estado is None or self.enlace is None:
             return False
         try:
-            self.enlace.aplicar(estado, latencia)
+            self.enlace.aplicar(estado)
         except Exception as error:
             anotar(f"No se pudo aplicar el estado: {error!r}")
             return False
         self.actualizaciones += 1
         if self.actualizaciones % 10 == 1:
-            resumen = estado.get("resumen", {})
             reloj = estado.get("reloj", {})
+            condiciones = enlace.condiciones_por_bloque(estado)
+            fuera_de_lo_normal = sorted(
+                f"{bloque}: {nivel}" for bloque, nivel in condiciones.items()
+                if nivel != enlace.NOMINAL and bloque in enlace.BLOQUES_DEL_TABLERO
+            )
             anotar(
                 f"[{self.actualizaciones}] {reloj.get('hora', '')} "
-                f"{resumen.get('potencia', 0):.0f} W · {resumen.get('co2', 0):.0f} ppm · "
-                f"{'ocupado' if resumen.get('presencia') else 'vacío'} · "
-                f"{len(estado.get('alertas', []))} alertas · {latencia * 1000:.0f} ms"
+                f"{estado.get('fuente', {}).get('origen', '?')} · "
+                f"{len(enlace.valores_de_propiedades(estado))} valores · "
+                f"{', '.join(fuera_de_lo_normal) or 'todos nominales'} · {latencia * 1000:.0f} ms"
             )
         if MAX_TICKS and self.actualizaciones >= MAX_TICKS:
             self.terminar()
@@ -267,6 +258,12 @@ class DemoEnVivo:
         sesion = SESIONES[-1]
         fabrica = sesion.get_service("element_factory")
         if not any(True for _ in fabrica.select(sysml.Block)):
+            return True
+        # Los diagramas se leen despues de los bloques: abrirlo antes lo da por inexistente.
+        hay_diagrama = any(d.name == enlace.NOMBRE_DEL_DIAGRAMA
+                           for d in fabrica.select(sysml.SysMLDiagram))
+        if not hay_diagrama and self.intentos_con_bloques < INTENTOS_PARA_EL_DIAGRAMA:
+            self.intentos_con_bloques += 1
             return True
 
         self.enlace = EnlaceConElModelo(sesion)

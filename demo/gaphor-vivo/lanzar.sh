@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Abre el modelo SysML en Gaphor y lo mantiene al día con el gemelo simulado.
 #
-#   ./lanzar.sh                    # usa http://127.0.0.1:8000
+#   ./lanzar.sh                    # usa http://localhost:8000
 #   API=http://otra-maquina:8000 ./lanzar.sh
 #
 # Trabaja siempre sobre una copia: el entregable modelo/campus-twin-l419.gaphor
@@ -15,7 +15,7 @@ RAIZ="$(cd "$AQUI/../.." && pwd)"
 GAPHOR="${GAPHOR:-/Applications/Gaphor.app/Contents/MacOS/gaphor}"
 MODELO="${MODELO:-$RAIZ/modelo/campus-twin-l419.gaphor}"
 COPIA="${COPIA:-$AQUI/campus-twin-l419-demo.gaphor}"
-API="${API:-http://127.0.0.1:8000}"
+API="${API:-http://localhost:8000}"
 PERIODO="${PERIODO:-1}"
 
 if [ ! -x "$GAPHOR" ]; then
@@ -30,8 +30,8 @@ if [ ! -f "$MODELO" ]; then
 fi
 
 if ! curl -s -o /dev/null -m 3 "$API/api/estado"; then
-  echo "Aviso: el servidor de la demo no responde en $API." >&2
-  echo "Levántalo con: cd $RAIZ/demo/servidor && .venv/bin/python -m campus_twin_demo" >&2
+  echo "Aviso: el servicio del grupo no responde en $API." >&2
+  echo "Levántalo con: cd $RAIZ/demo/servidor && .venv/bin/python -m gemelo --simular" >&2
   echo "Gaphor se abrirá igual y se conectará solo cuando el servidor esté listo." >&2
 fi
 

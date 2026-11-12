@@ -52,7 +52,7 @@ def paquete_de_demo(fabrica: ElementFactory) -> Package:
         if paquete.name == enlace.NOMBRE_DEL_PAQUETE:
             return paquete
     raiz = next(
-        (p for p in fabrica.select(Package) if p.name == enlace.BLOQUE_DEL_SISTEMA and p.nestingPackage is None),
+        (p for p in fabrica.select(Package) if p.name == enlace.NOMBRE_DEL_PROYECTO and p.nestingPackage is None),
         None,
     )
     paquete = fabrica.create(Package)
@@ -73,15 +73,18 @@ def armar_diagrama(fabrica: ElementFactory) -> None:
     paquete.ownedDiagram = diagrama
 
     panel = fabrica.create(Comment)
-    panel.body = enlace.panel({})
+    panel.body = enlace.panel_de_arranque()
     item_de_panel = drop(panel, diagrama, 0, 0)
     item_de_panel.width = ANCHO_DE_LA_NOTA
 
     aviso = fabrica.create(Comment)
     aviso.body = (
-        "Vista de demostración (RF-11). Los valores los escribe el simulador de "
-        "demo/servidor en tiempo real. Este archivo es una copia: el entregable es "
-        "modelo/campus-twin-l419.gaphor y no se modifica."
+        "Vista de demostración. Los valores salen de GET /api/estado del servicio del "
+        "grupo (demo/servidor/gemelo) y, mientras la fuente sea el simulador, son "
+        "simulados: no hay ninguna medición real.\n\n"
+        + enlace.LEYENDA_DE_COLORES
+        + "\n\nEste archivo es una copia: el entregable es modelo/campus-twin-l419.gaphor "
+        "y no se modifica."
     )
     item_de_aviso = drop(aviso, diagrama, 0, 0)
     item_de_aviso.width = ANCHO_DE_LA_NOTA
@@ -96,7 +99,7 @@ def armar_diagrama(fabrica: ElementFactory) -> None:
         item = drop(bloque, diagrama, 0, 0)
         item.width = ANCHO_DE_BLOQUE
         if hasattr(item, "show_attributes"):
-            item.show_attributes = True
+            item.show_attributes = bool(bloque.ownedAttribute)
         items_de_bloque.append(item)
 
     items = [item_de_panel, item_de_aviso, *items_de_bloque]
