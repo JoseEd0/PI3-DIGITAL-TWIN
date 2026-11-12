@@ -1,0 +1,396 @@
+<!-- Generado por docs/reporte-ec3/armar.py desde plantilla.html. No se edita a mano: se cambia la plantilla y se vuelve a armar. -->
+
+<p align="center"><b>UNIVERSIDAD DE INGENIERÍA Y TECNOLOGÍA (UTEC)</b></p>
+<p align="center">Proyectos Interdisciplinarios III · 2026-2</p>
+<h1 align="center">Campus Twin: gemelo digital del aula laboratorio L-419</h1>
+<p align="center"><b>Reporte de la Evaluación Continua 3 (EC3)</b></p>
+<p align="center">Sección 8 · Grupo 1</p>
+<p align="center">Docente: Jorge Fernando Figueroa Nuñez del Prado</p>
+<p align="center">Integrantes:</p>
+<p align="center">Huamani Ñaupas, José Eduardo (Ciencia de la Computación)<br>
+Sotomayor Reyna, Esteban Matías (Ciencia de la Computación)<br>
+Landeo Quispe, Luhana Victoria (Bioingeniería)<br>
+Dávila Cabezas, Carlos Víctor Duamel (Ciencia de la Computación)</p>
+<p align="center">Lima, 13 de noviembre de 2026</p>
+
+<h1>Abstracto</h1>
+<p>Campus Twin es el gemelo digital del aula laboratorio L-419 de UTEC. El proyecto nació en la Semana 7 para atacar el consumo fantasma: luces, computadoras y aire acondicionado encendidos en un aula vacía. En la EC3 el grupo adoptó la arquitectura oficial del curso: siete nodos ESP32, cada uno con un sensor, envían sus mediciones por ESP-NOW a un Gateway ESP32, que las publica por MQTT en una laptop con Mosquitto, Telegraf, InfluxDB y Grafana. El firmware de los nodos y del Gateway, y el stack del servidor, son del docente. El aporte del grupo es la capa que interpreta esos datos: diez requisitos de alto nivel de condición del salón (RA-01 a RA-10) con sus umbrales y normas, un grafo causal por requisito, un motor de razonamiento con la metodología SymCure, un tablero web propio, la estimación del consumo fantasma sin medidor de energía, un log de eventos en archivo y en InfluxDB, la grabación y reproducción de sesiones, y el programa del nodo de gas MQ-2.</p>
+<p>Todo el software funciona de punta a punta sobre datos simulados con el formato exacto del Gateway del docente. Lo verifican 111 pruebas automáticas. Además, una sesión grabada de 12 minutos se reprodujo por el stack real del docente y sus 1372 mensajes llegaron completos a InfluxDB. La estimación del consumo fantasma difiere en +4,3 % de la potencia que conoce el simulador. No hay todavía ninguna medición real: las pruebas con hardware se hacen en la semana 15, en el L-414, y la instalación en el L-419 va después.</p>
+
+<h1>Introducción</h1>
+<p>En el reporte de la Semana 7 el grupo identificó un problema concreto en el L-419: el aula queda con luces y equipos encendidos cuando no hay clase, y nadie lo detecta hasta la ronda del vigilante. El gemelo digital propuesto mide el estado del aula, lo compara con lo que el aula debe cumplir y explica por qué ocurre cada desviación. El marco de trabajo es el de sistemas autónomos y la ingeniería de sistemas de la NASA presentados en la Semana 1: necesidades de los interesados, requisitos verificables, arquitectura, modelo SysML y casos de prueba.</p>
+<p>Este reporte cubre los cuatro bloques que pide la pauta de la EC3: sensores y procesadores, razonamiento lógico con grafos dirigidos, interfaz, y gemelo digital en Gaphor junto con la gestión en Asana. Cada resultado lleva uno de tres rótulos: <b>real</b> (medido con hardware o comprobado sobre el repositorio), <b>simulado</b> (obtenido con datos del simulador) o <b>pendiente</b>.</p>
+
+<h1>Avance desde la EC2</h1>
+<h2>Adopción de la arquitectura oficial del curso</h2>
+<p>Entre la EC2 y la EC3 el curso compró el hardware (orden de compra OC-UTEC-004033-26) y el docente publicó una arquitectura común para todos los grupos, con el firmware de los nodos, el del Gateway y el servidor en Docker. Las cajas de los nodos se repartieron entre los grupos; al Grupo 1 de la Sección 8 no le tocó caja. Por eso el grupo dejó su propia propuesta de hardware (una lista de materiales de S/ 2808 con Raspberry Pi y medidor PZEM) y adaptó el proyecto a la arquitectura oficial. La tabla resume la migración.</p>
+<table border="1">
+<tr><td><b>Plan de la Semana 7</b></td><td><b>Arquitectura oficial</b></td><td><b>Efecto en el proyecto</b></td></tr>
+<tr><td>SHT31 (temperatura y humedad)</td><td>BME280, nodo 7</td><td>RA-01 y RA-02 usan el BME280</td></tr>
+<tr><td>SCD41 (CO₂)</td><td>MH-Z1911A, nodo 1</td><td>RA-03 usa los umbrales del nodo del docente</td></tr>
+<tr><td>LD2410C, PIR y VL53L1X (ocupación)</td><td>MLX90640, nodo 5</td><td>El conteo de entradas y salidas lo hace el nodo; el grupo deriva la presencia</td></tr>
+<tr><td>Sensor magnético y SW-420</td><td>KY-024, nodo 6</td><td>Se retira la detección de vibración</td></tr>
+<tr><td>Nodo de audio para el copiloto</td><td>INMP441 como sensor de ruido, nodo 2</td><td>El copiloto de voz pasa a una aplicación web en el celular</td></tr>
+<tr><td>PZEM-004T, SCT-013 y enchufes Tasmota</td><td>No están en la arquitectura</td><td>El consumo fantasma se estima por proxy (sección de interfaz)</td></tr>
+<tr><td>Raspberry Pi 5</td><td>Laptop con el stack Docker del docente</td><td>Los servicios del grupo se agregan con un archivo docker-compose.override.yml</td></tr>
+<tr><td>MQTT directo desde cada nodo</td><td>ESP-NOW hacia un Gateway</td><td>El grupo respeta el formato del Gateway sin cambiarlo</td></tr>
+<tr><td>(no estaba)</td><td>MQ-2, nodo 3</td><td>Es el programa propio del grupo</td></tr>
+</table>
+<p>Los identificadores de requisitos se conservaron: NS-1 a NS-7, RF-01 a RF-13, RNF-01 a RNF-08 y CP-01 a CP-15. CP-01, la prueba de exactitud del medidor de energía, quedó retirado porque el PZEM no forma parte de la arquitectura. El documento maestro del repositorio (docs/00-idea-principal.md) registra cada cambio.</p>
+
+<h2>Estado de cada componente al 11/11/2026</h2>
+<table border="1">
+<tr><td><b>Componente</b></td><td><b>Autor</b></td><td><b>Estado</b></td><td><b>Evidencia</b></td></tr>
+<tr><td>Nodos 1, 2, 4, 5, 6 y 7, y Gateway</td><td>Docente</td><td>Pendiente (S15)</td><td>Firmware estudiado y documentado en el contrato de datos</td></tr>
+<tr><td>Stack Mosquitto, Telegraf, InfluxDB y Grafana</td><td>Docente</td><td>Real</td><td>Corre en la laptop del grupo con deploy/levantar.sh</td></tr>
+<tr><td>Nodo 3, MQ-2 (MQ-2.ino)</td><td>Grupo</td><td>Compila; pendiente en hardware</td><td>firmware/MQ-2, 68 % de flash</td></tr>
+<tr><td>Simulador de los 7 nodos en formato Gateway</td><td>Grupo</td><td>Simulado</td><td>Sus mensajes llegan a InfluxDB por Telegraf</td></tr>
+<tr><td>RA-01 a RA-10 y diez grafos causales</td><td>Grupo</td><td>Simulado</td><td>config/requisitos_ra.yaml y grafos/</td></tr>
+<tr><td>Motor de razonamiento SymCure</td><td>Grupo</td><td>Simulado</td><td>16 pruebas por tipo de lógica</td></tr>
+<tr><td>Tablero web propio</td><td>Grupo</td><td>Simulado</td><td>Capturas de la sección de interfaz</td></tr>
+<tr><td>Consumo fantasma por proxy</td><td>Grupo</td><td>Simulado</td><td>CP-06: error de +4,3 %</td></tr>
+<tr><td>Log de eventos en archivo e InfluxDB</td><td>Grupo</td><td>Simulado</td><td>CP-11: 1372 de 1372 mensajes</td></tr>
+<tr><td>Auditoría de credenciales del repositorio</td><td>Grupo</td><td>Real</td><td>CP-14</td></tr>
+<tr><td>Análisis de energía de las cajas</td><td>Grupo</td><td>Estimado</td><td>Hojas de datos; medición en S15 (CP-13)</td></tr>
+<tr><td>Modelo SysML en Gaphor</td><td>Grupo</td><td>Hecho; enlace en vivo simulado</td><td>Sección de Gaphor</td></tr>
+</table>
+
+<h1>Sensores y procesadores</h1>
+<h2>Arquitectura final</h2>
+<p align="center"><img src="../../vendor/gemelo_iot_profesor/arquitectura_iot_gemelo_digital_L418.png" width="620"></p>
+<p align="center"><i>Figura 1. Arquitectura oficial del curso (diagrama del docente). El diagrama dice L418; el aula del grupo es el L-419.</i></p>
+<p>Cada nodo es un ESP32 DevKit V1 con un sensor. El nodo lee su sensor, calcula sus propias anomalías y envía un paquete binario por ESP-NOW a la dirección MAC del Gateway. El Gateway traduce cada paquete a JSON y lo publica por Wi-Fi en el broker Mosquitto de la laptop, en el tópico utec/gemelo/&lt;grupo&gt;/nodo&lt;id&gt;/&lt;tipo&gt;. Telegraf se suscribe a los siete tipos y escribe cada mensaje en InfluxDB, y Grafana lee de InfluxDB. El servicio del grupo se suscribe al mismo broker.</p>
+<table border="1">
+<tr><td><b>Tramo</b></td><td><b>Protocolo</b></td><td><b>Detalle</b></td></tr>
+<tr><td>Nodo → Gateway</td><td>ESP-NOW (2,4 GHz)</td><td>Paquete binario de hasta 250 bytes definido en paquetes.h. Cabecera común: version, tipo, nodo_id, seq y uptime_ms. El nodo no se conecta al Wi-Fi: solo lo escanea para usar el mismo canal que el Gateway</td></tr>
+<tr><td>Gateway → laptop</td><td>Wi-Fi y MQTT (TCP 1883, QoS 0)</td><td>Un mensaje JSON por paquete. El estado del Gateway se publica retenido en .../gateway/estado (online u offline, por Last Will)</td></tr>
+<tr><td>Mosquitto → InfluxDB</td><td>Telegraf, line protocol por HTTP (8086)</td><td>Measurement igual al tipo; etiquetas nodo, mac, grupo y topic; bucket gemelo, organización utec; tiempo tomado del campo ts</td></tr>
+<tr><td>InfluxDB → Grafana</td><td>Flux (3000)</td><td>Tableros del docente, cargados automáticamente</td></tr>
+<tr><td>Servicio del grupo</td><td>MQTT, REST y Server-Sent Events (8000)</td><td>Lee los tópicos del Gateway y publica lo suyo en tópicos aparte: utec/gemelo/&lt;grupo&gt;/campustwin/evento y .../campustwin/ra</td></tr>
+</table>
+<p><b>Por qué ESP-NOW.</b> ESP-NOW envía tramas directamente entre dos ESP32, sin asociarse a un punto de acceso, sin obtener IP y sin abrir una conexión TCP. Cada envío dura milisegundos y el nodo no depende del router: el único equipo conectado al Wi-Fi es el Gateway. A cambio, el paquete está limitado a 250 bytes y nodo y Gateway deben estar en el mismo canal de radio. Por eso los nodos del docente escanean la red para hallar ese canal.</p>
+<p><b>Cómo detecta pérdidas.</b> Cada nodo numera sus paquetes con seq. El Gateway cuenta como perdidos los huecos en esa numeración y publica el total en el campo perdidos. Si seq retrocede, el nodo se reinició. El servicio del grupo usa ambos datos para el RA-10 (salud del sistema).</p>
+<p><b>Hallazgo sobre la hora.</b> El Gateway toma la hora de pool.ntp.org y la envía en el campo ts. Al revisar la configuración de Telegraf, el grupo comprobó que un mensaje con ts nulo se descarta completo: si el Gateway no tiene internet, InfluxDB queda vacío. La solución planificada es un servidor NTP local en la laptop, que se prueba en la semana 15 (RNF-05).</p>
+<p><b>Acceso desde una laptop.</b> Cualquier laptop conectada a la misma red abre el tablero del grupo en http://&lt;ip-de-la-laptop&gt;:8000 y Grafana en http://&lt;ip-de-la-laptop&gt;:3000. El servicio escucha en todas las interfaces (0.0.0.0) y no necesita internet.</p>
+
+<h2>Los siete sensores</h2>
+<table border="1">
+<tr><td><b>Nodo</b></td><td><b>Sensor</b></td><td><b>Principio</b></td><td><b>Lo que envía</b></td><td><b>Interfaz y pines</b></td><td><b>Periodo</b></td></tr>
+<tr><td>1 · co2</td><td>MH-Z1911A</td><td>Infrarrojo no dispersivo (NDIR): mide la absorción del CO₂ a 4,26 µm</td><td>co2_ppm, delta_30s, temp_c, nivel</td><td>UART2, RX 16 y TX 17, 9600 baudios</td><td>5 s</td></tr>
+<tr><td>2 · audio</td><td>INMP441</td><td>Micrófono MEMS con salida digital I²S</td><td>leq_db, lmax_db, pico_db, base_db, freq_dom_hz, tonal</td><td>I²S, SCK 26, WS 25 y SD 33, 16 kHz</td><td>1 s</td></tr>
+<tr><td>3 · gas</td><td>MQ-2</td><td>Semiconductor de SnO₂ con calefactor: su resistencia baja ante GLP, humo e hidrógeno</td><td>v_ao, rs_r0, do_alarma, calentando</td><td>Analógica en GPIO 34 y digital en GPIO 27, con divisores</td><td>5 s, o en el acto ante un evento</td></tr>
+<tr><td>4 · luz</td><td>BH1750 (GY-302)</td><td>Fotodiodo con conversor de 16 bits, respuesta cercana al ojo humano</td><td>lux, lux_min, lux_max, lux_mesa_est, luces_cambio</td><td>I²C, SDA 21 y SCL 22</td><td>10 s, o en el acto si cambian las luces</td></tr>
+<tr><td>5 · termico</td><td>MLX90640</td><td>Matriz de 32 × 24 termopilas infrarrojas: temperatura por píxel, sin imagen identificable</td><td>entradas, salidas, ocupacion_est, personas_en_vista, cruces_dudosos, t_fondo, t_max</td><td>I²C, SDA 21 y SCL 22</td><td>5 s, o en el acto tras un cruce</td></tr>
+<tr><td>6 · magnetico</td><td>KY-024 (SS49E)</td><td>Sensor Hall lineal: el imán de la hoja de la puerta cambia el campo</td><td>puerta_abierta, aperturas, seg_abierta, campo_raw</td><td>Analógica en GPIO 34</td><td>10 s, o en el acto ante un cambio</td></tr>
+<tr><td>7 · ambiente</td><td>BME280</td><td>Sensor combinado de temperatura, humedad (capacitivo) y presión (piezorresistivo)</td><td>temp_c, hum_pct, pres_hpa</td><td>I²C, SDA 21 y SCL 22</td><td>10 s</td></tr>
+</table>
+<p><b>Lo que se aprendió de su operación.</b> El estudio del firmware del docente y de las hojas de datos dejó estas conclusiones, que el simulador del grupo reproduce:</p>
+<ul>
+<li>El MH-Z1911A necesita 3 minutos de calentamiento. El nodo descarta lecturas fuera de 300 a 10000 ppm y exige 3 confirmaciones antes de cambiar de nivel, con una histéresis de 100 ppm.</li>
+<li>El INMP441 entrega dB relativos a la escala digital: el nodo los convierte a dB SPL sumando 120 dB, una aproximación que requiere calibración con un sonómetro. El nodo no guarda audio, solo niveles, lo que cumple RNF-02 (privacidad).</li>
+<li>El MQ-2 necesita precalentar su calefactor y calibrar R0, su resistencia en aire limpio. La magnitud útil es Rs/R0: vale 1 en aire limpio y baja con gas o humo.</li>
+<li>El BH1750 mide en el techo; el nodo estima la luz sobre la mesa multiplicando por 0,482.</li>
+<li>La MLX90640 no forma imágenes identificables, y el conteo de entradas y salidas se hace en el propio nodo. Cuando un conteo resulta imposible (por ejemplo, ocupación negativa), el nodo lo corrige y lo marca con CONTEO_CORREGIDO.</li>
+<li>El KY-024 envía en el acto cuando la puerta cambia de estado, y cada 10 s en reposo. Ese envío periódico sirve para saber que el nodo sigue vivo.</li>
+</ul>
+<p><b>Desempeño.</b> Hasta hoy el desempeño de los sensores se conoce por sus hojas de datos y por el código; no hay mediciones propias. La verificación contra instrumentos de referencia (CP-07 ambiental, CP-02 conteo y CP-08 puerta) se hace en el L-414 en la semana 15.</p>
+
+<h2>Programa propio del grupo: el nodo de gas MQ-2</h2>
+<p>El MQ-2 reemplazó al detector de humo Tuya el 21 de octubre. El Gateway del docente ya acepta el paquete de gas (PaqueteGas en paquetes.h) y su tablero de Grafana ya tiene un panel para él, pero el código del docente no incluye el programa de ese nodo. El grupo lo escribió: firmware/MQ-2/MQ-2.ino.</p>
+<ul>
+<li><b>Estructura:</b> la misma de los nodos del docente. Usa sus archivos paquetes.h y espnow_nodo.h sin cambios y envía el PaqueteGas tal como está definido.</li>
+<li><b>Calentamiento y calibración:</b> calienta 60 s y calibra R0 promediando Rs durante los últimos 10 s. Si la variación supera el 10 %, repite la calibración. Una vez medido R0 en el aula, se fija como constante.</li>
+<li><b>Anomalías:</b> GAS_DETECTADO se activa cuando Rs/R0 baja de 0,70 durante 3 lecturas seguidas y se desactiva sobre 0,80. FALLO_SENSOR se activa tras 5 lecturas inválidas.</li>
+<li><b>Envío:</b> lee cada segundo, envía cada 5 s y envía en el acto si detecta gas.</li>
+<li><b>Compilación:</b> arduino-cli 1.6.0 y núcleo esp32 3.3.12, para la placa esp32:esp32:esp32. Ocupa 897 464 bytes de flash (68 %) y 45 952 bytes de RAM (14 %), sin errores. Como control, el nodo de CO₂ del docente compilado con el mismo comando ocupa el 67 %.</li>
+</ul>
+<p>Estado: compila; pendiente de probar en hardware. En la semana 15 se flashea, se mide R0 en el aula y se confirman los divisores de tensión del módulo.</p>
+
+<h2>Energía de las cajas</h2>
+<p>Cada caja lleva un ESP32, el sensor y una batería 18650 de 1600 mAh. El grupo estimó el consumo de cada nodo con las hojas de datos y con la lectura del firmware (docs/06-energia-cajas.md). Son estimaciones: la medición con multímetro queda para la semana 15 (CP-13).</p>
+<table border="1">
+<tr><td><b>Nodo</b></td><td><b>Consumo por USB (mA a 5 V)</b></td><td><b>Autonomía con la 18650</b></td><td><b>Recomendación</b></td></tr>
+<tr><td>3 · gas (MQ-2)</td><td>261</td><td>3,7 h (con elevador a 5 V)</td><td>USB fijo</td></tr>
+<tr><td>1 · CO₂ (MH-Z1911A)</td><td>168</td><td>5,7 h (con elevador a 5 V)</td><td>USB fijo</td></tr>
+<tr><td>5 · térmico (MLX90640)</td><td>131</td><td>7,3 a 10,8 h</td><td>USB fijo</td></tr>
+<tr><td>6 · puerta (KY-024)</td><td>116</td><td>8,2 a 12,2 h</td><td>USB o recarga diaria</td></tr>
+<tr><td>2 · audio (INMP441)</td><td>110</td><td>8,7 a 13,0 h</td><td>USB o recarga diaria</td></tr>
+<tr><td>4 · luz y 7 · ambiente</td><td>108</td><td>8,8 a 13,2 h</td><td>Batería viable solo con sueño profundo</td></tr>
+<tr><td>Gateway</td><td>118</td><td>8,1 h</td><td>USB fijo</td></tr>
+</table>
+<p>Ninguna caja dura un día con la batería, porque el firmware del docente mantiene la radio encendida todo el tiempo y el ESP32 solo consume cerca de 100 mA. Con sueño profundo y un envío por minuto, los nodos de luz y ambiente durarían unos 15 días. Además, la compra no incluye regulador: la 18650 entrega entre 3,0 y 4,2 V, y el ESP32 necesita 3,3 V estables. Para la demo, todos los nodos van por USB. La elección del regulador (LDO de baja caída, elevador o cargador TP4056) se consulta con el docente.</p>
+
+<h2>Reconocimiento del código del docente</h2>
+<p>El firmware de los nodos 1, 2, 4, 5, 6 y 7, el firmware del Gateway, el archivo paquetes.h, la configuración de Mosquitto, Telegraf, InfluxDB y Grafana, y los tableros de Grafana son obra del docente, J. F. Figueroa, y el grupo los reutiliza sin modificarlos (carpeta vendor/ del repositorio). El grupo es autor del nodo MQ-2, del simulador, del servicio de razonamiento, del tablero web, de los requisitos RA y sus grafos, del análisis de energía y de la integración.</p>
+
+<h1>Razonamiento lógico</h1>
+<h2>Requisitos de alto nivel de condición del salón</h2>
+<p>Cada requisito de alto nivel (RA) convierte las mediciones en una condición del aula: nominal, alerta, crítico o desconocido (cuando falta el dato). Cuando el código del docente ya define un umbral, el RA usa el mismo, para que el nodo y el tablero digan lo mismo. Los umbrales viven en config/requisitos_ra.yaml y se cambian sin tocar el código.</p>
+<table border="1">
+<tr><td><b>RA</b></td><td><b>Condición</b></td><td><b>Sensor (nodo)</b></td><td><b>Alerta</b></td><td><b>Crítico</b></td><td><b>Norma o fuente</b></td></tr>
+<tr><td>RA-01</td><td>Confort térmico</td><td>BME280 (7)</td><td>Fuera de 20 a 26 °C</td><td>Menos de 18 o más de 28 °C</td><td>ASHRAE 55-2020; rango del nodo del docente</td></tr>
+<tr><td>RA-02</td><td>Humedad adecuada</td><td>BME280 (7)</td><td>Fuera de 30 a 70 %</td><td>Menos de 20 o más de 80 %</td><td>ASHRAE 62.1-2022; 70 % es el umbral del docente</td></tr>
+<tr><td>RA-03</td><td>Calidad de aire y ventilación</td><td>MH-Z1911A (1)</td><td>1000 ppm</td><td>1500 ppm</td><td>ASHRAE 62.1; umbrales del docente</td></tr>
+<tr><td>RA-04</td><td>Iluminación con el aula ocupada</td><td>BH1750 (4) y MLX90640 (5)</td><td>Menos de 300 lx</td><td>Menos de 150 lx</td><td>EN 12464-1:2021; umbral del docente</td></tr>
+<tr><td>RA-05</td><td>Seguridad ante gas o humo</td><td>MQ-2 (3)</td><td>Rs/R0 de 0,75 o menos</td><td>Rs/R0 de 0,50 o menos, o GAS_DETECTADO</td><td>Hoja de datos del MQ-2; supuesto hasta calibrar R0</td></tr>
+<tr><td>RA-06</td><td>Aforo</td><td>MLX90640 (5) y KY-024 (6)</td><td>90 % del aforo</td><td>Más del aforo</td><td>RNE A.040 Educación; aforo supuesto de 24</td></tr>
+<tr><td>RA-07</td><td>Ambiente acústico</td><td>INMP441 (2)</td><td>70 dB sostenidos 60 s</td><td>85 dB sostenidos 60 s</td><td>ANSI/ASA S12.60; 85 dBA, límite ocupacional</td></tr>
+<tr><td>RA-08</td><td>Consumo fantasma</td><td>BH1750 (4) y MLX90640 (5)</td><td>10 min con luces y aula vacía</td><td>30 min, o 10 min fuera de horario</td><td>Criterio del grupo (RF-10)</td></tr>
+<tr><td>RA-09</td><td>Seguridad física fuera de horario</td><td>KY-024 (6) y MLX90640 (5)</td><td>Puerta abierta o personas dentro</td><td>Puerta abierta con personas dentro</td><td>Criterio del grupo (RF-04)</td></tr>
+<tr><td>RA-10</td><td>Salud del sistema</td><td>Los 7 nodos y el Gateway</td><td>Un nodo sin datos durante 3 de sus periodos</td><td>60 % de los nodos sin datos, o Gateway offline</td><td>Criterio del grupo (RF-13)</td></tr>
+</table>
+<p>Los niveles usan histéresis para no oscilar cerca del umbral. RA-04 solo se evalúa con el aula ocupada, y RA-07 exige que el nivel se sostenga 60 segundos.</p>
+
+<h2>Metodología: grafos causales con SymCure</h2>
+<p>El razonamiento sigue la metodología SymCure (Kapadia, 2003) presentada en el curso. Cada RA tiene un grafo dirigido de eventos: las causas raíz, los eventos intermedios, el evento central (la violación del RA) y sus efectos. Cada evento toma uno de cuatro valores: verdadero, falso, sospechoso o desconocido.</p>
+<ul>
+<li><b>Lógica de entrada:</b> cómo se combinan las causas de un evento. Puede ser OR (basta una), AND (hacen falta todas), N de M (hace falta una fracción) o IF (la causa actúa solo si se cumple una condición de contexto, como el horario).</li>
+<li><b>Lógica de salida:</b> cómo afecta la falsedad del efecto a la causa. Con salida AND, si un efecto observado es falso, la causa se descarta.</li>
+<li><b>Observables:</b> algunos eventos se miden con un sensor (por ejemplo, "aula vacía" sale de la MLX90640). Su valor viene de los datos y prevalece sobre lo que se infiera.</li>
+<li><b>Propagación aguas arriba (diagnóstico):</b> desde el evento central hacia sus causas posibles, que quedan como sospechosas, confirmadas o descartadas.</li>
+<li><b>Propagación aguas abajo (predicción):</b> desde el evento central hacia sus efectos esperados.</li>
+<li><b>Orden de las sospechosas:</b> por parsimonia, primero la causa que explica más síntomas observados. Si una sola causa queda posible después de descartar las demás, se confirma por descarte.</li>
+</ul>
+<p>Cada grafo está escrito en un archivo YAML (grafos/ra-XX-*.yaml) con sus eventos, sus lógicas, sus observables y una recomendación por causa raíz. El motor es código propio del grupo y se valida con 16 pruebas, una por cada tipo de lógica y propagación. Las figuras se generan desde los mismos YAML: causas en naranja, condiciones de contexto en gris, evento central en rojo y efectos en violeta; el borde grueso marca un evento medido y el punteado uno inferido.</p>
+
+<h2>Un grafo por requisito</h2>
+<table border="1">
+<tr><td><b>RA</b></td><td><b>Evento central</b></td><td><b>Causas raíz</b></td><td><b>Efectos</b></td></tr>
+<tr><td>RA-01</td><td>Temperatura fuera de la zona de confort</td><td>Calor exterior, sol directo, ocupación alta, puerta cerrada con gente, aire apagado o averiado, muchos equipos encendidos, consigna del aire muy baja</td><td>Somnolencia y menor rendimiento, golpe de calor, frío, más consumo de climatización</td></tr>
+<tr><td>RA-02</td><td>Humedad relativa fuera de rango</td><td>Aula ocupada con la puerta cerrada, clima húmedo de Lima, aire apagado, aire que reseca</td><td>Condensación y moho, daño a equipos, resequedad</td></tr>
+<tr><td>RA-03</td><td>CO₂ alto: ventilación insuficiente para la ocupación</td><td>Puerta cerrada más de 30 min, aire sin renovación exterior, ventanas cerradas, ocupación alta, sobreaforo</td><td>Fatiga, dolor de cabeza, menor rendimiento cognitivo</td></tr>
+<tr><td>RA-04</td><td>Iluminación insuficiente con el aula ocupada</td><td>Luces apagadas, luminaria dañada, poca luz natural, cortinas cerradas</td><td>Fatiga visual, menor concentración</td></tr>
+<tr><td>RA-05</td><td>Gas o humo detectado</td><td>Incendio, cortocircuito, fuga de gas, falsa alarma, MQ-2 sin calentar</td><td>Riesgo para la vida, evacuación</td></tr>
+<tr><td>RA-06</td><td>Aforo superado</td><td>Evento no programado, clase sobredimensionada, conteo térmico erróneo</td><td>CO₂ y ruido altos, calor, evacuación más lenta</td></tr>
+<tr><td>RA-07</td><td>Ruido excesivo en el aula</td><td>Actividad grupal, equipo con ruido mecánico, ruido del pasillo con la puerta abierta, portazos</td><td>No se entiende al docente, estrés y fatiga auditiva</td></tr>
+<tr><td>RA-08</td><td>Consumo fantasma</td><td>Nadie apagó al salir, limpieza o mantenimiento con luces, aire encendido sin clase</td><td>Costo evitable en soles, emisiones evitables de CO₂</td></tr>
+<tr><td>RA-09</td><td>Actividad en el aula fuera del horario oficial</td><td>Olvido de cierre, ingreso no autorizado, ronda o limpieza</td><td>Riesgo de robo, pérdida de climatización y energía</td></tr>
+<tr><td>RA-10</td><td>Falla del sistema de medición</td><td>Gateway caído, canal ESP-NOW distinto, falla de un sensor, nodo sin batería o apagado</td><td>Requisitos en "desconocido", tablero y gemelo incompletos</td></tr>
+</table>
+<p align="center"><img src="../../grafos/figuras/ra-01-temperatura.png" width="620"></p>
+<p align="center"><i>Figura 2. Grafo causal del RA-01 (confort térmico).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-02-humedad.png" width="620"></p>
+<p align="center"><i>Figura 3. Grafo causal del RA-02 (humedad).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-03-co2.png" width="620"></p>
+<p align="center"><i>Figura 4. Grafo causal del RA-03 (CO₂ y ventilación).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-04-iluminacion.png" width="620"></p>
+<p align="center"><i>Figura 5. Grafo causal del RA-04 (iluminación).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-05-gas.png" width="620"></p>
+<p align="center"><i>Figura 6. Grafo causal del RA-05 (gas o humo).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-06-aforo.png" width="620"></p>
+<p align="center"><i>Figura 7. Grafo causal del RA-06 (aforo).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-07-ruido.png" width="620"></p>
+<p align="center"><i>Figura 8. Grafo causal del RA-07 (ruido).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-08-consumo-fantasma.png" width="620"></p>
+<p align="center"><i>Figura 9. Grafo causal del RA-08 (consumo fantasma).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-09-seguridad-fisica.png" width="620"></p>
+<p align="center"><i>Figura 10. Grafo causal del RA-09 (seguridad física).</i></p>
+<p align="center"><img src="../../grafos/figuras/ra-10-salud.png" width="620"></p>
+<p align="center"><i>Figura 11. Grafo causal del RA-10 (salud del sistema).</i></p>
+
+<h2>Ejemplo de propagación: aula vacía con las luces encendidas (simulado)</h2>
+<p>En el escenario simulado "vacio-con-luces", los estudiantes salen a las 10:30 y dejan las luces y la mitad de las computadoras encendidas. Después de 35 minutos simulados, el motor produce este diagnóstico del RA-08:</p>
+<ol>
+<li><b>Observaciones:</b> la MLX90640 indica aula vacía (verdadero); el BH1750 indica luces encendidas (verdadero); el tiempo supera los 30 minutos (verdadero); el INMP441 no detecta el ruido mecánico del aire acondicionado, así que "aire encendido" es falso.</li>
+<li><b>Evento central:</b> "consumo fantasma" es verdadero, y el RA-08 pasa a crítico.</li>
+<li><b>Aguas arriba:</b> "luces encendidas con el aula vacía" es verdadero. Sus dos causas raíz, "nadie apagó al salir" y "limpieza o mantenimiento con luces", quedan sospechosas, y cada una explica dos de los síntomas observados. La causa "aire programado fuera de horario" queda desconocida, porque el aire está apagado.</li>
+<li><b>Aguas abajo:</b> los efectos "costo evitable en soles" y "emisiones evitables de CO₂" se predicen verdaderos. El estimador de consumo fantasma los cuantifica en kWh, soles y kg de CO₂.</li>
+<li><b>Recomendaciones:</b> avisar al vigilante para que apague en su ronda y poner un cartel de "apaga al salir"; confirmar con el personal de limpieza su horario.</li>
+</ol>
+<p>Un segundo ejemplo muestra el descarte. En el escenario "nodo-sin-bateria" el nodo térmico deja de transmitir. El grafo del RA-10 tiene como causas posibles el Gateway caído y el nodo apagado. Como los otros seis nodos siguen llegando, la causa "Gateway caído" se descarta (su salida es AND: si el Gateway estuviera caído, no llegaría ningún nodo), y "nodo 5 sin batería o apagado" queda confirmada por descarte. Con el Gateway realmente caído ocurre lo contrario: el motor diagnostica el Gateway y no siete sensores rotos.</p>
+
+<h1>Interfaz</h1>
+<p>El grupo construyó un tablero web propio (demo/tablero, en React) que lee la API del servicio y se actualiza cada segundo por Server-Sent Events. Se abre desde cualquier laptop de la red en el puerto 8000, sin internet. Los tableros de Grafana del docente quedan enlazados desde el tablero para los históricos.</p>
+<p>La pauta pide tres mínimos, y el tablero los cumple así:</p>
+<ol>
+<li><b>Información de las mediciones:</b> una tarjeta por nodo con su valor, su unidad, su tendencia y sus anomalías, más el estado de cada nodo (último dato, tolerancia y paquetes perdidos).</li>
+<li><b>Estado del salón frente a los requisitos:</b> un semáforo con los diez RA, su valor actual y su nivel.</li>
+<li><b>Causas, efectos y recomendaciones:</b> al elegir un RA, el panel muestra las causas sospechosas en orden de probabilidad, las descartadas por las mediciones, las consecuencias esperadas y qué hacer. Muestra también el grafo causal con el valor de cada evento.</li>
+</ol>
+<p>Además es interactivo:</p>
+<ul>
+<li>se puede elegir cualquier RA y explorar su grafo;</li>
+<li>muestra el plano del aula con la posición de cada nodo y la ocupación;</li>
+<li>estima el consumo fantasma en soles, kWh y kg de CO₂;</li>
+<li>incluye el log de eventos con filtros y exportación a CSV;</li>
+<li>tiene botones para lanzar los escenarios de la demo y cambiar la velocidad del simulador.</li>
+</ul>
+<p>Una franja fija arriba dice "DATOS SIMULADOS" mientras los datos vengan del simulador, y el tablero indica cuántos datos del aula siguen siendo supuestos.</p>
+<p align="center"><img src="figuras/tablero-vacio-con-luces.png" width="620"></p>
+<p align="center"><i>Figura 12. Tablero completo durante el escenario simulado "vacio-con-luces": RA-08 en crítico con sus causas, su grafo y el consumo fantasma estimado.</i></p>
+<p align="center"><img src="figuras/tablero-gas-ra05.png" width="620"></p>
+<p align="center"><i>Figura 13. Escenario simulado "gas": RA-05 en crítico. El motor descarta el incendio (no hay subida rápida de temperatura) y el MQ-2 sin calentar.</i></p>
+<p align="center"><img src="figuras/tablero-nodo-sin-bateria-ra10.png" width="620"></p>
+<p align="center"><i>Figura 14. Escenario simulado "nodo-sin-bateria": RA-10 confirma por descarte que el nodo 5 se quedó sin batería, y los RA que dependen de ese nodo pasan a "sin datos".</i></p>
+
+<h1>Simulación, footprint y log de eventos</h1>
+<p>Todos los resultados de esta sección son simulados.</p>
+<h2>Simulador</h2>
+<p>Mientras el hardware no esté instalado, el simulador del grupo reemplaza a los siete nodos y al Gateway. Publica en el mismo broker y con el mismo JSON que el Gateway, pero en el grupo sim (utec/gemelo/sim/nodo&lt;id&gt;/&lt;tipo&gt;), así que Telegraf, InfluxDB, Grafana y el servicio del grupo lo procesan igual que a los datos reales. Para pasar a los datos reales basta cambiar el nombre del grupo en config/nodos.yaml.</p>
+<p>El simulador modela la física del aula con los datos de config/aula_l419.yaml: el balance de CO₂ según el volumen del aula y la ocupación, la temperatura, la luz natural y artificial, y el horario de clases. Cada nodo replica la lógica de anomalías del firmware del docente. Ofrece once escenarios para la demo: normal, clase, vacio-con-luces, aire-averiado, sobreaforo, intrusion-nocturna, gas, falla-sensor, nodo-sin-bateria, gateway-caido y restablecer.</p>
+<p>Los 29 datos del aula (aforo, dimensiones, potencias, horario, tarifa) están en un solo archivo, cada uno marcado como supuesto y con su fuente. Cuando el grupo mida el aula, se cambia ese archivo y todo se recalcula.</p>
+
+<h2>Log de eventos (footprint)</h2>
+<p>El servicio registra cada cambio relevante:</p>
+<ul>
+<li>cada RA que cambia de nivel, con su diagnóstico;</li>
+<li>la apertura y el cierre de la puerta;</li>
+<li>las entradas y salidas;</li>
+<li>el encendido y apagado de las luces;</li>
+<li>las anomalías nuevas de los nodos;</li>
+<li>los nodos que dejan de reportar o vuelven;</li>
+<li>el estado del Gateway.</li>
+</ul>
+<p>Cada evento se guarda en logs/events.jsonl y en InfluxDB, en dos measurements propias: campustwin_evento (una fila por evento) y campustwin_ra (el nivel de cada RA). Así Grafana también puede graficar el estado del aula. El log se filtra y se exporta a CSV desde el tablero.</p>
+<p>Extracto del log de una sesión grabada y reproducida por el stack del docente (guion: clase, gas al minuto 4, restablecer al minuto 10, Gateway caído al minuto 12):</p>
+<table border="1">
+<tr><td><b>Hora</b></td><td><b>Severidad</b></td><td><b>Evento</b></td></tr>
+<tr><td>09:00:01</td><td>info</td><td>Gateway en línea</td></tr>
+<tr><td>09:00:01</td><td>info</td><td>Puerta abierta</td></tr>
+<tr><td>09:00:16</td><td>info</td><td>Entradas 3, salidas 0: ocupación estimada 14</td></tr>
+<tr><td>09:04:01</td><td>crítico</td><td>Nodo 3 (gas): GAS_DETECTADO</td></tr>
+<tr><td>09:04:30</td><td>crítico</td><td>RA-05 Seguridad ante gas o humo: el nodo MQ-2 reporta gas o humo</td></tr>
+<tr><td>09:10:30</td><td>info</td><td>RA-05 volvió a nominal</td></tr>
+<tr><td>09:12:00</td><td>crítico</td><td>Gateway desconectado (LWT offline)</td></tr>
+<tr><td>09:12:00</td><td>crítico</td><td>RA-10 Salud del sistema: Gateway desconectado, no llega ningún nodo</td></tr>
+</table>
+
+<h2>Grabación y reproducción (RF-11, CP-11)</h2>
+<p>El servicio graba los mensajes de una sesión, sea del simulador o del Gateway real, y los reproduce después con su hora original. Esto sirve para repetir la demo exactamente igual y para analizar los datos reales de la semana 15 sin el hardware. En la prueba CP-11 se grabaron 12 minutos (1372 mensajes) y se reprodujeron a 60 veces la velocidad real por Mosquitto, Telegraf e InfluxDB: llegaron los 1372 mensajes, con la misma cantidad por tipo que la grabación. Esa misma prueba encontró un error que ya está corregido: dos procesos conectados al broker con el mismo identificador se desconectaban mutuamente y se perdía la mitad de los mensajes.</p>
+
+<h2>Auditoría del consumo fantasma (CP-06)</h2>
+<p>El sistema no mide potencia: estima el consumo fantasma con las luces (BH1750), la ocupación (MLX90640) y el inventario de potencias del aula. El simulador sí conoce la potencia que consume el aula simulada, y eso permite auditar el método. El criterio del grupo es un error de la energía estimada no mayor de ±15 % y ningún falso positivo.</p>
+<table border="1">
+<tr><td><b>Caso</b></td><td><b>Escenario</b></td><td><b>Energía real simulada (kWh)</b></td><td><b>Estimada (kWh)</b></td><td><b>Error</b></td><td><b>Resultado</b></td></tr>
+<tr><td>A</td><td>Todos salen a las 10:30 y dejan luces y la mitad de los PC encendidos (2 h)</td><td>1,034</td><td>1,078</td><td>+4,3 %</td><td>Aprobado</td></tr>
+<tr><td>B</td><td>Día normal de 07:00 a 22:00; el simulador decide al azar si alguien olvida las luces tras la última clase</td><td>1,034</td><td>1,078</td><td>+4,3 %</td><td>Aprobado</td></tr>
+<tr><td>C</td><td>Noche de 21:30 a 03:30 con el aula apagada</td><td>0</td><td>0</td><td>Sin falsos positivos</td><td>Aprobado</td></tr>
+</table>
+<p>Los casos A y B dan la misma energía porque en ambos el aula queda vacía con las luces encendidas durante dos horas: en A desde las 10:30 y en B desde las 20:00, cuando el simulador decidió que nadie apagó. La energía real se cuenta desde que vence la tolerancia de 10 minutos del RA-08. La diferencia viene de la fracción supuesta de computadoras que quedan encendidas. Esta auditoría valida la lógica del método; su exactitud real depende de las potencias del inventario, que se revisan en el aula.</p>
+<p>Los mismos datos llegan a Grafana, donde se ven con los dos tableros del docente sin cambios. Al cargarlos por aprovisionamiento, el grupo encontró que apuntaban a una fuente de datos sin resolver (${DS_INFLUXDB}) y que todos los paneles decían "No data"; la copia derivada de deploy/grafana/ lo corrige. Las capturas son del 11/11/2026, con datos simulados (grupo sim) y una ventana de 3 horas.</p>
+<p align="center"><img src="figuras/grafana-completo.png" width="620"></p>
+<p align="center"><i>Figura 15. Tablero del docente "Gemelo digital L418 — 7 sensores" en Grafana con datos simulados: estado del salón, salud de los nodos, ocupación y puerta, y calidad del aire. El título dice L418; el aula del grupo es el L-419.</i></p>
+<p align="center"><img src="figuras/grafana-iot.png" width="620"></p>
+<p align="center"><i>Figura 16. Tablero del docente "Sensores IoT UTEC" con los mismos datos simulados: CO₂, nivel sonoro y el registro de anomalías que reporta el Gateway (aquí, ILUMINACION_BAJA del nodo 4 al terminar la clase).</i></p>
+
+<h1>Gemelo digital en Gaphor</h1>
+<p>El gemelo digital del L-419 se modela en Gaphor con SysML. El archivo modelo/campus-twin-l419.gaphor es el entregable y el script modelo/tools/build_model.py lo regenera por completo, de modo que cada elemento se puede rastrear hasta el documento maestro, la configuración o el código del docente. Para la EC3 el modelo pasó de 12 diagramas en 4 paquetes (Semana 7) a 36 diagramas en 6 paquetes, y dejó de describir la propuesta original (Raspberry Pi, PZEM, SHT31) para describir la arquitectura oficial del curso.</p>
+<table border="1">
+<tr><td><b>Paquete</b></td><td><b>Semana 7</b></td><td><b>EC3</b></td><td><b>Qué cambió</b></td></tr>
+<tr><td>00 Vista general</td><td>2</td><td>2</td><td>Se conservan; el mapa de requisitos usa los textos del 10/11</td></tr>
+<tr><td>01 Requisitos</td><td>4</td><td>6</td><td>Se agregan los RA-01 a RA-10 con su derivación y su trazabilidad a la arquitectura oficial</td></tr>
+<tr><td>02 Estructura</td><td>4</td><td>9</td><td>Se conservan los 4 de septiembre y se agrega el subpaquete «Arquitectura oficial EC3»: 4 diagramas de bloques y 1 diagrama interno de bloques</td></tr>
+<tr><td>03 Verificación</td><td>2</td><td>3</td><td>Casos de prueba actualizados: sin CP-01 (retirado el 10/11), con CP-16 y con los casos de los RA</td></tr>
+<tr><td>04 Comportamiento</td><td>—</td><td>6</td><td>Nuevo: 3 actividades, 2 máquinas de estados y 1 diagrama de casos de uso</td></tr>
+<tr><td>05 Diagnóstico causal</td><td>—</td><td>10</td><td>Nuevo: un diagrama por RA, enlazado a la figura de su grafo</td></tr>
+</table>
+<h2>Estructura: la arquitectura oficial</h2>
+<p>El diagrama de bloques del sistema muestra los siete nodos, el Gateway ESP32, la red Wi-Fi local, la laptop con Docker y el aula que se monitorea. Cada caja de nodo hereda de una caja abstracta el ESP32 DevKit V1, la protoboard de 170 puntos, la batería 18650 con su porta-batería y el regulador (pendiente de definir), y agrega su sensor. Cada sensor declara los campos que entrega en el JSON del Gateway (co2_ppm, leq_db, rs_r0, etc.) y referencia la foto de su etiqueta con QR de la orden de compra. El MQ-2 y el MLX90640 no tienen foto, y el modelo lo dice.</p>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/02_Estructura/0_Arquitectura_oficial_EC3/1_bdd_Arquitectura_oficial_Gemelo_digital_del_L_419.png" width="620"></p>
+<p align="center"><i>Figura 17. Diagrama de bloques del sistema oficial: red de nodos ESP-NOW, Gateway, red Wi-Fi, laptop y aula.</i></p>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/02_Estructura/0_Arquitectura_oficial_EC3/2_bdd_Arquitectura_oficial_Cajas_de_los_7_nodos.png" width="620"></p>
+<p align="center"><i>Figura 18. Las cajas de los siete nodos, con los campos que entrega cada sensor. El índice tonal del INMP441 se declara de 0 a 1.</i></p>
+<p>El diagrama interno de bloques (IBD) sigue el dato de punta a punta: sensor, ESP32 (por UART, I²S, I²C o entrada analógica), ESP-NOW, Gateway, Wi-Fi y MQTT, Mosquitto, Telegraf, InfluxDB y, al final, el servicio del grupo, el tablero, Gaphor en vivo y el copiloto. Cada conector lleva el medio por el que viaja y un flujo de ítem con su sentido (24 flujos). Incluye el simulador, que hoy es la única fuente de datos.</p>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/02_Estructura/0_Arquitectura_oficial_EC3/Cadena_de_datos_L-419/5_ibd_Arquitectura_oficial_Flujo_de_datos.png" width="620"></p>
+<p align="center"><i>Figura 19. Diagrama interno de bloques del flujo de datos, del sensor al tablero.</i></p>
+<h2>Requisitos y trazabilidad</h2>
+<p>El modelo tiene las 7 necesidades (NS), los 13 requisitos funcionales y los 12 no funcionales con el texto del documento maestro, y los diez requisitos de alto nivel RA-01 a RA-10 leídos de config/requisitos_ra.yaml, el mismo archivo que usa el servicio. Al regenerar el modelo, el script comprueba que todo RF y todo RA tenga un bloque que lo satisface (satisfy) y un caso de prueba que lo verifica (verify), y que todo RNF tenga caso de prueba. Hoy no queda ninguno sin cubrir. El satisfy de los RA apunta a los bloques de la arquitectura oficial: los nodos que miden cada RA y el evaluador de RA, que satisface los diez.</p>
+<p>El 12/11 se agregaron cuatro requisitos no funcionales para las cajas de los nodos: montaje (RNF-09), operación (RNF-10), dimensiones y fabricación (RNF-11) y energía (RNF-12). Derivan de NS-5 y los satisface el bloque «Caja de nodo». Los verifican un caso de prueba nuevo, CP-16 (inspección de las cajas, para RNF-09, RNF-10 y RNF-11), y CP-13 (autonomía, para RNF-12). Ambos ensayos están pendientes para la semana 15.</p>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/01_Requisitos/6_req_Requisitos_Trazabilidad_de_los_RA_a_la_arquitectura_oficial.png" width="620"></p>
+<p align="center"><i>Figura 20. Trazabilidad de los RA: los nodos que miden cada uno y el evaluador de RA los satisfacen.</i></p>
+<p>El paquete 05 Diagnóstico causal tiene un diagrama por RA con su texto completo, una nota con su grafo (título, causas raíz y efectos) y la ruta de su figura en grafos/figuras/. Las figuras se enlazan por ruta y no se incrustan: pesarían unos 2 MB dentro del archivo del modelo y quedarían desactualizadas cada vez que se regeneran los grafos.</p>
+<h2>Comportamiento</h2>
+<p>Los seis diagramas del paquete 04 salen del firmware del docente, del servicio del grupo y de la pauta de la EC3, y cada uno cita su fuente en una nota.</p>
+<ul>
+<li><b>Actividades.</b> Telemetría de un nodo: del arranque al estado del aula, en tres carriles (nodo, Gateway y laptop), con la nueva búsqueda de canal tras 10 envíos fallidos y la cola de 32 mensajes del Gateway. Entrada y salida de personas: la rama del KY-024 y la de la MLX90640 corren en paralelo y las junta el servicio. Detección, diagnóstico y alerta: evaluación de RA-01 a RA-10, recorrido del grafo SymCure y avisos por el log, MQTT, el tablero y la voz.</li>
+<li><b>Máquinas de estados.</b> Aula: vacía, ocupada, sobreaforo, luces sin ocupación (RA-08), uso fuera de horario (RA-09) y alarma de gas (RA-05), que manda sobre todos los demás. Nodo: calentando, activo, falla del sensor y sin datos (lo decide el servicio tras tres periodos sin paquete).</li>
+<li><b>Casos de uso.</b> Clase, mantenimiento, limpieza, emergencia, monitoreo del administrador y ronda del vigilante, con los casos que varios comparten: condición de los RA, diagnóstico causal, salud de los nodos, registro de eventos, consumo fantasma y consulta por voz.</li>
+</ul>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/04_Comportamiento/Telemetría_de_un_nodo/1_act_Comportamiento_Telemetría_de_un_nodo.png" width="620"></p>
+<p align="center"><i>Figura 21. Actividad: telemetría de un nodo, del arranque a InfluxDB y al estado del aula.</i></p>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/04_Comportamiento/Estados_del_aula/4_stm_Comportamiento_Estados_del_aula.png" width="620"></p>
+<p align="center"><i>Figura 22. Máquina de estados del aula.</i></p>
+<p align="center"><img src="../../modelo/export/Campus_Twin_L-419/04_Comportamiento/6_uc_Comportamiento_Casos_de_uso_del_aula.png" width="620"></p>
+<p align="center"><i>Figura 23. Casos de uso del aula.</i></p>
+<p>Modelar el comportamiento obligó a leer el código con cuidado y dejó cuatro hallazgos. Dos ya se corrigieron el 12/11: el servicio ahora no repite la alerta de un RA durante 15 minutos (RF-08), y el documento maestro dice que los nodos vuelven a buscar el canal tras 10 envíos fallidos, no solo al arrancar. Quedan dos, anotados en modelo/README.md: el nodo térmico cuenta personas sin mirar al KY-024 (los junta el servicio, así que la coordinación que pide RF-03 la hace el servicio), y el tópico de diagnóstico previsto todavía no se publica, porque las causas y recomendaciones viajan dentro de cada evento.</p>
+<h2>Gaphor en vivo</h2>
+<p>El enlace en vivo (demo/gaphor-vivo/) abre una copia del modelo, consulta la API del servicio del grupo (http://localhost:8000/api/estado) cada segundo y hace dos cosas. Escribe en el bloque de cada uno de los 7 sensores los campos que su nodo reportó (37 valores por consulta, por ejemplo co2_ppm = 422 en el MH-Z1911A). Además pinta cada bloque según la condición de su RA: gris azulado si es nominal, ámbar en alerta, rojo oscuro en crítico y gris tenue si el nodo está caído o su RA no se puede evaluar. Si un nodo participa en varios RA, toma el color del peor. La nota del diagrama rotula la fuente: mientras sea el simulador, dice DATOS SIMULADOS. El código usa solo la biblioteca estándar, porque corre en el intérprete de Gaphor, y nunca modifica el entregable: trabaja sobre una copia.</p>
+<p align="center"><img src="figuras/gaphor-en-vivo-gas.png" width="620"></p>
+<p align="center"><i>Figura 24. Gaphor en vivo con el escenario simulado «gas»: el RA-05 está en crítico y el bloque del MQ-2 se pinta de rojo. Datos simulados del 12/11/2026.</i></p>
+<p><b>Verificación.</b> 21 pruebas automáticas, parte de las 111 del servicio, comparan la tabla de nodos y RA del enlace con config/nodos.yaml, config/requisitos_ra.yaml y los bloques del modelo, y comprueban los colores y el formato de cada campo. Además, el enlace se corrió contra el simulador: con el escenario gas se pintaron de rojo el MQ-2 y la caja del nodo 3, y con nodo-sin-bateria quedaron en gris el nodo 5 y el nodo 4, cuyos RA no se pueden evaluar sin el 5.</p>
+<h2>Estado al 12/11/2026</h2>
+<table border="1">
+<tr><td><b>Parte</b></td><td><b>Estado</b></td></tr>
+<tr><td>Diagramas del modelo (36) y su exportación en SVG y PNG</td><td>Hecho; se regeneran con build_model.py</td></tr>
+<tr><td>Arquitectura oficial, IBD, RA, trazabilidad y comportamiento</td><td>Hecho. El modelo se basa en la documentación y el código: ningún dato es una medición real</td></tr>
+<tr><td>Enlace en vivo con 7 sensores y color por RA</td><td>Simulado: probado con el simulador; sin probar con el Gateway real</td></tr>
+<tr><td>Requisitos de las cajas RNF-09 a RNF-12 y caso de prueba CP-16</td><td>Hecho en el modelo; el ensayo físico está pendiente (semana 15)</td></tr>
+<tr><td>Comportamiento con hardware (conteo, puerta, autonomía)</td><td>Pendiente (semana 15)</td></tr>
+</table>
+<p>El firmware de los nodos, el Gateway y el stack del servidor son del docente, y el modelo los representa sin modificarlos. El modelo, el script que lo genera, los diagramas de comportamiento y el enlace en vivo son del grupo. El modelo sirve para el monitoreo en vivo, para el análisis de trazabilidad (qué bloque satisface cada requisito y qué prueba lo verifica) y para apoyar decisiones (qué RA depende de qué nodo cuando uno falla).</p>
+
+<h1>Gestión del proyecto en Asana</h1>
+<p align="center"><img src="figuras/asana-lista-s14.png" width="620"></p>
+<p align="center"><i>Figura 25. Vista de lista del proyecto en Asana (captura real del 11/11/2026), sección S14 · EC3: cada tarea tiene responsable y fecha; las cerradas aparecen con el visto verde y las pendientes (Gaphor, logotipo, fotos con QR y la cita en el L-414) siguen abiertas.</i></p>
+<p align="center"><img src="figuras/asana-tarea-cerrada.png" width="620"></p>
+<p align="center"><i>Figura 26. Una tarea cerrada con su evidencia (captura real): la descripción dice qué se hizo, en qué archivo y con cuántas pruebas.</i></p>
+<p>El grupo gestiona el proyecto en un tablero de Asana con 71 tareas, cada una con responsable y fecha. Las tareas usan los mismos identificadores que los requisitos y las pruebas (RF, RNF, CP y RA), así que cada requisito se puede seguir desde el documento maestro hasta su tarea. El repositorio tiene un espejo del tablero (docs/03-plan.md) que se actualiza en la misma pasada que Asana.</p>
+<p>Desde la EC2, Asana se usó así:</p>
+<ul>
+<li><b>Reorganización del 10/11:</b> al adoptar la arquitectura oficial, se renombraron 30 tareas que nombraban hardware anterior, se agregaron 15 tareas nuevas (RA, grafos, motor causal, programa MQ-2, energía de las cajas y Gaphor) y se reabrió una tarea cerrada sin entregable.</li>
+<li><b>Limpieza:</b> se eliminaron 4 tareas obsoletas o duplicadas (la prueba del PZEM y tres tareas repetidas del copiloto), y las secciones se ordenaron por semana: S14 EC3, S15 Hardware y S16 Demo final.</li>
+<li><b>Cierre con evidencia:</b> una tarea se cierra solo cuando el entregable existe. La nota de cierre dice dónde está y si se probó con datos simulados o reales. Cuando una tarea la terminó otro integrante, se reasignó a quien la hizo.</li>
+</ul>
+<p>Al 12/11/2026 hay 47 de 71 tareas cerradas (66 %). Las pendientes son, en su mayoría, las pruebas con hardware de la semana 15 y la demo final de la semana 16.</p>
+
+<h1>Conclusiones y próximos pasos</h1>
+<p>El grupo integró su proyecto a la arquitectura oficial sin cambiar el formato del Gateway, y construyó sobre ella la capa que el curso pide para la EC3:</p>
+<ul>
+<li>diez requisitos de condición del salón;</li>
+<li>un grafo causal por requisito;</li>
+<li>un motor que diagnostica causas y predice efectos;</li>
+<li>un tablero con los tres mínimos.</li>
+</ul>
+<p>Todo funciona con datos simulados en el formato real, de modo que el paso a los datos del Gateway es un cambio de configuración. Las pruebas automáticas y las auditorías CP-06, CP-11 y CP-14 respaldan ese resultado. La principal limitación es que todavía no hay ninguna medición real: el desempeño de los sensores, la exactitud del consumo fantasma y la autonomía de las cajas son estimaciones que se verifican en las próximas dos semanas.</p>
+<p>Próximos pasos:</p>
+<ol>
+<li><b>Semana 15, L-414:</b> probar los nodos con el código del docente y flashear el nodo MQ-2. También:
+<ul>
+<li>medir R0 del MQ-2 y el consumo real de las cajas (CP-13);</li>
+<li>verificar el ambiente contra instrumentos de referencia (CP-07);</li>
+<li>probar el conteo de personas (CP-02) y los eventos de puerta (CP-08).</li>
+</ul></li>
+<li><b>NTP local:</b> configurar un servidor de hora en la laptop para que el Gateway funcione sin internet, y probar la resiliencia (CP-03).</li>
+<li><b>Datos del aula:</b> medir el L-419 (aforo, dimensiones, luminarias, equipos y horario) y reemplazar los 29 supuestos de config/aula_l419.yaml.</li>
+<li><b>Coordinación:</b> acordar con S1 G1 el grupo y la dirección del Gateway real, y con los grupos de las cajas la alimentación (USB o regulador) y la ubicación de cada nodo.</li>
+<li><b>Instalación y semana 16:</b> instalar los siete nodos en el L-419, completar el copiloto de voz, ensayar la demo y presentar.</li>
+</ol>
+
+<h1>Bibliografía</h1>
+<p>American Society of Heating, Refrigerating and Air-Conditioning Engineers. (2020). <i>ANSI/ASHRAE Standard 55-2020: Thermal environmental conditions for human occupancy</i>. ASHRAE.</p>
+<p>American Society of Heating, Refrigerating and Air-Conditioning Engineers. (2022). <i>ANSI/ASHRAE Standard 62.1-2022: Ventilation and acceptable indoor air quality</i>. ASHRAE.</p>
+<p>Acoustical Society of America. (2010). <i>ANSI/ASA S12.60-2010/Part 1: Acoustical performance criteria, design requirements, and guidelines for schools</i>. ASA.</p>
+<p>Bosch Sensortec. (2018). <i>BME280: Combined humidity and pressure sensor</i> [Hoja de datos].</p>
+<p>Carrillo-Hernández, O. F. (2012). Tendencias mundiales de producción y consumo de energía y reducción de emisiones de CO2. <i>Legado de Arquitectura y Diseño, 7</i>(11), 61-78. https://legadodearquitecturaydiseno.uaemex.mx/article/view/14035</p>
+<p>Comité Europeo de Normalización. (2021). <i>EN 12464-1:2021. Light and lighting: Lighting of work places. Part 1: Indoor work places</i>. CEN.</p>
+<p>de Loza, F. P., &amp; Villegas, F. J. I. (2024). Implementación de tecnologías IoT para la reducción del consumo energético en oficinas inteligentes mediante el control de la iluminación. <i>Revista de Ciencias Tecnológicas, 7</i>(3), e332. https://recit.uabc.mx/index.php/revista/article/view/332</p>
+<p>Eclipse Foundation. (s. f.). <i>Eclipse Mosquitto documentation</i>. https://mosquitto.org/documentation/</p>
+<p>Espressif Systems. (s. f.). <i>ESP-NOW. ESP-IDF programming guide</i>. https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/network/esp_now.html</p>
+<p>Espressif Systems. (s. f.). <i>ESP32 series datasheet</i> [Hoja de datos].</p>
+<p>Figueroa, J. F. (2026). <i>Gemelo IoT del aula: firmware de los nodos ESP32, Gateway y servidor Docker</i> [Material del curso Proyectos Interdisciplinarios III]. UTEC.</p>
+<p>Figueroa, J. F. (2026). <i>Grafos de causalidad y SymCure</i> [Diapositivas del curso Proyectos Interdisciplinarios III]. UTEC.</p>
+<p>Friedenthal, S., Moore, A., &amp; Steiner, R. (2014). <i>A practical guide to SysML: The Systems Modeling Language</i> (3.ª ed.). Morgan Kaufmann.</p>
+<p>Gaphor. (s. f.). <i>Gaphor documentation</i>. https://docs.gaphor.org</p>
+<p>Grafana Labs. (s. f.). <i>Grafana documentation</i>. https://grafana.com/docs/</p>
+<p>Grieves, M., &amp; Vickers, J. (2017). Digital twin: Mitigating unpredictable, undesirable emergent behavior in complex systems. En F.-J. Kahlen, S. Flumerfelt y A. Alves (Eds.), <i>Transdisciplinary perspectives on complex systems</i> (pp. 85-113). Springer.</p>
+<p>Hanwei Electronics. (s. f.). <i>Technical data MQ-2 gas sensor</i> [Hoja de datos].</p>
+<p>Honeywell. (s. f.). <i>SS49E series linear Hall-effect sensor ICs</i> [Hoja de datos].</p>
+<p>InfluxData. (s. f.). <i>InfluxDB OSS v2 and Telegraf documentation</i>. https://docs.influxdata.com/</p>
+<p>InvenSense. (s. f.). <i>INMP441: Omnidirectional microphone with bottom port and I²S digital output</i> [Hoja de datos].</p>
+<p>Kapadia, R. (2003). SymCure: A model-based approach for fault management with causal directed graphs. En <i>Developments in applied artificial intelligence (IEA/AIE 2003)</i>. Lecture Notes in Computer Science. Springer.</p>
+<p>Melexis. (s. f.). <i>MLX90640 32x24 IR array</i> [Hoja de datos].</p>
+<p>Ministerio de Vivienda, Construcción y Saneamiento. (s. f.). <i>Reglamento Nacional de Edificaciones, Norma A.040 Educación</i>. Lima, Perú.</p>
+<p>National Aeronautics and Space Administration. (2016). <i>NASA systems engineering handbook</i> (NASA/SP-2016-6105 Rev2). NASA.</p>
+<p>Object Management Group. (2019). <i>OMG Systems Modeling Language (OMG SysML), versión 1.6</i>. OMG.</p>
+<p>ROHM Semiconductor. (s. f.). <i>BH1750FVI: Digital 16-bit serial output type ambient light sensor IC</i> [Hoja de datos].</p>
+<p>Zhengzhou Winsen Electronics Technology. (s. f.). <i>MH-Z19B intelligent infrared CO2 module: User's manual</i> [Hoja de datos].</p>
