@@ -253,8 +253,8 @@ ALERTA = Actividad(
         Flujo("alerta", "grafo", "[alerta o crítico]", sale=ESTE, entra=OESTE),
         Flujo("grafo", "recomendar"),
         Flujo("recomendar", "cambio"),
-        Flujo("cambio", "repetida", "[sin cambio]"),
-        Flujo("cambio", "abrir", "[cambió de nivel]", sale=ESTE, entra=NORTE, via=((3.5, 5),)),
+        Flujo("cambio", "repetida", "[repetida]"),
+        Flujo("cambio", "abrir", "[aviso nuevo]", sale=ESTE, entra=NORTE, via=((3.5, 5),)),
         Flujo("abrir", "bitacora"),
         Flujo("abrir", "mqtt"),
         Flujo("abrir", "tablero"),
@@ -267,11 +267,11 @@ ALERTA = Actividad(
     ),
     nota=("Fuente: demo/servidor/gemelo/servicio.py (evaluación y salidas), grafos.py y "
           "razonamiento.py (SymCure) y config/requisitos_ra.yaml.\n\n"
-          "El servicio registra un RA solo cuando cambia de nivel, así que una alerta que sigue "
-          "activa no se repite. El silencio configurable de 15 min que pide RF-08 no está "
-          "implementado todavía. Hoy se publican los tópicos campustwin/evento y campustwin/ra; "
-          "el tópico diagnostico de la decisión D4 aún no: las causas y las recomendaciones "
-          "viajan dentro del evento.\n\n"
+          "Un RA se avisa cuando cambia de nivel, y no se repite el mismo nivel antes de su "
+          "silencio_min (15 min en config/requisitos_ra.yaml, RF-08): la decisión «repetida» "
+          "cubre las dos cosas. Si un RA sube de alerta a crítico, se avisa igual. Hoy se publican "
+          "los tópicos campustwin/evento y campustwin/ra; el tópico diagnostico de la decisión "
+          "D4 aún no: las causas y las recomendaciones viajan dentro del evento.\n\n"
           "Estado: simulado; con el simulador funciona de punta a punta, sin hardware real."),
 )
 

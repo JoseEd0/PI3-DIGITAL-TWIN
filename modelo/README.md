@@ -39,7 +39,7 @@ ya no satisfacen ningún requisito. La **arquitectura oficial** del curso está 
 | Diagrama | Qué muestra |
 |---|---|
 | 1 bdd — Campus Twin de un vistazo | **Todo el sistema en un solo diagrama**: el bloque del sistema, sus seis subsistemas, los cinco actores externos, los cuatro tipos de nodo con su instrumentación, los ocho servicios del servidor y las partes del copiloto de voz. Debajo de cada nodo van sus sensores, y **dentro de cada sensor la magnitud que entrega** con su unidad |
-| 2 req — Mapa de requisitos | **Todos los requisitos en un solo diagrama**: las 7 necesidades con los 13 RF y 8 RNF que derivan de ellas |
+| 2 req — Mapa de requisitos | **Todos los requisitos en un solo diagrama**: las 7 necesidades con los 13 RF y 12 RNF que derivan de ellas |
 
 ### 01 Requisitos (req)
 
@@ -47,7 +47,7 @@ ya no satisfacen ningún requisito. La **arquitectura oficial** del curso está 
 |---|---|
 | 1 req — Necesidades de los stakeholders | Las 7 necesidades (NS-1 … NS-7) de las que cuelga todo |
 | 2 req — Requisitos funcionales | RF-01 … RF-13 con `deriveReqt` hacia su necesidad de origen |
-| 3 req — Requisitos no funcionales y restricciones | RNF-01 … RNF-08 con `deriveReqt` |
+| 3 req — Requisitos no funcionales y restricciones | RNF-01 … RNF-12 con `deriveReqt` (RNF-09..12, los de las cajas, derivan de NS-5) |
 | 4 req — Trazabilidad a la arquitectura | `satisfy` de los bloques de la arquitectura oficial hacia cada RF y RNF (columna "Bloque que lo satisface" del documento maestro, §8.2) |
 | 5 req — Requisitos de alto nivel RA-01..10 | Los 10 RA de la EC3, cada uno con `deriveReqt` hacia el RF que concreta en umbrales (campo `requisitos` de `config/requisitos_ra.yaml`) |
 | 6 req — Trazabilidad de los RA a la arquitectura oficial | `satisfy` de los nodos que miden cada RA (campo `nodos`) y del evaluador de RA, que satisface los diez |
@@ -84,7 +84,7 @@ según [../docs/02-instrumentacion-l419.md](../docs/02-instrumentacion-l419.md),
 | Diagrama | Qué muestra |
 |---|---|
 | 1 bdd — Gemelo digital del L-419 | El sistema con la red de 7 nodos ESP-NOW, el Gateway ESP32 v4, la red Wi-Fi local y la laptop (stack del docente y servicios del grupo), y el aula que monitorea. Nota de autoría y de estado (datos simulados) |
-| 2 bdd — Cajas de los 7 nodos | `Caja de nodo` (abstracta) con ESP32 DevKit V1, protoboard de 170 puntos, 18650 de 1600 mAh, porta-batería y regulador; cada nodo la especializa y agrega su sensor. **Cada sensor declara los campos que entrega en el JSON del Gateway** (`co2_ppm`, `leq_db`, `rs_r0`...) y lleva una nota con **la foto de su etiqueta con QR** en `docs/curso/imagenes/` |
+| 2 bdd — Cajas de los 7 nodos | `Caja de nodo` (abstracta) con ESP32 DevKit V1, protoboard de 170 puntos, 18650 de 1600 mAh, porta-batería y regulador; cada nodo la especializa y agrega su sensor. La caja abarca todas las columnas y cada herencia baja recta, con las puntas separadas del nombre. **Cada sensor declara los campos que entrega en el JSON del Gateway** (`co2_ppm`, `leq_db`, `rs_r0`...) y lleva una nota con **la foto de su etiqueta con QR** en `docs/curso/imagenes/` |
 | 3 bdd — Laptop: stack del docente y servicios del grupo | Mosquitto, Telegraf, InfluxDB 2.7 y Grafana (docente); servicio gemelo con sus 9 módulos, tablero web, Gaphor en vivo y copiloto de voz (pendiente) (grupo) |
 | 4 bdd — Objetos del aula | Puerta, ventana, aire acondicionado, luminarias, PC, proyector, pizarra y tablero eléctrico, con qué nodo observa cada uno. Las cantidades y potencias quedan en `config/aula_l419.yaml` |
 | 5 ibd — Flujo de datos | sensor → ESP32 (UART, I²S, I²C o analógico) → ESP-NOW → Gateway → Wi-Fi/MQTT → Mosquitto → Telegraf → InfluxDB → Grafana, y Mosquitto/InfluxDB → servicio gemelo → tablero, Gaphor en vivo y copiloto. Incluye el simulador, que hoy es la única fuente de datos |
@@ -92,6 +92,12 @@ según [../docs/02-instrumentacion-l419.md](../docs/02-instrumentacion-l419.md),
 El IBD cuelga del bloque `Cadena de datos L-419`: en el árbol aparece dentro de ese bloque.
 Cada conector lleva el medio por el que viaja el dato y un flujo de item con su sentido
 (`paquete: Paquete ESP-NOW`, `mensaje: JSON del Gateway`...).
+
+Gaphor dibuja el triángulo del flujo de item justo donde empieza el nombre del conector y lo tapaba
+(«I²S», «ESP-NOW»...). Por eso el nombre de cada conector lleva un salto de línea inicial, que lo
+baja debajo del triángulo; un margen en la hoja de estilo no lo logra. El bdd del sistema oficial se
+acomoda a mano, con cada bloque que agrupa tan ancho como sus partes, para que las composiciones
+bajen rectas y la asociación `monitorea` quede sola en su línea.
 
 Fotos referenciadas (además de la nota en el diagrama, cada bloque lo dice en su campo *Note*):
 
@@ -113,7 +119,7 @@ Los bloques nuevos no repiten ningún nombre de septiembre; el script se detiene
 | Diagrama | Qué muestra |
 |---|---|
 | 1 req — Casos de prueba de requisitos funcionales | `verify` de CP-02 … CP-11 y CP-15 hacia los RF. CP-01 se retiró el 10/11 (energía contra PZEM) y no está en el modelo |
-| 2 req — Casos de prueba de requisitos no funcionales | `verify` de CP-03, CP-05, CP-12 … CP-14 hacia los RNF |
+| 2 req — Casos de prueba de requisitos no funcionales | `verify` de CP-03, CP-05 y CP-12 … CP-14 hacia los RNF-01..08, más CP-16 hacia RNF-09, 10 y 11 y CP-13 también hacia RNF-12 |
 | 3 req — Casos de prueba de los RA | `verify` de CP-10 hacia los diez RA y del CP con hardware de cada uno |
 
 Qué CP verifica cada RA (`VERIFICACION_DE_RA` en el script; también en
@@ -130,7 +136,7 @@ Qué CP verifica cada RA (`VERIFICACION_DE_RA` en el script; también en
 
 Regla que el modelo mantiene: **todo RF y todo RA tienen al menos un bloque que los satisface
 (`satisfy`) y al menos un caso de prueba que los verifica (`verify`)**; todo RNF tiene caso de
-prueba.
+prueba. RNF-09..12 los satisface el bloque `Caja de nodo`.
 
 ### 04 Comportamiento (act, stm y uc)
 
@@ -144,7 +150,7 @@ Los datos están en `tools/datos_comportamiento.py` y `build_model.py` los dibuj
 |---|---|
 | 1 act — Telemetría de un nodo | Del arranque del nodo al estado del aula, en tres carriles (nodo, Gateway, laptop): búsqueda del canal por SSID, lectura, decisión de lectura válida (`FALLO_SENSOR` tras 5 fallos), paquete con `seq`, envío por ESP-NOW y nueva búsqueda del canal tras 10 fallos, cola de 32 mensajes del Gateway, publicación en MQTT y reparto en paralelo a Telegraf y al servicio. Se dibuja el nodo de CO₂ (`nodo_co2.ino`) |
 | 2 act — Entrada y salida de personas | Dos ramas en paralelo: el KY-024 (histéresis, antirrebote de 150 ms, latido cada 10 s) y la MLX90640 (fondo, cabezas, cruce de las líneas A y B, ocupación nunca negativa con `CONTEO_CORREGIDO`). Las junta el servicio, que deriva la presencia y evalúa RA-08 y RA-09 |
-| 3 act — Detección, diagnóstico y alerta | Evaluación de RA-01..10, recorrido del grafo causal (SymCure) aguas arriba, recomendaciones y, solo si el RA cambió de nivel, registro en la bitácora y en InfluxDB, publicación por MQTT, tablero y voz (pendiente) |
+| 3 act — Detección, diagnóstico y alerta | Evaluación de RA-01..10, recorrido del grafo causal (SymCure) aguas arriba, recomendaciones y, solo si el aviso es nuevo (el RA cambió de nivel y no está silenciado), registro en la bitácora y en InfluxDB, publicación por MQTT, tablero y voz (pendiente) |
 | 4 stm — Estados del aula | Los seis estados del brief: Vacío, Ocupado, Sobreaforo, Luces sin ocupación (RA-08), Uso fuera de horario (RA-09) y Alarma de gas (RA-05). Los cinco primeros van dentro de «Operación normal», y el gas, que manda sobre todos, sale de ese estado compuesto y vuelve a él |
 | 5 stm — Estados de un nodo | Calentando, Activo, Falla del sensor y Sin datos (el servicio lo decide tras tres periodos propios sin paquete, con mínimo de 30 s) |
 | 6 uc — Casos de uso del aula | Seis escenarios (clase, mantenimiento, limpieza, emergencia, monitoreo del administrador y ronda del vigilante) con sus actores y, en la columna central, los casos que varios «incluyen»: condición de los RA, diagnóstico causal, salud de los nodos, registro de eventos, consumo fantasma y consulta por voz. La frontera es el bloque `Gemelo Digital L-419`, que es el sujeto de cada caso |
@@ -153,13 +159,10 @@ Lo que el modelo dice del código actual, y que conviene tener presente:
 
 - El nodo térmico cuenta solo con la matriz y no mira al KY-024; el servicio los junta
   (`estado.py`). RF-03 habla de un conteo «coordinado», pero hoy esa coordinación es del servicio.
-- El servicio registra un RA solo al cambiar de nivel. El silencio de 15 min que pide RF-08 no
-  está implementado.
 - Se publican los tópicos `campustwin/evento` y `campustwin/ra`; el `diagnostico` de la decisión D4
   todavía no: las causas y recomendaciones viajan dentro del evento.
 - El firmware busca el canal del Gateway al arrancar **y otra vez tras 10 envíos fallidos**
-  (`espnow_nodo.h`, idéntico en los seis programas). El §8.5 del documento maestro dice que solo
-  lo hace al arrancar.
+  (`espnow_nodo.h`, idéntico en los seis programas); el §8.5 del documento maestro ya lo dice.
 
 ### 05 Diagnóstico causal (req)
 
@@ -175,15 +178,34 @@ Los textos de requisito del modelo son la versión corta de los criterios de ace
 `docs/00-idea-principal.md` §8; el criterio completo vive en el documento. Cada caso de prueba
 lleva en su campo *Note* el estado al 10/11 (real, simulado o pendiente), tal como lo dice §8.4.
 
+## Cambios frente a la Semana 7
+
+| Paquete | Semana 7 | Ahora |
+|---|---|---|
+| 00 Vista general | 2 | 2 |
+| 01 Requisitos | 4 | 6 (RA-01..10 y su trazabilidad) |
+| 02 Estructura | 4 | 9 (subpaquete de la arquitectura oficial: 4 bdd y 1 ibd) |
+| 03 Verificación | 2 | 3 (casos de prueba de los RA) |
+| 04 Comportamiento | — | 6 |
+| 05 Diagnóstico causal | — | 10 |
+| **Total** | **12** | **36** |
+
+Además: los textos de RF, RNF y CP siguen el documento maestro del 10/11 (sin CP-01), los bloques de
+sensor declaran los campos del JSON del Gateway con sus fotos, y el enlace en vivo (`demo/gaphor-vivo`)
+escribe en los 7 sensores y pinta cada bloque según su RA. Los requisitos de las cajas RNF-09..12 y el CP-16, que se agregaron al documento maestro el 12/11,
+ya están en el modelo, con su derivación de NS-5, su `satisfy` hacia `Caja de nodo` y su `verify` (CP-16 y CP-13). La sección del
+reporte está en [../docs/reporte-ec3/seccion-gaphor.md](../docs/reporte-ec3/seccion-gaphor.md).
+
 ## Diagramas exportados
 
-`export/` tiene los 36 diagramas en SVG, regenerables con:
+`export/` tiene los 36 diagramas en SVG y en PNG (los dos `.png` con nombre corto, `BDD.png` y
+`DIagrama_de_requisitos.png`, son de Luhana), regenerables con:
 
 ```bash
 /Applications/Gaphor.app/Contents/MacOS/gaphor export -f svg -u -o modelo/export modelo/campus-twin-l419.gaphor
 ```
 
-Cambia `-f svg` por `pdf` o `png` según se necesite para el informe o la presentación.
+Con `-f png` salen los PNG, con `pdf`, los PDF.
 
 ## Regenerar el modelo base
 

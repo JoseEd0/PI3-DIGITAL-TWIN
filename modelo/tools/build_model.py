@@ -77,6 +77,7 @@ SEPARACION_ENTRE_GRUPOS = 60.0
 # con sus sensores debajo. Ver diagrama_de_instrumentacion().
 SEPARACION_ENTRE_COLUMNAS = 56.0
 SEPARACION_ENTRE_FILAS = 54.0
+ALTO_EXTRA_DE_LA_CAJA = 36.0  # deja las puntas de herencia por debajo del nombre de «Caja de nodo»
 SEPARACION_ENTRE_SENSORES = 22.0
 # Los sensores van indentados respecto de su nodo: la linea baja por el pasillo
 # que queda a la izquierda en vez de cruzar por encima de las cajas de arriba.
@@ -171,6 +172,18 @@ REQUISITOS_NO_FUNCIONALES = [
     ("RNF-08", "Seguridad básica de acceso",
      "La red propia debe usar WPA2, el broker usuario y contraseña, el dashboard y la API inicio de sesión y HTTPS, sin puertos hacia la red del campus.",
      ["NS-6"]),
+    ("RNF-09", "Montaje de las cajas",
+     "Cada caja se fija con cinta VHB o bridas, sin perforar (RNF-01), en la posición y altura de docs/02-instrumentacion-l419.md §2: el CO₂ a 1.5 m (zona de respiración), el térmico en el marco superior de la puerta a 2.3 m apuntando al vano, el imán del KY-024 en la hoja de la puerta. Se retira sin herramientas para cambiar la batería o reprogramar, y el cable USB, si lo hay, va por canaleta.",
+     ["NS-5"]),
+    ("RNF-10", "Operación de la caja",
+     "Interruptor de encendido accesible desde fuera. Apertura frente al sensor que no lo tape ni lo sesgue: rejilla para el MH-Z1911A, el MQ-2 y el BME280 (el aire debe llegar por difusión), ventana abierta para la MLX90640 (el plástico común no deja pasar el infrarrojo térmico) y el BH1750, y orificio frente al INMP441. El micro-USB queda accesible para alimentar y reprogramar sin abrir la caja. En la caja del MQ-2, el calefactor (~0.75 W) queda separado del resto y con ventilación.",
+     ["NS-5"]),
+    ("RNF-11", "Dimensiones y fabricación",
+     "Diseño para impresión 3D (guía de cajas del curso) que aloje el ESP32 DevKit V1 de 30 pines, la protoboard de 170 puntos, el sensor, la 18650 con su porta-batería y el regulador, con holgura para los cables. Las medidas se toman de los componentes en el L-414: el grupo no tiene caja asignada ni los archivos del diseño, así que aquí no se fija ninguna cifra.",
+     ["NS-5"]),
+    ("RNF-12", "Energía de la caja",
+     "Si la caja va a batería: TP4056 con protección, LDO de 3.3 V (nodos de 3.3 V) o elevador a 5 V (MQ-2 y MH-Z1911A, que deben aguantar picos de 300-400 mA) e interruptor. El Gateway y los nodos 1 (CO₂), 3 (gas) y 5 (térmico) van por USB fijo de 5 V; el del MQ-2, de 1 A. La autonomía de cada caja queda estimada antes de armarla y se mide en S15.",
+     ["NS-5"]),
 ]
 
 # (id, nombre, requisitos que verifica, estado). El estado va al campo Note del caso, con los
@@ -192,11 +205,12 @@ CASOS_DE_PRUEBA = [
      "Simulado (grabación y reproducción de punta a punta, 10/11)"),
     ("CP-12", "Instalación no invasiva, seguridad eléctrica y privacidad", ["RNF-01", "RNF-02"],
      "Privacidad: real, por revisión de código; instalación: pendiente (S15)"),
-    ("CP-13", "Autonomía de las cajas con 18650", ["RNF-04"],
+    ("CP-13", "Autonomía de las cajas con 18650", ["RNF-04", "RNF-12"],
      "Estimación de hoja de datos hecha; medición pendiente (S15)"),
     ("CP-14", "Auditoría de costos, configuración y credenciales", ["RNF-03", "RNF-07", "RNF-08"],
      "Real, por revisión del repositorio (docs/pruebas/CP-14-auditoria-repositorio.md)"),
     ("CP-15", "Supervisión de nodos", ["RF-13"], "Simulado"),
+    ("CP-16", "Inspección de las cajas", ["RNF-09", "RNF-10", "RNF-11"], "Pendiente (S15)"),
 ]
 
 # --- Estructura -------------------------------------------------------------
@@ -392,6 +406,7 @@ TIPOS_DE_VALOR_OFICIALES = [
     "Nivel sonoro [dB SPL]",
     "Frecuencia [Hz]",
     "Indicador [0/1]",
+    "Índice [0..1]",
     "Relación Rs/R0 [-]",
     "Cruces [n]",
     "Aperturas [n]",
@@ -415,7 +430,7 @@ MAGNITUDES_OFICIALES = {
         ("pico_db", "Nivel sonoro [dB SPL]"),
         ("base_db", "Nivel sonoro [dB SPL]"),
         ("freq_dom_hz", "Frecuencia [Hz]"),
-        ("tonal", "Indicador [0/1]"),
+        ("tonal", "Índice [0..1]"),
     ],
     "MQ-2": [
         ("v_ao", "Tensión [V]"),
@@ -555,6 +570,7 @@ TRAZABILIDAD = {
     CONSUMO_FANTASMA: ["RF-01", "RF-10", "RF-12"],
     SIMULADOR: ["RF-11"],
     LAPTOP: ["RNF-06"],
+    CAJA_DE_NODO: ["RNF-09", "RNF-10", "RNF-11", "RNF-12"],
 }
 
 
@@ -675,6 +691,17 @@ def texto_de_diagnostico(requisito):
         "cuando el RA pasa a alerta o crítico.",
     ])
 
+
+# Diagrama del sistema oficial: cada bloque que agrupa es tan ancho como sus partes, para que
+# cada composicion baje en vertical y su rombo no tape el nombre ni la etiqueta de otra linea.
+ANCHO_DE_PARTE_DEL_SISTEMA = 150.0
+HUECO_ENTRE_PARTES_DEL_SISTEMA = 25.0
+HUECO_A_LA_ASOCIACION = 170.0  # lugar para que quepa "monitorea" sobre su linea
+
+# Gaphor dibuja el triangulo del flujo de item en el medio del conector, justo donde empieza el
+# nombre, y lo tapa ("I²S", "ESP-NOW"...). Una linea en blanco antes del nombre lo baja debajo
+# del triangulo. Un margen en la hoja de estilo no lo logra: Gaphor no lo aplica al conector.
+SALTO_BAJO_LA_PUNTA = "\n"
 
 # -- 04 Comportamiento ---------------------------------------------------------------------
 PAQUETE_COMPORTAMIENTO = "04 Comportamiento"
@@ -928,9 +955,10 @@ class ModeloCampusTwin:
         linea.tail_subject.aggregation = "composite"
         return linea
 
-    def asociacion(self, diagrama, origen, destino, nombre=None):
+    def asociacion(self, diagrama, origen, destino, nombre=None, anclar=None):
         linea = self._linea(AssociationItem, diagrama,
-                            self.item(origen, diagrama), self.item(destino, diagrama))
+                            self.item(origen, diagrama), self.item(destino, diagrama),
+                            anclar=anclar)
         if nombre is not None:
             linea.subject.name = nombre
         return linea
@@ -950,7 +978,7 @@ class ModeloCampusTwin:
         linea = self._linea(ConnectorItem, diagrama,
                             self.item(origen, diagrama), self.item(destino, diagrama),
                             anclar="enfrentadas")
-        linea.subject.name = conector
+        linea.subject.name = SALTO_BAJO_LA_PUNTA + conector
         propiedad = self.factory.create(Property)
         propiedad.name = item_nombre
         propiedad.type = item_tipo
@@ -1251,11 +1279,12 @@ class ModeloCampusTwin:
         self._mover(item_nota, 0, 0)
         y = item_nota.height + SEPARACION_ENTRE_FILAS
         y += self._centrar_fila(fila_de_partes, ancho_total, y) + SEPARACION_ENTRE_FILAS
-        # La caja abarca la fila de sus partes: cada composicion baja recta y los rombos
-        # no se apilan en un solo punto.
-        primera, ultima = fila_de_partes[1], fila_de_partes[-1]
-        item_caja.width = ultima.matrix[4] + ultima.width - primera.matrix[4]
-        self._mover(item_caja, primera.matrix[4], y)
+        # La caja abarca todas las columnas: cada composicion de sus partes sube recta y cada
+        # herencia de un nodo baja recta, de modo que ni los rombos ni las puntas de flecha se
+        # apilan en un solo punto. Su altura sobrante deja las puntas por debajo del nombre.
+        item_caja.width = ancho_total
+        item_caja.height += ALTO_EXTRA_DE_LA_CAJA
+        self._mover(item_caja, 0, y)
         y += item_caja.height + SEPARACION_ENTRE_FILAS
         for fila in (1, 2, 3):
             alto = 0.0
@@ -1270,9 +1299,74 @@ class ModeloCampusTwin:
             self.composicion(diagrama, b[CAJA_DE_NODO], b[parte], anclar="enfrentadas")
         self.anclar_nota(diagrama, nota_esp32, b[ESP32_DEVKIT])
         for nodo, _, _, _, nota_foto in columnas:
-            self.generalizacion(diagrama, b[nodo.bloque], b[CAJA_DE_NODO], anclar="vertical")
+            self.generalizacion(diagrama, b[nodo.bloque], b[CAJA_DE_NODO], anclar="enfrentadas")
             self.composicion(diagrama, b[nodo.bloque], b[nodo.sensor], anclar="vertical")
             self.anclar_nota(diagrama, nota_foto, b[nodo.sensor])
+        diagrama.update_now(list(diagrama.get_all_items()))
+        return diagrama
+
+    def diagrama_del_sistema_oficial(self, nombre, paquete, nota):
+        """El sistema oficial en tres niveles, con la asociacion al aula en horizontal.
+
+        Graphviz junta las cuatro composiciones del sistema y la asociacion "monitorea" en el
+        mismo borde: los rombos tapan la etiqueta. A mano, cada bloque que agrupa mide lo que
+        sus partes y su linea baja recta; el aula queda al costado, con su linea sola.
+        """
+        b = self.bloques
+        diagrama = self.diagrama(sysml.BlockDefinitionDiagram, nombre, paquete)
+        nodos = [b[n.bloque] for n in NODOS_OFICIALES]
+        hijos_de_laptop = [b[STACK_DOCENTE], b[SERVICIOS_DEL_GRUPO]]
+        sueltos = [b[GATEWAY], b[RED_WIFI]]
+        agrupadores = [b[SISTEMA_OFICIAL], b[RED_DE_NODOS], b[LAPTOP]]
+        for elemento in [*agrupadores, b[AULA], *sueltos, *nodos, *hijos_de_laptop]:
+            self.item(elemento, diagrama, mostrar_atributos=False)
+        item_nota = self.item(self.nota(nota), diagrama)
+        self._medir(diagrama)
+
+        def it(elemento):
+            return self.item(elemento, diagrama)
+
+        def fila(elementos, x, y):
+            """Una fila de partes de igual ancho; devuelve el ancho total que ocupa."""
+            for elemento in elementos:
+                it(elemento).width = ANCHO_DE_PARTE_DEL_SISTEMA
+                self._mover(it(elemento), x, y)
+                x += ANCHO_DE_PARTE_DEL_SISTEMA + HUECO_ENTRE_PARTES_DEL_SISTEMA
+            return len(elementos) * (ANCHO_DE_PARTE_DEL_SISTEMA
+                                     + HUECO_ENTRE_PARTES_DEL_SISTEMA) - HUECO_ENTRE_PARTES_DEL_SISTEMA
+
+        alto_sistema = it(b[SISTEMA_OFICIAL]).height
+        y_medio = alto_sistema + SEPARACION_ENTRE_FILAS * 2
+        medio = [b[RED_DE_NODOS], *sueltos, b[LAPTOP]]
+        y_hojas = y_medio + max(it(e).height for e in medio) + SEPARACION_ENTRE_FILAS * 2
+
+        ancho_nodos = fila(nodos, 0, y_hojas)
+        it(b[RED_DE_NODOS]).width = ancho_nodos
+        self._mover(it(b[RED_DE_NODOS]), 0, y_medio)
+        x = ancho_nodos + SEPARACION_ENTRE_COLUMNAS
+        for suelto in sueltos:
+            it(suelto).width = ANCHO_DE_PARTE_DEL_SISTEMA
+            self._mover(it(suelto), x, y_medio)
+            x += ANCHO_DE_PARTE_DEL_SISTEMA + SEPARACION_ENTRE_COLUMNAS
+        ancho_laptop = fila(hijos_de_laptop, x, y_hojas)
+        it(b[LAPTOP]).width = ancho_laptop
+        self._mover(it(b[LAPTOP]), x, y_medio)
+        ancho_total = x + ancho_laptop
+        it(b[SISTEMA_OFICIAL]).width = ancho_total
+        self._mover(it(b[SISTEMA_OFICIAL]), 0, 0)
+        it(b[AULA]).width = ANCHO_DE_PARTE_DEL_SISTEMA
+        self._mover(it(b[AULA]), ancho_total + HUECO_A_LA_ASOCIACION, 0)
+        y_nota = y_hojas + max(it(e).height for e in [*nodos, *hijos_de_laptop]) + SEPARACION_ENTRE_GRUPOS
+        self._mover(item_nota, 0, y_nota)
+
+        for hijo in medio:
+            self.composicion(diagrama, b[SISTEMA_OFICIAL], hijo, anclar="enfrentadas")
+        for nodo in nodos:
+            self.composicion(diagrama, b[RED_DE_NODOS], nodo, anclar="enfrentadas")
+        for hijo in hijos_de_laptop:
+            self.composicion(diagrama, b[LAPTOP], hijo, anclar="enfrentadas")
+        self.asociacion(diagrama, b[SISTEMA_OFICIAL], b[AULA], nombre="monitorea",
+                        anclar="enfrentadas")
         diagrama.update_now(list(diagrama.get_all_items()))
         return diagrama
 
@@ -1992,8 +2086,8 @@ def _crear_elementos_oficiales(modelo, paquete, pkg_tipos):
         STACK_DOCENTE: "vendor/gemelo_iot_profesor/servidor_iot: se usa sin modificarlo.",
         SERVICIO_GEMELO: "demo/servidor/gemelo (Grupo 1).",
         TABLERO: "demo/tablero (Grupo 1), servido por el servicio en :8000.",
-        GAPHOR_EN_VIVO: "demo/gaphor-vivo (Grupo 1). Hoy escribe en los bloques del modelo de "
-                        "septiembre; pasarlo a los 7 nodos es la tarea D7.",
+        GAPHOR_EN_VIVO: "demo/gaphor-vivo (Grupo 1). Lee /api/estado, escribe en cada sensor "
+                        "los campos que entrega y pinta su bloque según la condición de su RA.",
         COPILOTO: "Pendiente: todavía no hay código.",
         SIMULADOR: "Publica en utec/gemelo/sim/... con el mismo JSON del Gateway. Todos los "
                    "datos actuales salen de aquí: son simulados.",
@@ -2014,21 +2108,8 @@ def construir_arquitectura_oficial(modelo, pkg_estructura):
         for nombre in nombres:
             modelo.item(b[nombre], diagrama, mostrar_atributos=valores)
 
-    def dibujar_sistema(diagrama):
-        nodos = [nodo.bloque for nodo in NODOS_OFICIALES]
-        colocar(diagrama, [SISTEMA_OFICIAL, RED_DE_NODOS, GATEWAY, RED_WIFI, LAPTOP,
-                           STACK_DOCENTE, SERVICIOS_DEL_GRUPO, AULA] + nodos)
-        for nombre in [RED_DE_NODOS, GATEWAY, RED_WIFI, LAPTOP]:
-            modelo.composicion(diagrama, b[SISTEMA_OFICIAL], b[nombre])
-        modelo.asociacion(diagrama, b[SISTEMA_OFICIAL], b[AULA], nombre="monitorea")
-        for nombre in nodos:
-            modelo.composicion(diagrama, b[RED_DE_NODOS], b[nombre])
-        for nombre in [STACK_DOCENTE, SERVICIOS_DEL_GRUPO]:
-            modelo.composicion(diagrama, b[LAPTOP], b[nombre])
-
-    modelo.diagrama_jerarquico(
-        sysml.BlockDefinitionDiagram, "1 bdd [Arquitectura oficial] Gemelo digital del L-419",
-        paquete, dibujar_sistema,
+    modelo.diagrama_del_sistema_oficial(
+        "1 bdd [Arquitectura oficial] Gemelo digital del L-419", paquete,
         nota="Arquitectura oficial del curso (EC3). Siete cajas a batería envían por ESP-NOW "
              "al Gateway ESP32 v4, que publica por Wi-Fi y MQTT en la laptop con Docker.\n\n"
              "Autoría: firmware de los nodos (salvo el MQ-2), Gateway y stack del servidor, "
@@ -2062,8 +2143,8 @@ def construir_arquitectura_oficial(modelo, pkg_estructura):
         nota="La laptop corre el stack del docente (Mosquitto, Telegraf, InfluxDB y Grafana) "
              "sin modificar su docker-compose.yml, y los servicios del Grupo 1, que levanta "
              "deploy/levantar.sh.\n\n"
-             "El copiloto de voz está pendiente. Gaphor en vivo todavía escribe en el modelo "
-             "de septiembre (tarea D7).")
+             "El copiloto de voz está pendiente. Gaphor en vivo escribe en los bloques de "
+             "los 7 sensores.")
 
     def dibujar_aula(diagrama):
         colocar(diagrama, [AULA] + [nodo.bloque for nodo in NODOS_OFICIALES])
@@ -2207,7 +2288,7 @@ def verificar_arquitectura_oficial(modelo):
     print(f"\nFlujos de item del IBD: {len(flujos)}")
     for flujo in flujos:
         print(f"  {flujo.informationSource.name} -> {flujo.informationTarget.name}: "
-              f"{flujo.realizingConnector.name} ({flujo.itemProperty.type.name})")
+              f"{flujo.realizingConnector.name.strip()} ({flujo.itemProperty.type.name})")
     try:
         texto = NODOS_YAML.read_text(encoding="utf-8")
     except OSError as error:
