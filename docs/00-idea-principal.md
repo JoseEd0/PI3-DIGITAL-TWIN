@@ -253,15 +253,15 @@ La columna **Estado** usa los rótulos del proyecto: real, simulado o pendiente.
 | CP-03 | Resiliencia de red y sin internet: Gateway caído (LWT `offline`), caída del router y del servidor, cambio de canal del router (ESP-NOW), conteo de muestras perdidas por huecos de `seq`, y todo el sistema (voz incluida) con la red sin salida a internet y NTP local | RF-05, RNF-05 | Simulado (Gateway caído); pendiente en hardware |
 | CP-04 | Copiloto de voz: 20 consultas por 2 hablantes en la app del teléfono, con ruido de pasillo; latencia y aciertos | RF-09 | Pendiente (S16) |
 | CP-05 | Maratón de 72 horas sin intervención, con un corte de energía provocado | RNF-06 | Pendiente (S16) |
-| CP-06 | Auditoría de consumo fantasma, contrastada con el horario oficial: con datos simulados en S14 y con una semana de datos reales si el curso continúa. Revisa también la coherencia de la estimación por proxy y su desglose por carga contra el inventario | RF-10, RF-01, RF-12 | Pendiente (simulado en S14) |
+| CP-06 | Auditoría de consumo fantasma, contrastada con el horario oficial: con datos simulados en S14 y con una semana de datos reales si el curso continúa. Revisa también la coherencia de la estimación por proxy y su desglose por carga contra el inventario | RF-10, RF-01, RF-12 | Simulado ([informe](pruebas/CP-06-consumo-fantasma.md)); con datos reales, pendiente |
 | CP-07 | Verificación de consistencia ambiental: BME280 contra termohigrómetro de referencia; MH-Z1911A con calibración al aire exterior (≈ 420 ppm) y coherencia con la ocupación; BH1750 con luces encendidas y apagadas; INMP441 contra un sonómetro, si se consigue | RF-02 | Pendiente (S15) |
 | CP-08 | Eventos de puerta con el KY-024: apertura, cierre, apertura prolongada (≥ 10 min) y portazo con rebote (antirrebote de 150 ms) | RF-04 | Pendiente (S15) |
 | CP-09 | Histórico, API y dashboard: consultas por rango y agregación, refresco y panel de salud | RF-06, RF-07 | Simulado |
 | CP-10 | Reglas de alerta: disparo, silencio, umbral configurable y alerta de nodo caído | RF-08 | Simulado |
-| CP-11 | Modo demostración con hardware desconectado, total y por nodo, con la franja DATOS SIMULADOS | RF-11 | Pendiente (grabación y reproducción en curso) |
+| CP-11 | Modo demostración con hardware desconectado, total y por nodo, con la franja DATOS SIMULADOS | RF-11 | Simulado (grabación y reproducción de punta a punta, 10/11; [pruebas](pruebas/README.md)) |
 | CP-12 | Revisión de instalación no invasiva, seguridad eléctrica y privacidad | RNF-01, RNF-02 | Privacidad: hecha, real por revisión de código ([informe](pruebas/CP-12-privacidad.md)). Instalación: pendiente (S15) |
 | CP-13 | Autonomía de las cajas con 18650, empezando por el nodo de puerta: consumo estimado por nodo, luego medido en el L-414, y proyección de autonomía | RNF-04 | Estimación hecha ([06-energia-cajas.md](06-energia-cajas.md)); medición pendiente (S15) |
-| CP-14 | Auditoría de costos, de configuración del repositorio y de credenciales | RNF-03, RNF-07, RNF-08 | Pendiente |
+| CP-14 | Auditoría de costos, de configuración del repositorio y de credenciales | RNF-03, RNF-07, RNF-08 | Real, por revisión del repositorio ([informe](pruebas/CP-14-auditoria-repositorio.md)) |
 | CP-15 | Supervisión: apagar un nodo y verificar marca de caído, alerta y métrica de muestras perdidas | RF-13 | Simulado |
 
 ### 8.5 Casos borde y comportamiento esperado
@@ -273,7 +273,7 @@ nuevo, se agrega aquí antes de programarlo.
 |---|---|---|
 | El Gateway no tiene internet para NTP | `ts` sale `null` y Telegraf descarta el mensaje completo (comprobado el 10/11). En la EC3 la hora la pone el simulador; antes de instalar, NTP local en la laptop | RNF-05, RF-05 |
 | Se cae el Gateway | Mosquitto publica `offline` por LWT y todos los nodos dejan de llegar a la vez; el RA-10 diagnostica "Gateway" por la lógica N/M, no siete sensores rotos | RF-13, RA-10 |
-| El router cambia de canal | Los nodos buscan el canal del Gateway por SSID solo al arrancar: dejan de llegar hasta que se reinician. El grafo del RA-10 lo sugiere como causa | RF-05, RA-10 |
+| El router cambia de canal | Los nodos buscan el canal del Gateway por SSID al arrancar y otra vez tras 10 envíos fallidos seguidos (`espnow_nodo.h` del docente, re-escaneo de unos 2 s): mientras tanto se pierden muestras, que quedan como huecos en `seq`. El grafo del RA-10 lo sugiere como causa | RF-05, RA-10 |
 | Se llena la cola del Gateway (32 mensajes) | Se pierden mensajes y aparecen como huecos de `seq` en `perdidos` | RF-05, RF-13 |
 | Un nodo se reinicia | `seq` retrocede y `uptime_ms` vuelve a cero; se registra como reinicio, no como pérdida | RF-13 |
 | Se agota la batería de un nodo | El nodo deja de llegar; a los tres periodos propios (mínimo 30 s) se marca caído y el RA-10 sugiere batería o apagado | RF-13, RNF-04, RA-10 |
@@ -342,6 +342,22 @@ salida AND u OR.
 Cada causa raíz lleva su recomendación en el YAML. Las figuras también están en PNG, con el mismo
 nombre, en [grafos/figuras/](../grafos/figuras/). Estado al 10/11: los 10 RA, sus grafos, el
 evaluador y el motor existen y funcionan sobre **datos simulados**.
+
+**Satisface y verifica cada RA** (en el modelo: `01 Requisitos`, diagramas 5 y 6, y
+`03 Verificación`, diagrama 3). Lo satisfacen los nodos de su columna "Magnitud y sensor" y el
+evaluador de RA del servicio del grupo. Lo verifican:
+
+| RA | Casos de prueba | Estado |
+|---|---|---|
+| RA-01, RA-02, RA-03, RA-04, RA-07 | CP-07 y CP-10 | CP-10 simulado; CP-07 pendiente (S15) |
+| RA-05 | CP-10 | Simulado. **Sin ensayo con hardware**: el MQ-2 no figura en ningún CP físico |
+| RA-06 | CP-02 y CP-10 | CP-10 simulado; CP-02 pendiente (S15) |
+| RA-08 | CP-06 y CP-10 | Simulados |
+| RA-09 | CP-08 y CP-10 | CP-10 simulado; CP-08 pendiente (S15) |
+| RA-10 | CP-03, CP-15 y CP-10 | Simulados; CP-03 en hardware pendiente |
+
+CP-10 prueba, con datos simulados, la evaluación y el diagnóstico causal de los diez RA
+(`demo/servidor/pruebas/`).
 
 ## 9. Métricas de éxito
 
