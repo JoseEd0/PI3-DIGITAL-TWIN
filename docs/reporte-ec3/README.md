@@ -7,6 +7,8 @@ borrador, para poder regenerarlo si hiciera falta.
   `{{img:ruta|pie de figura}}`.
 - `armar.py`: incrusta las figuras y escribe `reporte-ec3.html`, que está ignorado por git
   (pesa unos 3.5 MB). Google Drive convierte ese HTML en un Google Doc con las imágenes.
+- `seccion-gaphor.md`: la sección del gemelo en Gaphor (figuras 17 a 24), para agregarla al
+  documento. Sus figuras salen de `modelo/export/` y de `figuras/gaphor-en-vivo-gas.png`.
 - `figuras/`: capturas del tablero con datos simulados (escenarios vacio-con-luces, gas y
   nodo-sin-bateria). Los grafos salen de `grafos/figuras/`.
 
