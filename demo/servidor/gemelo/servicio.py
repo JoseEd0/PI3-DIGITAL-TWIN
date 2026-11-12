@@ -4,7 +4,8 @@ En cada ciclo:
 1. si hay simulador en el proceso, lo avanza y publica sus mensajes (por MQTT, igual que el Gateway);
 2. lee los mensajes del grupo configurado y actualiza el estado del aula;
 3. evalúa RA-01..10 y, para cada uno en alerta o crítico, corre su grafo causal;
-4. registra en el log los cambios (RA, puerta, cruces, anomalías, nodos, Gateway);
+4. registra en el log los cambios (RA, puerta, cruces, anomalías, nodos, Gateway), sin repetir
+   la misma alerta de un RA antes de su `silencio_min` (RF-08);
 5. acumula el consumo fantasma estimado y publica sus propias salidas en
    utec/gemelo/<grupo>/campustwin/... sin tocar los tópicos del Gateway;
 6. si hay InfluxDB, escribe ahí también el log y la condición de cada RA.
@@ -73,6 +74,8 @@ class Servicio:
         self.fantasma = EstimadorDeConsumoFantasma(self.aula, self.requisitos["RA-08"]["alerta_min"])
         self.condiciones: dict = {}
         self.diagnosticos: dict = {}
+        self._ultimas_alertas: dict[str, tuple[str, datetime]] = {}  # RA -> (nivel, cuándo se avisó)
+        self._alertas_abiertas: set[str] = set()  # RA con una alerta avisada que aún no volvió a nominal
         self.tendencias = {i: deque(maxlen=PUNTOS_DE_TENDENCIA) for i in self.nodos}
         self.mensajes_recientes: deque[dict] = deque(maxlen=20)
         self._caidos_previos: set[int] = set()
@@ -172,14 +175,35 @@ class Servicio:
             if anterior is None or anterior.nivel == condicion.nivel or condicion.nivel == DESCONOCIDO:
                 continue
             if condicion.nivel in SEVERIDAD_POR_NIVEL:
-                diagnostico = self.diagnosticos[ra]
-                causas = [c["texto"] for c in diagnostico.causas_confirmadas + diagnostico.causas_sospechosas]
-                self._registrar("requisito", SEVERIDAD_POR_NIVEL[condicion.nivel],
-                                f"{ra} {condicion.nombre}: {condicion.mensaje}", ra=ra,
-                                causas=causas, recomendaciones=diagnostico.recomendaciones)
-            elif GRAVEDAD[anterior.nivel] > 0:
+                self._avisar_alerta(ra, condicion)
+            elif GRAVEDAD[anterior.nivel] > 0 and ra in self._alertas_abiertas:
+                self._alertas_abiertas.discard(ra)
                 self._registrar("requisito", "info", f"{ra} {condicion.nombre} volvió a nominal", ra=ra)
         self._eventos_de_salud()
+
+    def _avisar_alerta(self, ra: str, condicion) -> None:
+        momento = self.estado.ahora or self.ahora()
+        if self._alerta_silenciada(ra, condicion.nivel, momento):
+            log.info("%s en %s silenciado (RF-08): ya se avisó hace menos de %s min",
+                     ra, condicion.nivel, self.requisitos[ra]["silencio_min"])
+            return
+        self._ultimas_alertas[ra] = (condicion.nivel, momento)
+        self._alertas_abiertas.add(ra)
+        diagnostico = self.diagnosticos[ra]
+        causas = [c["texto"] for c in diagnostico.causas_confirmadas + diagnostico.causas_sospechosas]
+        self._registrar("requisito", SEVERIDAD_POR_NIVEL[condicion.nivel],
+                        f"{ra} {condicion.nombre}: {condicion.mensaje}", ra=ra,
+                        causas=causas, recomendaciones=diagnostico.recomendaciones)
+
+    def _alerta_silenciada(self, ra: str, nivel: str, momento: datetime) -> bool:
+        """RF-08: una condición que oscila no repite la misma alerta antes de su silencio.
+
+        Solo se silencia el mismo nivel: si un RA sube de alerta a crítico, se avisa igual.
+        """
+        previa = self._ultimas_alertas.get(ra)
+        if previa is None or previa[0] != nivel:
+            return False
+        return momento - previa[1] < timedelta(minutes=self.requisitos[ra]["silencio_min"])
 
     def _eventos_de_lectura(self, previa: gateway.Lectura | None, actual: gateway.Lectura) -> None:
         campos = actual.campos

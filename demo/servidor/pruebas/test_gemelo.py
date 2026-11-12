@@ -1,5 +1,6 @@
 """Servicio del grupo sobre el contrato oficial: formato del Gateway, simulador, RA, log y API."""
 
+import dataclasses
 import json
 from datetime import datetime
 
@@ -117,6 +118,40 @@ def test_gas_pasa_a_critico_y_deja_diagnostico_en_el_log(tmp_path):
     evento = next(e for e in servicio.bitacora.listar(tipo="requisito") if e["ra"] == "RA-05")
     assert evento["severidad"] == "critico" and evento["recomendaciones"]
     assert (tmp_path / "eventos.jsonl").read_text().count("RA-05") >= 1
+
+
+def test_rf08_una_alerta_que_oscila_no_se_repite_antes_del_silencio():
+    servicio = servicio_simulado()
+    correr(servicio, 240)
+    evaluar_real = servicio.evaluador.evaluar
+    forzado = {"nivel": "nominal"}
+
+    def evaluar_con_ra03_forzado(estado):
+        condiciones = evaluar_real(estado)
+        condiciones["RA-03"] = dataclasses.replace(condiciones["RA-03"], nivel=forzado["nivel"])
+        return condiciones
+
+    servicio.evaluador.evaluar = evaluar_con_ra03_forzado
+    silencio_s = servicio.requisitos["RA-03"]["silencio_min"] * 60
+
+    def pasar_a(nivel_forzado, segundos=1):
+        forzado["nivel"] = nivel_forzado
+        correr(servicio, segundos)
+
+    def avisos_de_ra03():
+        return [e["severidad"] for e in servicio.bitacora.listar(tipo="requisito") if e["ra"] == "RA-03"]
+
+    pasar_a("nominal")
+    pasar_a("alerta")
+    pasar_a("nominal", 60)
+    pasar_a("alerta")       # oscila dentro del silencio: no se repite
+    pasar_a("nominal", 60)  # y como no se avisó, tampoco su vuelta a nominal
+    assert sorted(avisos_de_ra03()) == ["alerta", "info"]
+    pasar_a("critico")      # subir de nivel sí se avisa aunque esté en silencio
+    assert "critico" in avisos_de_ra03()
+    pasar_a("nominal", silencio_s)
+    pasar_a("alerta")       # pasado el silencio, la misma alerta vuelve a avisarse
+    assert avisos_de_ra03().count("alerta") == 2
 
 
 def test_gateway_caido_se_diagnostica_como_gateway_y_no_como_siete_sensores():

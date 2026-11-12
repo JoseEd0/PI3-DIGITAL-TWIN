@@ -9,6 +9,9 @@
 #
 # Campos: `campo` es "<tipo>.<campo del JSON del Gateway>" (docs/CONTRATO_DATOS.md) o
 # "derivado.<nombre>" (lo calcula el servicio: ocupación, luces, horario...).
+#
+# `silencio_min` (RF-08): la misma alerta de un RA (mismo nivel) no se vuelve a registrar ni a
+# publicar antes de ese tiempo, aunque la condición oscile. Un cambio de nivel sí se avisa.
 
 RA-01:
   nombre: Confort térmico
@@ -23,6 +26,7 @@ RA-01:
   histeresis: 0.5
   origen: docente
   norma: "ASHRAE 55-2020 (zona de confort, ~20-26 °C en ropa de interior); mismo rango que CONFORT_T_MIN/MAX del nodo ambiente del docente"
+  silencio_min: 15
   grafo: ra-01-temperatura
 
 RA-02:
@@ -38,6 +42,7 @@ RA-02:
   histeresis: 5.0
   origen: docente
   norma: "ASHRAE 62.1-2022 recomienda < 65 %; se usa 70 % (HUM_ALTA del nodo del docente) por el clima húmedo de Lima"
+  silencio_min: 15
   grafo: ra-02-humedad
 
 RA-03:
@@ -53,6 +58,7 @@ RA-03:
   histeresis: 100
   origen: docente
   norma: "ASHRAE 62.1 (CO2 interior ≲ 700 ppm sobre el exterior ≈ 1100 ppm); mismos umbrales que CO2_ALERTA_PPM y CO2_CRITICO_PPM del nodo del docente"
+  silencio_min: 15
   grafo: ra-03-co2
 
 RA-04:
@@ -68,6 +74,7 @@ RA-04:
   histeresis: 30
   origen: docente
   norma: "EN 12464-1:2021, aulas: 300 lx sobre el plano de trabajo; mismo umbral que ILUM_BAJA del nodo de luz del docente. Solo aplica con el aula ocupada"
+  silencio_min: 15
   grafo: ra-04-iluminacion
 
 RA-05:
@@ -82,6 +89,7 @@ RA-05:
   critico: 0.50
   origen: norma
   norma: "Hoja de datos MQ-2 (Hanwei): Rs/R0 baja con la concentración de GLP, humo e H2. Umbrales SUPUESTOS hasta calibrar R0 en aire limpio en el aula; el bit GAS_DETECTADO o do_alarma pasan directo a crítico"
+  silencio_min: 15
   grafo: ra-05-gas
 
 RA-06:
@@ -96,6 +104,7 @@ RA-06:
   critico_fraccion: 1.0
   origen: norma
   norma: "RNE A.040 (Educación) y aforo declarado del aula (config/aula_l419.yaml)"
+  silencio_min: 15
   grafo: ra-06-aforo
 
 RA-07:
@@ -112,6 +121,7 @@ RA-07:
   sostenido_s: 60
   origen: norma
   norma: "ANSI/ASA S12.60 (fondo ≤ 35 dBA en aula vacía); 85 dBA es el límite ocupacional de 8 h (D.S. 024-2016-EM / OSHA). dB SPL aproximados (offset +120 dB sin calibrar en el nodo del docente)"
+  silencio_min: 15
   grafo: ra-07-ruido
 
 RA-08:
@@ -126,6 +136,7 @@ RA-08:
   critico_min: 30
   origen: norma
   norma: "Criterio del grupo (RF-10): luces o equipos encendidos con el aula vacía. Estimación por proxy sin PZEM (docs/05-plan-cierre.md, D7)"
+  silencio_min: 15
   grafo: ra-08-consumo-fantasma
 
 RA-09:
@@ -138,6 +149,7 @@ RA-09:
   unidad: ""
   origen: norma
   norma: "Criterio del grupo (RF-04): puerta cerrada fuera del horario oficial; el bit PUERTA_ABIERTA_PROLONGADA (10 min) del nodo del docente se usa dentro del horario"
+  silencio_min: 15
   grafo: ra-09-seguridad-fisica
 
 RA-10:
@@ -153,4 +165,5 @@ RA-10:
   fraccion_para_gateway: 0.6
   origen: norma
   norma: "Criterio del grupo (RF-13, lección de la Semana 7): un nodo cae tras 3 periodos propios sin datos; si cae ≥ 60 % de los nodos a la vez se sospecha del Gateway (lógica N/M)"
+  silencio_min: 15
   grafo: ra-10-salud

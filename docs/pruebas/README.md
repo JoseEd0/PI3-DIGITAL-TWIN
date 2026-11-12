@@ -6,7 +6,7 @@ repo), **simulado** (datos del simulador) o **pendiente**.
 | CP | Qué verifica | Rótulo | Dónde |
 |---|---|---|---|
 | CP-06 | Consumo fantasma estimado frente a la verdad simulada (3 escenarios) | Simulado | [CP-06-consumo-fantasma.md](CP-06-consumo-fantasma.md), que se regenera con `python -m gemelo.auditoria` |
-| CP-09 / CP-10 | API, tablero, reglas, RA y diagnóstico causal | Simulado | `demo/servidor/pruebas/` (`pytest`) |
+| CP-09 / CP-10 | API, tablero, reglas, RA y diagnóstico causal; silencio de 15 min por RA (`silencio_min`, RF-08, desde el 12/11) | Simulado | `demo/servidor/pruebas/` (`pytest`; el silencio, en `test_rf08_…`) |
 | CP-11 | Simulador en formato Gateway, grabación y reproducción | Simulado | `test_gemelo.py` (pruebas de grabación) y la prueba de punta a punta de abajo |
 | CP-14 | Costos, configuración y credenciales del repositorio | Real (revisión del repo) | [CP-14-auditoria-repositorio.md](CP-14-auditoria-repositorio.md) |
 | CP-12 | Privacidad (RNF-02) e instalación no invasiva (RNF-01) | Privacidad: **real** (revisión de código). Instalación: **pendiente** (S15) | [CP-12-privacidad.md](CP-12-privacidad.md) |
