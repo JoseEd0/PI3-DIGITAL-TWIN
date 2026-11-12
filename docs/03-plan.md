@@ -3,7 +3,7 @@
 > Espejo local del proyecto [PI3 — Campus Twin L-419](https://app.asana.com/1/1218151758126339/project/1218156351516043)
 > en Asana. **Asana es la fuente de verdad** de fechas y responsables. Este archivo sirve para ver y
 > avanzar el plan sin salir del repo.
-> Última sincronización desde Asana: **11/11/2026**. Van **45 de 71 tareas** completadas (63 %).
+> Última sincronización desde Asana: **12/11/2026**. Van **47 de 71 tareas** completadas (66 %).
 > La estrategia, el diseño y el orden de trabajo están en [05-plan-cierre.md](05-plan-cierre.md).
 
 ## Calendario
@@ -98,8 +98,8 @@ Responsables: **J** = José Eduardo · **C** = Carlos Dávila · **E** = Esteban
 - [x] Consumo fantasma por proxy (BH1750 + MLX90640 + horario) y consulta al docente por el PZEM (RF-10) — **J** · 12/11
 - [x] Log de eventos / footprint (`events.jsonl` + InfluxDB) con exportación a CSV — **J** · 12/11
 - [x] Dashboard propio: mediciones, condición por RA y causas, efectos y recomendaciones — **J** · 12/11
-- [ ] Gaphor en vivo leyendo InfluxDB — **J** · 12/11
-- [ ] Gaphor: migrar al hardware oficial, IBD y paquetes 04 Comportamiento y 05 Razonamiento — **J** · 12/11
+- [x] Gaphor en vivo leyendo InfluxDB — **J** · 12/11 (simulado: lee la API del servicio, no InfluxDB directamente)
+- [x] Gaphor: migrar al hardware oficial, IBD y paquetes 04 Comportamiento y 05 Razonamiento — **J** · 12/11
 - [x] Actualizar el documento maestro y el plan al hardware y la arquitectura oficiales — **J** · 10/11
 - [ ] Cargar las fotos con QR de los sensores en Gaphor y en Asana — **L** · 12/11
 - [x] Programa propio del grupo: nodo de gas MQ-2 (`MQ-2.ino`) que compile — **J** · 11/11
