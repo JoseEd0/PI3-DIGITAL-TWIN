@@ -68,6 +68,8 @@ docs/curso/originales/
 
 # Código del docente: estos dos archivos traen credenciales. Se versiona su .example.
 vendor/gemelo_iot_profesor/gateway/gateway.ino
+# Gateway con red propia (otro grupo del curso): trae la clave de su red Wi-Fi. Se versiona su .example.
+vendor/gateway_ap_l419/gateway_ap/gateway_ap.ino
 
 # Log de eventos del aula (footprint) generado al correr el servicio
 logs/

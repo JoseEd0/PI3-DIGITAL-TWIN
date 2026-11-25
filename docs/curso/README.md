@@ -25,6 +25,7 @@ y su formato está documentado en [../CONTRATO_DATOS.md](../CONTRATO_DATOS.md).
 | Razonamiento con Grafos dirigidos - SymCure ES-1.pptx | [symcure-grafos-dirigidos](texto/symcure-grafos-dirigidos.md) | **Especificación del motor causal:** lógicas OR, AND, N/M e IF, y propagación aguas arriba y aguas abajo. |
 | Razonamiento por Grafos de Causalidad.pdf | [grafos-de-causalidad](texto/grafos-de-causalidad.md) | Contexto de SymCure (Kapadia, 2003) para la bibliografía. |
 | PI3 - Proyecto.docx | [pi3-proyecto](texto/pi3-proyecto.md) | Pide eventos nominales y no nominales, footprint con log, simulación, objetos del aula y gestión en Asana. |
+| Guia_gateway_AP.docx (anuncio del 17/11/2026) | [guia-gateway-ap](texto/guia-gateway-ap.md) | **Gateway instalado en el aula** (`gateway_ap.ino`, de otro grupo del curso): red propia GEMELO-L419, API HTTP en 192.168.4.1 y formato de los mensajes. Sin la clave de la red. |
 | IP3 Asignación de Sensores y Procesador.pptx | [asignacion-sensores](texto/asignacion-sensores.md) | Asignación de cajas (**al Grupo 1 de la Sección 8 no le tocó ninguna**) y conteo con Hall + MLX90640. |
 | Caja de instrumentos y procesador.docx | [caja-instrumentos](texto/caja-instrumentos.md) | Requisitos de las cajas: apertura, energía, recarga con luz, encendido y apagado, impresión 3D. |
 | Ejemplos de temas EC2.docx | [ejemplos-ec2](texto/ejemplos-ec2.md) | Diagramas que se esperan en Gaphor: requisitos de cajas, BDD, actividades, estados y casos de uso. |
