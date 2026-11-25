@@ -57,9 +57,17 @@ quedan bien formados pero en otra línea, lo que no afecta a `MQ-2.ino`, porque 
 antes de usarla. Se comprobó compilando el mismo código como `.cpp`, sin prototipos generados, y
 salió el mismo binario: 897 464 B.
 
-Antes de flashear hay que cambiar `SSID_ROUTER` por la red donde está el Gateway, que solo se usa
-para hallar el canal, y verificar `MAC_GATEWAY`, que hoy tiene la del ESP32 v4 del docente, igual
-que sus nodos. El nodo no se conecta al Wi-Fi y no lleva claves.
+Desde el 25/11 el nodo está listo para el Gateway instalado en el aula (`gateway_ap.ino`, ver
+`vendor/gateway_ap_l419/`): `SSID_ROUTER = "GEMELO-L419"`, la red que crea ese Gateway y que solo
+se usa para hallar el canal, y `espnow_nodo.h` v2, el de los nodos del aula (potencia máxima, radio
+sin ahorro de energía y watchdog del loop: si el loop se traba más de 5 s, el ESP32 se reinicia).
+`MAC_GATEWAY` es la que la guía del Gateway da para su MAC STA (58:2A:BD:72:03:DC); si el Monitor
+Serie del Gateway muestra otra, se cambia aquí. El nodo no se conecta al Wi-Fi y no lleva claves.
+Compilado el 25/11/2026: 898 212 B de flash (68 %) y 45 960 B de RAM (14 %).
+
+En el Monitor Serie del MQ-2, la última columna (`envio_ok`) debe valer 1. Si vale 0, el Gateway no
+lo está recibiendo: revisar la MAC, que el Gateway esté encendido y la distancia (`espnow_nodo.h`
+imprime al arrancar la señal del Gateway en dBm).
 
 ### Sin probar en hardware
 

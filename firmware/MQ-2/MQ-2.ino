@@ -1,11 +1,13 @@
-// Nodo gas/humo (MQ-2) -> ESP-NOW -> Gateway ESP32 v4
+// Nodo gas/humo (MQ-2) -> ESP-NOW -> Gateway ESP32 (v4 MQTT del docente o v5 con red propia)
 // Índice Rs/R0 del aire del salón L-419 (nodo 3 de la arquitectura oficial del curso).
 //
 // Programa propio del Grupo 1 (PI3 2026-2, Sección 8). Sigue la estructura de los nodos del
 // docente (nodo_co2.ino, nodo_luz.ino y nodo_magnetico.ino de vendor/gemelo_iot_profesor/).
-// espnow_nodo.h y paquetes.h son del DOCENTE y se copiaron SIN CAMBIOS desde
-// vendor/gemelo_iot_profesor/nodo_co2/: Arduino necesita los .h junto al .ino.
-// El Gateway del docente ya decodifica PaqueteGas y publica en utec/gemelo/<grupo>/nodo3/gas.
+// paquetes.h es del DOCENTE (vendor/gemelo_iot_profesor/) y espnow_nodo.h es su versión v2, la de
+// los nodos instalados en el aula (vendor/gateway_ap_l419/, otro grupo del curso, 20/11/2026);
+// los dos se copiaron SIN CAMBIOS: Arduino necesita los .h junto al .ino.
+// Los dos Gateways decodifican PaqueteGas: el v4 publica en utec/gemelo/<grupo>/nodo3/gas y el v5
+// (gateway_ap.ino) lo guarda y lo sirve por HTTP; el puente del grupo lo lleva al mismo tópico.
 //
 // Estado: compila con arduino-cli (esp32:esp32:esp32). SIN PROBAR en hardware: los valores
 // eléctricos marcados como SUPUESTO se confirman al conectar el módulo (ver firmware/README.md).
@@ -20,7 +22,7 @@
 
 // ================= RED =================
 uint8_t MAC_GATEWAY[6] = {0x58, 0x2A, 0xBD, 0x72, 0x03, 0xDC}; // MAC STA del ESP32 v4 (la de los nodos del docente)
-const char*   SSID_ROUTER   = "TU_RED_WIFI";   // red del gateway (solo para hallar el canal)
+const char*   SSID_ROUTER   = "GEMELO-L419";   // red que crea gateway_ap.ino (solo para hallar el canal)
 const uint8_t CANAL_DEFECTO = 1;
 const uint8_t NODO_ID       = 3;
 
@@ -253,6 +255,7 @@ void setup() {
   Serial.println("ms,v_ao,rs_kohm,r0_kohm,rs_r0,do_alarma,calentando,anomalias,envio_ok");
 
   tArranque = tMuestra = tUltEnvio = millis();
+  nodoVigilanteIniciar();   // reinicio automático si el loop se traba > 5 s (espnow_nodo.h v2)
 }
 
 void loop() {
