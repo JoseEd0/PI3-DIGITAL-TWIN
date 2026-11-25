@@ -13,8 +13,16 @@ cp deploy/.env.example deploy/.env   # y poner claves propias (no las del docent
 
 ```bash
 deploy/levantar.sh            # stack del docente + servicio del grupo con el simulador
-deploy/levantar.sh grupoX     # leyendo el Gateway real del grupo indicado
+deploy/levantar.sh salon      # Gateway del aula (gateway_ap.ino, red GEMELO-L419) por el puente HTTP->MQTT
+deploy/levantar.sh ensayo     # lo mismo con el Gateway falso (datos simulados), para ensayar sin hardware
+deploy/levantar.sh grupoX     # Gateway MQTT (gateway.ino del docente) del grupo indicado
 ```
+
+Desde el 17/11/2026 el Gateway instalado en el L-419 es `gateway_ap.ino`, que no usa MQTT: crea su
+propia red Wi-Fi y sirve los datos por HTTP. En los modos `salon` y `ensayo`, `levantar.sh` arranca
+de fondo el puente (`python -m gemelo.puente_gateway`, log en `demo/servidor/logs/puente.log`), que
+los publica en Mosquitto con el formato oficial, y lo cierra junto con el servicio. El paso a paso
+para el aula está en [docs/07-prueba-en-el-salon.md](../docs/07-prueba-en-el-salon.md).
 
 El tablero queda en http://localhost:8000 (o `http://<ip-de-la-laptop>:8000` desde otra laptop
 de la red) y Grafana en http://localhost:3000, con los dos tableros del docente ya cargados

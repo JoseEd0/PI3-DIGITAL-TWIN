@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 import queue
+import threading
 import uuid
 from typing import Protocol
 
@@ -71,13 +72,18 @@ class ClienteMqtt:
     reconectándose cada segundo, perdiendo mensajes.
     """
 
-    def __init__(self, host: str, puerto: int, prefijo: str) -> None:
+    def __init__(self, host: str, puerto: int, prefijo: str,
+                 testamento: tuple[str, str] | None = None) -> None:
+        """`testamento` (tópico, carga) se publica retenido si el proceso se cae sin despedirse (LWT)."""
         import paho.mqtt.client as mqtt
 
         self._cola: queue.Queue[tuple[str, bytes]] = queue.Queue()
         self._patrones: list[str] = []
+        self._conectado = threading.Event()
         self.identificador = f"{prefijo}-{uuid.uuid4().hex[:8]}"
         self._cliente = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=self.identificador)
+        if testamento:
+            self._cliente.will_set(testamento[0], testamento[1], qos=0, retain=True)
         self._cliente.reconnect_delay_set(ESPERA_MINIMA_RECONEXION_S, ESPERA_MAXIMA_RECONEXION_S)
         self._cliente.on_connect = self._al_conectar
         self._cliente.on_message = lambda _c, _u, msg: self._cola.put((msg.topic, msg.payload))
@@ -93,9 +99,15 @@ class ClienteMqtt:
         log.info("MQTT conectado a %s:%s como %s", self.host, self.puerto, self.identificador)
         for patron in self._patrones:  # al reconectar hay que volver a suscribirse
             cliente.subscribe(patron, qos=0)
+        self._conectado.set()
 
     def _al_desconectar(self, _cliente, _datos, _banderas, codigo, _propiedades=None) -> None:
+        self._conectado.clear()
         log.warning("MQTT desconectado (%s); reintentando", codigo)
+
+    def esperar_conexion(self, segundos: float) -> bool:
+        """Con QoS 0, lo publicado antes de conectar se pierde; quien publica una sola vez espera aquí."""
+        return self._conectado.wait(segundos)
 
     def publicar(self, topico: str, carga: str, retenido: bool = False) -> None:
         self._cliente.publish(topico, carga, qos=0, retain=retenido)

@@ -174,6 +174,18 @@ class Fuente:
     influx_token: str | None
 
 
+@dataclass(frozen=True)
+class GatewayAP:
+    """El Gateway con red propia (gateway_ap.ino), que sirve sus datos por HTTP."""
+
+    url: str
+    grupo: str
+    periodo_s: float
+    espera_s: float
+    max_por_pedido: int
+    fallos_para_desconectado: int
+
+
 @lru_cache(maxsize=1)
 def cargar_aula() -> Aula:
     return Aula(leer_yaml(CARPETA_DE_CONFIGURACION / "aula_l419.yaml"))
@@ -209,3 +221,18 @@ def cargar_fuente() -> Fuente:
         influx_bucket=entorno("CAMPUSTWIN_INFLUX_BUCKET", base["influx_bucket"]),
         influx_token=entorno("INFLUX_TOKEN"),
     )
+
+
+def cargar_gateway_ap() -> GatewayAP:
+    try:
+        base = _nodos_crudo()["gateway_ap"]
+        return GatewayAP(
+            url=str(os.environ.get("CAMPUSTWIN_GATEWAY_URL") or base["url"]).rstrip("/"),
+            grupo=str(base["grupo"]),
+            periodo_s=float(base["periodo_s"]),
+            espera_s=float(base["espera_s"]),
+            max_por_pedido=int(base["max_por_pedido"]),
+            fallos_para_desconectado=int(base["fallos_para_desconectado"]),
+        )
+    except KeyError as error:
+        raise ConfiguracionInvalida(f"Falta la clave {error} en gateway_ap de config/nodos.yaml") from error

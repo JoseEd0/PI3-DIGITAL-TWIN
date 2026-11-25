@@ -23,3 +23,16 @@ fuente:
   influx_url: http://localhost:8086
   influx_org: utec
   influx_bucket: gemelo
+
+# Gateway con red propia (gateway_ap.ino v5, en el aula desde el 17/11/2026; ver
+# vendor/gateway_ap_l419/). No publica por MQTT: crea la red Wi-Fi GEMELO-L419 y sirve sus datos
+# por HTTP. El puente (python -m gemelo.puente_gateway) los pide y los publica en el Mosquitto de
+# la laptop con el tópico oficial, así Telegraf, InfluxDB, Grafana y el servicio no cambian.
+# La variable de entorno CAMPUSTWIN_GATEWAY_URL manda sobre `url`.
+gateway_ap:
+  url: http://192.168.4.1        # IP fija del Gateway en su propia red (o http://gemelo-gateway.local)
+  grupo: l419                    # grupo con que el puente publica los datos reales del aula
+  periodo_s: 2                   # la guía del Gateway recomienda consultar cada 2 s
+  espera_s: 4                    # tiempo máximo de cada pedido HTTP
+  max_por_pedido: 500            # mensajes por pedido a /api/datos
+  fallos_para_desconectado: 3    # pedidos fallidos seguidos antes de avisar "offline"
