@@ -29,6 +29,7 @@ propio: el nodo MQ-2.
 | [docs/02-instrumentacion-l419.md](docs/02-instrumentacion-l419.md) | Instrumentación oficial: los 7 nodos, el Gateway, la laptop y el hardware que compró el curso ([lista](docs/curso/texto/lista-de-compra.md)). El BOM propio de S/ 2808 queda al final como histórico |
 | [docs/03-plan.md](docs/03-plan.md) | Espejo local de Asana: 71 tareas con responsable, fecha y casilla |
 | [docs/04-demo.md](docs/04-demo.md) | La demo simulada de septiembre (arquitectura anterior) |
+| [docs/07-prueba-en-el-salon.md](docs/07-prueba-en-el-salon.md) | **Paso a paso para conectar el sistema al Gateway real del aula** (`gateway_ap.ino`, red GEMELO-L419) |
 | [modelo/README.md](modelo/README.md) | Modelo SysML en Gaphor: diagramas, exportación y regeneración |
 | [demo/README.md](demo/README.md) | Cómo levantar el simulador, el tablero y el modelo en vivo |
 | [vendor/README.md](vendor/README.md) | Código oficial del docente y sus reglas |
@@ -103,6 +104,10 @@ documentación, pruebas y reporte).
 
 ### Carpetas con reglas propias
 
+- **`vendor/gateway_ap_l419/`** es el Gateway instalado en el aula desde el 17/11 (`gateway_ap.ino`,
+  de otro grupo del curso): no usa MQTT, sirve los datos por HTTP en su red `GEMELO-L419`. Tampoco se
+  modifica, y `gateway_ap/gateway_ap.ino` (trae la clave de la red) está en `.gitignore`. El puente
+  `demo/servidor/gemelo/puente_gateway.py` lo conecta al stack (grupo `l419`, real).
 - **`vendor/gemelo_iot_profesor/`** es el código del docente y **no se modifica**. Lo que se adapte
   va en una carpeta propia y se cita como derivado. `servidor_iot/.env` y `gateway/gateway.ino`
   traen credenciales: están en `.gitignore` y se versionan sus `.example`. Nunca se copian

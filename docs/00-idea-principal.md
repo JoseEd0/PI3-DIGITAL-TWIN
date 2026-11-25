@@ -43,7 +43,12 @@ RA-08). Como el PZEM-004T no está en la arquitectura oficial, la energía se **
 
 El sistema está pensado para funcionar **sin internet y sin nube** (RNF-05). Hay una excepción
 conocida: el Gateway del docente toma la hora de `pool.ntp.org`, y sin hora Telegraf descarta los
-mensajes. Se resuelve con NTP local en la laptop (pendiente, S15).
+mensajes. Desde el 17/11/2026 el Gateway instalado en el aula es otro, `gateway_ap.ino` (de otro
+grupo del curso, [vendor/gateway_ap_l419/](../vendor/gateway_ap_l419/)): crea su propia red Wi-Fi,
+no usa MQTT y sirve los datos por HTTP. El puente del grupo (`gemelo.puente_gateway`, 25/11) los
+lleva al Mosquitto de la laptop con el formato oficial y le da al Gateway la hora de la laptop, lo
+que resuelve la hora sin NTP local. Probado con un Gateway falso (simulado); con el real, pendiente
+([07-prueba-en-el-salon.md](07-prueba-en-el-salon.md)).
 
 ## 2. Necesidad, problema, causas y solución
 
@@ -165,7 +170,7 @@ las que vienen de la arquitectura oficial.
 | Energía | Estimación por proxy, sin PZEM (D7) | El PZEM no está en la arquitectura oficial |
 | Programa propio | `MQ-2.ino`, nodo 3, con la estructura de `nodo_co2.ino` (D8) | Es el único nodo sin programa |
 | API, reglas y dashboard | Python (FastAPI) y React; el tablero se sirve en `0.0.0.0:8000` a cualquier laptop de la red | Una sola base de código; Cytoscape empaquetado, sin CDN, para funcionar sin internet |
-| Hora | En la demo de la EC3 la pone el simulador (D9). Antes de instalar en el L-419, **NTP local en la laptop** | Sin `ts`, Telegraf descarta el mensaje completo |
+| Hora | En la demo de la EC3 la pone el simulador (D9). Con el Gateway del aula (`gateway_ap.ino`, desde el 17/11), el puente del grupo le da la hora de la laptop por `/api/hora` | Sin `ts`, Telegraf descarta el mensaje completo |
 | Idempotencia y pérdidas | El Gateway cuenta las muestras perdidas por huecos en `seq` (`perdidos`); un `seq` que retrocede indica reinicio del nodo | Es lo que trae el firmware del docente; no hay buffer ni reenvío en el nodo |
 | Voz | PWA en el teléfono con activación por botón. Motor de voz por decidir en S16: STT y TTS locales en la laptop (faster-whisper y Piper) o la voz del navegador | La voz del navegador puede depender de la nube en Android, lo que choca con RNF-05 |
 | Firmware | Arduino IDE (`.ino`), nombrado con el código del sensor, como pide el anuncio del 02/11; credenciales fuera de git | `gateway.ino` y `servidor_iot/.env` del docente traen claves: se versionan sus `.example` |
@@ -276,8 +281,8 @@ nuevo, se agrega aquí antes de programarlo.
 
 | Situación | Comportamiento esperado | Cubierto por |
 |---|---|---|
-| El Gateway no tiene internet para NTP | `ts` sale `null` y Telegraf descarta el mensaje completo (comprobado el 10/11). En la EC3 la hora la pone el simulador; antes de instalar, NTP local en la laptop | RNF-05, RF-05 |
-| Se cae el Gateway | Mosquitto publica `offline` por LWT y todos los nodos dejan de llegar a la vez; el RA-10 diagnostica "Gateway" por la lógica N/M, no siete sensores rotos | RF-13, RA-10 |
+| El Gateway no tiene internet para NTP | `ts` sale `null` y Telegraf descarta el mensaje completo (comprobado el 10/11). En la EC3 la hora la pone el simulador; con el Gateway del aula, el puente le da la hora de la laptop | RNF-05, RF-05 |
+| Se cae el Gateway | Mosquitto publica `offline` por LWT y todos los nodos dejan de llegar a la vez; el RA-10 diagnostica "Gateway" por la lógica N/M, no siete sensores rotos. Con el Gateway del aula, que no usa MQTT, el `offline` lo publica el puente cuando el Gateway deja de responder | RF-13, RA-10 |
 | El router cambia de canal | Los nodos buscan el canal del Gateway por SSID al arrancar y otra vez tras 10 envíos fallidos seguidos (`espnow_nodo.h` del docente, re-escaneo de unos 2 s): mientras tanto se pierden muestras, que quedan como huecos en `seq`. El grafo del RA-10 lo sugiere como causa | RF-05, RA-10 |
 | Se llena la cola del Gateway (32 mensajes) | Se pierden mensajes y aparecen como huecos de `seq` en `perdidos` | RF-05, RF-13 |
 | Un nodo se reinicia | `seq` retrocede y `uptime_ms` vuelve a cero; se registra como reinicio, no como pérdida | RF-13 |
@@ -419,17 +424,18 @@ oficial (ver también [05-plan-cierre.md §8](05-plan-cierre.md#8-riesgos)).
 | 9 | La vigilancia es tercerizada y no se puede entrevistar ni probar con el vigilante | Medio: sin validación con el usuario real | Pedir permiso a Seguridad y al contratista; plan B: guion de vigilante ejecutado por un integrante en CP-04 |
 | 10 | Falla de hardware el día de la presentación | Alto: no hay demo | Simulador en el formato del Gateway, escenarios y video grabado (RF-11, CP-11) |
 | 11 | Pérdida de datos por corte de energía o disco de la laptop | Medio | Contenedores con arranque automático y respaldo diario de InfluxDB a USB (RNF-06); los nodos van a batería |
-| 12 | Hora incorrecta sin internet | **Alto**: sin `ts`, Telegraf descarta todos los datos (ver riesgo 15) | NTP local en la laptop (S15); en la EC3 la hora la pone el simulador |
+| 12 | Hora incorrecta sin internet | **Alto**: sin `ts`, Telegraf descarta todos los datos (ver riesgo 15) | El puente le da la hora de la laptop al Gateway del aula (25/11; pendiente de probar con el real); en la EC3 la hora la pone el simulador |
 | 13 | **Retirado.** Seguridad eléctrica al conectar el PZEM a 220 V | — | Ningún nodo se conecta a 220 V |
 | 14 | Sobrecarga académica del equipo en S14–S16 | Medio | Orden de recorte de [05-plan-cierre.md §3](05-plan-cierre.md#3-cronograma-hora-a-hora), un responsable por tarea y Asana al día |
 | 15 | Sin NTP, el Gateway envía `ts: null` y Telegraf descarta el mensaje completo | Alto en el L-419: no llega ningún dato a InfluxDB | Comprobado el 10/11. NTP local en la laptop, o `json_time_key` opcional en una configuración propia de Telegraf, sin tocar la del docente |
-| 16 | El Gateway se cae o pierde el Wi-Fi | Alto: el gemelo queda ciego | LWT `offline` detectado por RA-10 con lógica N/M; recomendación de reinicio; CP-03 |
+| 16 | El Gateway se cae o pierde el Wi-Fi | Alto: el gemelo queda ciego | LWT `offline` detectado por RA-10 con lógica N/M; recomendación de reinicio; CP-03. Con el Gateway del aula, el puente publica `offline` tras 3 pedidos sin respuesta |
 | 17 | Las 18650 no alcanzan una jornada (MH-Z1911A y MQ-2 con calefactor, MLX90640 e INMP441 muestreando sin parar, sin sueño profundo) | Medio: nodos que caen de noche y huecos en RF-10 | Análisis de energía de las cajas (E2): regulador LDO o elevador con TP4056, y USB para los nodos que más consumen; RA-10 distingue batería de Gateway |
 | 18 | El programa MQ-2 no está listo o no se prueba en hardware | Alto para la nota: el `.ino` propio es obligatorio | `MQ-2.ino` con la estructura de `nodo_co2.ino`, que compile con `arduino-cli`; si no hay hardware, se declara "compila, sin probar" |
 | 19 | El docente no acepta el consumo fantasma por proxy o el MQ-2 como programa propio | Medio | Preguntado al docente ([05-plan-cierre.md §6](05-plan-cierre.md#6-lo-que-falta-saber-preguntas-concretas)); si integra el PZEM, cambia solo la fuente de RF-01 |
-| 20 | No se coordina con S1 G1 el `GRUPO` y la IP del Gateway real | Medio: no llegan datos reales al servicio del grupo | Basta cambiar `grupo` en `config/nodos.yaml`; suscribirse al Mosquitto de S1 G1 o que publique también en el nuestro |
+| 20 | No se coordina con S1 G1 el `GRUPO` y la IP del Gateway real | Medio: no llegan datos reales al servicio del grupo | Basta cambiar `grupo` en `config/nodos.yaml`; suscribirse al Mosquitto de S1 G1 o que publique también en el nuestro. Con el Gateway del aula (`gateway_ap.ino`) ya no hace falta: el grupo lee su API HTTP en `192.168.4.1` y publica como `l419` |
 | 21 | Los datos del aula (aforo, inventario, horario, tarifa) no llegan | Medio: estimaciones con supuestos | Valores `supuesto: true` en `config/aula_l419.yaml`, declarados en el dashboard y en el reporte |
 | 22 | El reporte presenta como reales resultados simulados | Alto: honestidad académica | Rótulo real, simulado o pendiente en cada afirmación; hoy no hay ninguna medición real |
+| 23 | El Gateway del aula cambia de formato o de red (`gateway_ap.ino`, 17/11) | Alto: no llega nada por MQTT | Puente HTTP→MQTT del grupo con el formato oficial; `paquetes.h` sigue igual. Se compara cada versión nueva contra `vendor/gateway_ap_l419/` |
 
 ## 12. Plan de trabajo
 

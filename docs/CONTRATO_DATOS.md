@@ -21,6 +21,9 @@ Mosquitto :1883 ──► Telegraf ──► InfluxDB 2.7 :8086 (org utec, bucke
   `'json_time_key' could not be found` y no llega nada a InfluxDB. Es decir, sin NTP no se pierde
   solo la hora, se pierden todos los datos. Esto choca con RNF-05 (operación sin internet). Las
   salidas posibles son un servidor NTP en la laptop o un `json_time_key` opcional en Telegraf.
+- **Desde el 17/11/2026 el Gateway del aula es otro** (`gateway_ap.ino`, §10): crea su propia red,
+  no usa MQTT y sirve los mensajes por HTTP. El puente del grupo los lleva a este mismo flujo y le
+  da la hora al Gateway.
 
 ## 2. Nodos
 
@@ -172,5 +175,70 @@ Grupos de datos:
 - `sim`: el simulador;
 - `rep`: la reproducción de una grabación (`gemelo/grabacion.py`), con el `ts` original. El campo
   `origen` dice "reproducido (simulado)" o "reproducido (real)";
-- el que use el Gateway real.
+- `l419`: los datos reales del aula, que el puente trae del Gateway con red propia (§10);
+- el que use un Gateway MQTT real (`gateway.ino` del docente).
+
+## 10. Gateway con red propia (`gateway_ap.ino`, en el aula desde el 17/11/2026)
+
+> Fuente: [vendor/gateway_ap_l419/](../vendor/gateway_ap_l419/), adaptado por otro grupo del curso
+> (repositorio `josecarita/Gemelo-digital-L419-Gateway`, commit `67cccfe`), y su
+> [guía](curso/texto/guia-gateway-ap.md). Leído el 24/11/2026.
+
+Es el Gateway que está instalado en el L-419. **No usa MQTT.** El flujo queda así:
+
+```
+Nodo ESP32 ──ESP-NOW──► Gateway v5 (red Wi-Fi propia GEMELO-L419, flash) ──HTTP──► laptop
+  laptop: puente del grupo ──MQTT──► Mosquitto ──► Telegraf ──► InfluxDB ──► Grafana
+                                          └──► servicio del grupo ──► tablero y Gaphor en vivo
+```
+
+- **Red:** el Gateway crea la red `GEMELO-L419` en el canal 1 (la clave está en la guía original y
+  en `gateway_ap.ino`, que no se versiona). Su IP es `192.168.4.1`, también
+  `http://gemelo-gateway.local`. La laptop que se conecta se queda sin internet mientras esté ahí.
+- **Nodos:** buscan esa red para hallar el canal (`SSID_ROUTER = "GEMELO-L419"`) y envían a la MAC
+  STA del Gateway, `58:2A:BD:72:03:DC` según la guía.
+- **Paquetes:** `paquetes.h` es idéntico al del docente, `PROTO_VERSION 1`.
+- **Almacenamiento:** cada mensaje se guarda en la flash (dos archivos de 600 KB que rotan, unos
+  1,2 MB en total) con un `id` correlativo que sobrevive a los reinicios.
+
+**API HTTP** (todas con `Access-Control-Allow-Origin: *`):
+
+| Ruta | Devuelve |
+|---|---|
+| `/api/estado` | `gw_ms`, `ts` (0 sin hora), `hora_ok`, `id_ultimo`, uso de la flash, `descartados`, motivo del último reinicio, `laptops` conectadas y `modo` (`AP` o `STA`) |
+| `/api/ultimos` | Una entrada por nodo: `{"nodo","tipo","hace_s","anomalias","msg":{…mensaje completo…}}`. `hace_s` = −1 si el dato es de antes del último reinicio |
+| `/api/datos?desde=<id>&max=<n>` | Los mensajes guardados con `id > desde`, uno por línea (JSONL), como mucho `n` (2000 por defecto) |
+| `/api/hora?epoch_ms=<ms>` | Le da al Gateway la hora de la laptop; sin internet no tiene NTP |
+| `/api/borrar?confirmar=si` | Borra lo guardado |
+
+**Mensaje:** el mismo JSON de §5, con dos campos más: `id` (primero) y `gw_ms` (el reloj interno
+del Gateway al recibir, justo después de `ts`). Ejemplo de la guía:
+
+```json
+{"id":15,"nodo":1,"mac":"24:6F:28:AB:12:01","seq":2,"ts":1794950267527,"gw_ms":10024,
+ "uptime_ms":13024,"perdidos":0,"tipo":"co2","co2_ppm":845,"delta_30s":12,"temp_c":24,
+ "calentando":0,"nivel":"NORMAL","anomalias":"NINGUNA","anom_bits":0}
+```
+
+`ts` sigue siendo `null` mientras nadie le dé la hora al Gateway. No hay `gateway/estado` ni LWT:
+que el Gateway esté caído se sabe porque deja de responder.
+
+### El puente del grupo
+
+`demo/servidor/gemelo/puente_gateway.py` conecta este Gateway con el resto del sistema sin cambiar
+nada de lo demás. La configuración está en `gateway_ap` de `config/nodos.yaml`. Cada 2 s:
+
+1. pide `/api/estado`; si `hora_ok` es falso, le da la hora de la laptop con `/api/hora`. Esto
+   resuelve el problema de `ts: null` de §1 sin NTP local;
+2. pide `/api/datos?desde=<último id publicado>` y publica cada mensaje en
+   `utec/gemelo/l419/nodo<id>/<tipo>` **sin `id` ni `gw_ms`**, es decir, exactamente el formato de §5.
+   Si algún mensaje llega con `ts` nulo, su hora se estima con `gw_ms` y la última hora del Gateway;
+3. publica `online` u `offline` retenido en `utec/gemelo/l419/gateway/estado` según si el Gateway
+   responde (`offline` tras 3 pedidos fallidos seguidos), y deja `offline` como testamento (LWT)
+   por si el puente se cae. Así RA-10 sigue distinguiendo "Gateway caído" de "nodo caído".
+
+Por defecto el puente empieza por lo que llega desde que arranca; `--desde 0` reenvía todo lo que el
+Gateway tenga guardado. El grupo `l419` es distinto de `sim`, así que el servicio y el tablero lo
+rotulan como **real**. Se ensaya con `gemelo/gateway_falso.py`, que imita esta API con datos del
+simulador y publica en el grupo `sim` (ver [07-prueba-en-el-salon.md](07-prueba-en-el-salon.md)).
 
