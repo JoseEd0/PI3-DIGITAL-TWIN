@@ -10,6 +10,11 @@ causal, el tablero propio, el log de eventos, el gemelo en Gaphor y el copiloto 
 > septiembre y usa la arquitectura anterior, con una Raspberry Pi y sensores propios. Se está
 > migrando al formato del Gateway ([docs/CONTRATO_DATOS.md](docs/CONTRATO_DATOS.md)).
 
+> **¿Vas al salón a probar con los sensores reales?** Sigue
+> [docs/07-prueba-en-el-salon.md](docs/07-prueba-en-el-salon.md): cubre desde clonar el repositorio
+> en tu laptop hasta qué comprobar en el aula. El Gateway del L-419 es, desde el 17/11, uno con red
+> Wi-Fi propia (`GEMELO-L419`) que no usa MQTT; el puente del grupo lo conecta a todo el sistema.
+
 Proyecto del curso PI3. Este repositorio guarda todo: idea, requisitos,
 instrumentación costeada, modelo SysML, plan y código.
 
